@@ -17,8 +17,8 @@ These hold for both directories unless a row says otherwise.
 | Requirement                                               | How it is met                                                                                                                                                                                                     |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tool names at most 64 characters                          | 203 tools, longest is 48                                                                                                                                                                                          |
-| Every tool carries a `title`                              | `check-registry.ts` fails a build on a missing or machine-shaped title                                                                                                                                            |
-| `readOnlyHint` / `destructiveHint` where they apply       | `src/annotations.ts` derives both from the route's method and its confirm gate, and sets `openWorldHint` from the catalog                                                                                         |
+| Every tool carries a `title`                              | `check-registry.ts` rejects missing or machine-shaped operation titles; the protocol test checks every title in `tools/list`                                                                                      |
+| Safety hints on every tool                                | `src/annotations.ts` derives the hints from the route and catalog; the protocol test checks their presence, read-only consistency, and representative outside-world actions                                       |
 | Real-world side effects wait for the user                 | 28 operations and 5 task tools reject a call without `confirm: true`. See [security.md](./security.md#confirmation-gate-for-destructive-tools)                                                                    |
 | Server instructions                                       | `LUCA_SERVER_INSTRUCTIONS` in `src/server.ts` names the starting tools, the confirm rule, and that lead-authored text is untrusted                                                                                |
 | Server name, title, website, and icons                    | `LUCA_SERVER_INFO` in `src/server.ts` carries the title, `https://setluca.com`, and SVG and 512px PNG icons. The server card at `/.well-known/mcp/server-card.json` repeats them                                  |
@@ -87,5 +87,5 @@ own, and an incomplete test account is the one Anthropic calls out by name.
   reads destructive on its own, and `test/operations.test.ts` fails if one does
   not. A new POST that reaches a real lead does not. It needs `confirmRequired`
   on its catalog entry, and that is what makes it destructive.
-- **A new tool inherits the whole checklist.** CI gates the name length, the
-  title, and the description. Nothing else in the table above is gated.
+- **A new tool inherits the whole checklist.** CI gates the name length, title,
+  description, and all four safety hints on the published `tools/list` shape.
