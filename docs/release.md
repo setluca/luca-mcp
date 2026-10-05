@@ -19,29 +19,27 @@ manages Luca's other services but is not needed for this stateless Worker.
 
 ## Repository setup
 
-Before the first tag from `setluca/luca-mcp`:
+The [0.3.0 release](https://github.com/setluca/luca-mcp/actions/runs/37316310753)
+on October 5, 2026, proved this release path:
 
-1. npm has a Trusted Publisher connection for `@setluca/mcp` with GitHub
-   organization `setluca`, repository `luca-mcp`, workflow `publish-mcp.yml`,
-   environment `production`, and permission to run `npm publish`. This was
-   added on October 5, 2026. The old `setluca/luca` connection remains until
-   the first release from this repository succeeds. Confirm these settings
-   before tagging if they have changed.
-2. Keep the `production` environment in this GitHub repository configured with
-   `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` environment secrets. The
-   token must be able to update the existing `setluca-mcp` Worker and its
-   `mcp.setluca.com` route. Configure environment reviewers if releases need a
-   second approval beyond the release pull request.
-3. Confirm this repo's Actions can publish `io.github.setluca/luca-mcp` through
-   GitHub OIDC. `mcp-publisher` proves ownership from the `setluca` repository
-   owner, while the registry verifies the published npm package's `mcpName`.
-4. Disable the `Publish MCP` workflow in `setluca/luca` after this repository's
-   first successful release. A tag in either repo otherwise has a release path.
+- npm's Trusted Publisher for `@setluca/mcp` points to `setluca/luca-mcp`,
+  workflow `publish-mcp.yml`, environment `production`, with `npm publish`
+  allowed. The old `setluca/luca` publisher connection was removed after the
+  release succeeded.
+- This repository's GitHub `production` environment has
+  `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` secrets. They deployed the
+  existing `setluca-mcp` Worker at `mcp.setluca.com` successfully. Configure
+  environment reviewers if releases need a second approval beyond the release
+  pull request.
+- GitHub Actions published `io.github.setluca/luca-mcp` to the MCP registry
+  through GitHub OIDC. The registry checked ownership and the npm package's
+  `mcpName`.
+- The old `Publish MCP` workflow in `setluca/luca` is disabled. Keep it off
+  while this repository owns the release.
 
-The GitHub environment and npm settings are external to this repository.
-The secret names and npm connection were checked on October 5, 2026. Local
-verification cannot check the Cloudflare token's value or prove that the npm
-connection can publish. The first release job must establish both.
+These settings live outside this repository and may change. Check them before
+future releases. The workflow is the final test of publishing and deployment
+access; local checks cannot read the GitHub environment secrets.
 
 ## Cut a version
 
