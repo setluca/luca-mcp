@@ -21,9 +21,12 @@ manages Luca's other services but is not needed for this stateless Worker.
 
 Before the first tag from `setluca/luca-mcp`:
 
-1. In npm, change the Trusted Publisher for `@setluca/mcp` to GitHub
+1. npm has a Trusted Publisher connection for `@setluca/mcp` with GitHub
    organization `setluca`, repository `luca-mcp`, workflow `publish-mcp.yml`,
-   environment `production`. The old publisher points at `setluca/luca`.
+   environment `production`, and permission to run `npm publish`. This was
+   added on October 5, 2026. The old `setluca/luca` connection remains until
+   the first release from this repository succeeds. Confirm these settings
+   before tagging if they have changed.
 2. Keep the `production` environment in this GitHub repository configured with
    `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` environment secrets. The
    token must be able to update the existing `setluca-mcp` Worker and its
@@ -36,7 +39,9 @@ Before the first tag from `setluca/luca-mcp`:
    first successful release. A tag in either repo otherwise has a release path.
 
 The GitHub environment and npm settings are external to this repository.
-Local verification cannot prove that they are configured.
+The secret names and npm connection were checked on October 5, 2026. Local
+verification cannot check the Cloudflare token's value or prove that the npm
+connection can publish. The first release job must establish both.
 
 ## Cut a version
 
@@ -52,8 +57,8 @@ Local verification cannot prove that they are configured.
    same Luca commit. `contracts/source.json` records their hashes, and `verify`
    requires the commit and OpenAPI document to match Luca production.
 3. Run `bun run verify`, `bun run deploy:dry-run`, and `npm pack --dry-run`.
-   The npm tarball should contain
-   only `dist/`, `README.md`, and `CHANGELOG.md`.
+   The npm tarball should contain the built `dist/` files, `README.md`,
+   `CHANGELOG.md`, `LICENSE`, and `package.json`.
 4. Merge the release pull request after `Verify MCP` passes. Tag the resulting
    commit on `main` as `mcp-vX.Y.Z`, matching `package.json`, and push the tag.
 

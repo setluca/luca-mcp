@@ -2,7 +2,7 @@
   "name": "@setluca/mcp",
   "version": "0.3.0",
   "private": false,
-  "description": "MCP server for Luca, the DM sales platform for coaches, creators, and experts.",
+  "description": "Let your AI assistant help with Luca conversations, leads, replies, campaigns, and bookings.",
   "keywords": [
     "ai",
     "luca",
@@ -10,6 +10,10 @@
     "model-context-protocol"
   ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/setluca/luca-mcp.git"
+  },
   "bin": {
     "luca-mcp": "dist/index.js"
   },

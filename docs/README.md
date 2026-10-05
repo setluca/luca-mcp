@@ -11,6 +11,7 @@ short checklist for agents working in this repository.
 | Try a tool or debug the protocol        | [Examples](./examples.md), [MCP Inspector](./inspector.md), [Errors](./errors.md)               |
 | Find a tool, prompt, resource, or scope | [Tools](./tools.md), [Prompts and resources](./prompts-and-resources.md), [Scopes](./scopes.md) |
 | Understand paging and tool counts       | [Pagination and tool count](./pagination-and-tool-count.md)                                     |
+| Understand what data is shared          | [Privacy](./privacy.md), [Security boundary](./security.md)                                     |
 
 ## Change the server
 
