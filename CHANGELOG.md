@@ -10,7 +10,12 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
-## [0.3.0] - 2026-10-02
+## [0.3.0] - 2026-10-05
+
+This is the first Luca MCP release from its own repository. The package and
+hosted connection now share a release path, with checks against the Luca API
+currently in production. The README starts with what people can do in Luca;
+setup and development details live in the guides.
 
 ### Breaking
 
