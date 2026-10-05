@@ -12,25 +12,30 @@ const contracts = {
 } as const;
 
 const args = process.argv.slice(2);
+
 const repoIndex = args.indexOf("--repo");
+
 const refIndex = args.indexOf("--ref");
+
+const repoArgument = repoIndex === -1 ? undefined : args[repoIndex + 1];
+
+const refArgument = refIndex === -1 ? undefined : args[refIndex + 1];
+
 const write = args.includes("--write");
+
 const check = args.includes("--check");
 
-if (
-  repoIndex < 0 ||
-  !args[repoIndex + 1] ||
-  write === check ||
-  (refIndex >= 0 && !args[refIndex + 1])
-) {
+if (!repoArgument || write === check || (refIndex !== -1 && !refArgument)) {
   console.error(
     "Usage: bun run contracts:sync --repo /path/to/luca [--ref origin/master] --check|--write"
   );
   process.exit(2);
 }
 
-const repo = resolve(args[repoIndex + 1]!);
-const ref = refIndex >= 0 ? args[refIndex + 1]! : "HEAD";
+const repo = resolve(repoArgument);
+
+const ref = refArgument ?? "HEAD";
+
 const root = resolve(import.meta.dirname, "..");
 
 function git(...gitArgs: string[]): Buffer {
@@ -40,6 +45,7 @@ function git(...gitArgs: string[]): Buffer {
 }
 
 const commit = git("rev-parse", `${ref}^{commit}`).toString().trim();
+
 const files: Record<string, Buffer> = {};
 
 for (const [destination, source] of Object.entries(contracts)) {
@@ -52,9 +58,11 @@ files["source.json"] = Buffer.from(
 
 const stale = Object.entries(files).filter(([name, content]) => {
   const target = resolve(root, "contracts", name);
+
   if (write) {
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, content);
+
     return false;
   }
 
@@ -66,7 +74,9 @@ const stale = Object.entries(files).filter(([name, content]) => {
 });
 
 if (stale.length > 0) {
-  console.error(`Stale Luca contracts: ${stale.map(([name]) => name).join(", ")}`);
+  console.error(
+    `Stale Luca contracts: ${stale.map(([name]) => name).join(", ")}`
+  );
   process.exit(1);
 }
 

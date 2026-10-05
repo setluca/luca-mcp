@@ -1,6 +1,11 @@
 # MCP OAuth 2.1 authorization server design
 
-Current migration: [Better Auth 1.7 rollout](better-auth-1.7.md). It supersedes
+This is the original OAuth design from Luca. Its implementation notes and
+rollout steps describe the 2026-07-09 plan; current MCP transport behavior is
+documented in [Remote transport](../remote.md). The authorization server still
+lives in `setluca/luca`.
+
+Current migration: [Better Auth 1.7 rollout](https://github.com/setluca/luca/blob/master/docs/runbooks/better-auth-1.7.md). It supersedes
 the 1.6 package versions, forced-public registration behavior, audience options,
 and plugin table inventory described in the original design below.
 
@@ -13,7 +18,7 @@ The D3 _invariants_ still hold; only the implementation changed.
 
 ## 1. Context and goal
 
-`apps/mcp` ships a remote Streamable HTTP transport (`src/remote.ts`) behind a
+This repository ships a remote Streamable HTTP transport (`src/remote.ts`) behind a
 `TokenResolver` seam. Today the only resolver is `apiKeyResolver` (the bearer
 token _is_ a Luca developer API key). Hosted MCP clients — Claude connectors,
 ChatGPT apps, Cursor — require OAuth 2.1 with discovery and dynamic client
@@ -89,7 +94,7 @@ Three components, each inside an existing boundary:
 MCP client (Claude/Cursor/ChatGPT)
    │  Bearer <access token>
    ▼
-mcp.setluca.com  (apps/mcp remote Worker — thin client, no DB)
+mcp.setluca.com  (luca-mcp remote Worker — thin client, no DB)
    │  serves /.well-known/oauth-protected-resource (static JSON) → points at AS
    │  oauthResolver: token → one authenticated call to apps/api → vended key
    ▼
@@ -403,7 +408,7 @@ resource_metadata="https://mcp.setluca.com/.well-known/oauth-protected-resource"
    (including §11.3's client-probing question).
 4. Security review (ADR-0006-mandated, external gate): §7 + §12 are the
    checklist skeleton; produce the threat model alongside implementation.
-5. Prod enable; publish connection docs (`apps/mcp/docs/remote.md` update);
+5. Prod enable; publish connection docs (`docs/remote.md` update);
    update ADR 0006 (D3 implementation = `@better-auth/oauth-provider`;
    status → fully accepted).
 6. Hand off to AS16 (install page), AS17 (Claude directory), AS20 (ChatGPT),

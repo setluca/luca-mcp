@@ -1,4 +1,3 @@
-import { decodeUnknownJson } from "./json.ts";
 import {
   ProtocolError,
   ResourceNotFoundError,
@@ -22,6 +21,7 @@ import {
   prettyJsonText,
   sorted,
 } from "./helpers.ts";
+import { decodeUnknownJson } from "./json.ts";
 
 type BookingPageFixture = {
   bookings: number[];

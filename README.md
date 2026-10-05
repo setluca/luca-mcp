@@ -321,7 +321,9 @@ The deep technical material lives in [docs/](./docs):
 Released versions are in [CHANGELOG.md](./CHANGELOG.md).
 
 From this repo's root, `bun run verify` runs the full local gate:
-docs and schema drift, typecheck, tests, build, and the stdio smoke test.
+formatting, anti-slop and Effect lint rules, dead-code and health checks,
+docs and schema drift, typecheck, tests with coverage thresholds, build,
+and the stdio smoke test.
 The Luca API contracts used by generation live in `contracts/`.
 [Development](./docs/development.md) explains how to refresh them from Luca.
 

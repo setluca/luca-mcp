@@ -5,14 +5,14 @@ import * as Path from "effect/Path";
 
 import { exitWith, type ScriptMode } from "./script.ts";
 
-/** A path under `apps/mcp`, resolved from this file's directory. */
+/** A path under this repository, resolved from this file's directory. */
 export function packagePath(relativePath: string) {
   return Effect.map(Path.Path, (path) =>
     path.resolve(import.meta.dirname, "../..", relativePath)
   );
 }
 
-/** Writes `content` to `apps/mcp/<relativePath>`, creating its directory. */
+/** Writes `content` under this repository, creating its directory. */
 export function writeGenerated(relativePath: string, content: string) {
   return Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
@@ -26,7 +26,7 @@ export function writeGenerated(relativePath: string, content: string) {
 }
 
 /**
- * The current contents of `apps/mcp/<relativePath>`, or "" when the file does
+ * The current contents of a repository-relative path, or "" when the file does
  * not exist yet. Any other read failure still fails, so a permission or I/O
  * error is not reported as a stale file.
  */

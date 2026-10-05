@@ -1,4 +1,3 @@
-import { encodeUnknownJson } from "./json.ts";
 import * as Arr from "effect/Array";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
@@ -17,6 +16,7 @@ import {
 import { createLucaApi } from "../src/http.ts";
 import { LUCA_OPERATIONS } from "../src/operations.ts";
 import { mayRetry, type RetryPolicy } from "../src/resilience.ts";
+import { encodeUnknownJson } from "./json.ts";
 
 function getOperation(id: string) {
   const operation = LUCA_OPERATIONS.find((item) => item.id === id);

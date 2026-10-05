@@ -12,10 +12,7 @@ import {
   LucaNetworkError,
   type LucaError,
 } from "../src/errors.ts";
-import {
-  MESSAGING_CHANNELS,
-  WORKSPACE_INPUT_FIELDS,
-} from "../src/fields.ts";
+import { MESSAGING_CHANNELS, WORKSPACE_INPUT_FIELDS } from "../src/fields.ts";
 import { OPENAPI_INPUT_SPECS } from "../src/generated/openapi-input-specs.ts";
 import { LucaApi, type LucaRequest } from "../src/http.ts";
 import type { ToolField } from "../src/openapi-schema.ts";

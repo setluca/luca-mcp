@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "scripts/check-deployed-worker.ts",
+    "vitest.stryker.config.ts",
+    "oxfmt.config.ts"
+  ],
+  "ignorePatterns": [
+    "contracts/**",
+    "src/generated/**",
+    "tools/oxlint/anti-slop/**"
+  ],
+  "ignoreDependencies": ["@oxlint/plugins", "wrangler"]
+}

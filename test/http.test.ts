@@ -1,4 +1,3 @@
-import { encodeUnknownJson } from "./json.ts";
 // oxlint-disable effect/use-clock-service -- the request reads the live clock, so Retry-After dates are built from it
 import * as Effect from "effect/Effect";
 import * as Redacted from "effect/Redacted";
@@ -14,6 +13,7 @@ import {
 import { LucaApi, LucaApiLive, createLucaApi } from "../src/http.ts";
 import { LUCA_OPERATIONS } from "../src/operations.ts";
 import { LUCA_MCP_USER_AGENT } from "../src/version.ts";
+import { encodeUnknownJson } from "./json.ts";
 
 function getOperation(id: string) {
   const operation = LUCA_OPERATIONS.find((item) => item.id === id);

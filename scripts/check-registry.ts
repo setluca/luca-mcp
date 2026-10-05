@@ -287,7 +287,7 @@ export function checkOperationTitles(
   return errors;
 }
 
-/** Reads `apps/mcp/<relativePath>` and decodes it as JSON shaped by `schema`. */
+/** Reads a repository-relative path and decodes it as JSON shaped by `schema`. */
 function readJsonFile<S extends Schema.Top>(relativePath: string, schema: S) {
   return Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;

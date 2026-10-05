@@ -18,7 +18,7 @@ function operationKey(method: string, path: string) {
 
 /** One file a codegen script writes, or in check mode compares. */
 export type GeneratedFile<Value> = {
-  /** Relative to `apps/mcp`. */
+  /** Relative to the repository root. */
   readonly target: string;
   readonly render: (record: Record<string, Value>) => string;
 };

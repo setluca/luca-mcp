@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/remote.ts!",
+    "scripts/**/*.ts!",
+    "test/**/*.ts!",
+    "vitest.stryker.config.ts!"
+  ],
+  "project": ["src/**/*.ts!", "scripts/**/*.ts!", "test/**/*.ts!"],
+  "ignoreExportsUsedInFile": { "interface": true, "type": true }
+}
