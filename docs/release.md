@@ -45,11 +45,12 @@ Local verification cannot prove that they are configured.
    Move the `Unreleased` entries in
    `CHANGELOG.md` under the new version and date. Use a patch bump for a fix,
    minor for additive tools or fields, and major for a breaking tool contract.
-2. Refresh `contracts/` from the Luca commit the MCP should target. Run
-   `bun run contracts:sync --repo /path/to/luca --ref origin/master --write`,
+2. Refresh `contracts/` from the Luca commit currently deployed. Run
+   `bun run contracts:sync --repo /path/to/luca --deployed --write`,
    then `bun run openapi:generate` and `bun run docs:generate`. Review the
    generated diff. The API allowlist and OpenAPI snapshot must come from the
-   same Luca commit.
+   same Luca commit. `contracts/source.json` records their hashes, and `verify`
+   requires the commit and OpenAPI document to match Luca production.
 3. Run `bun run verify`, `bun run deploy:dry-run`, and `npm pack --dry-run`.
    The npm tarball should contain
    only `dist/`, `README.md`, and `CHANGELOG.md`.

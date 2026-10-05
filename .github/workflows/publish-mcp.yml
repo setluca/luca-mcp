@@ -76,6 +76,8 @@ jobs:
           bun-version-file: .bun-version
           no-cache: true
       - run: bun install --frozen-lockfile
+      - name: Confirm Luca production still matches the release pin
+        run: bun run contracts:deployed:check
       - run: bun run deploy
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

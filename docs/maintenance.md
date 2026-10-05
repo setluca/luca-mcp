@@ -7,6 +7,33 @@ identity changes.
 
 The server depends on Luca's public API contract.
 
+`contracts/source.json` pins the exact commit reported by Luca production's
+`/health` endpoint and records a digest for each copied contract file. CI and
+the daily drift check compare that commit and the OpenAPI snapshot with the
+deployed API, then check the local digests. The live OpenAPI and snapshot are
+compared as JSON because their formatting differs. A Luca release can change
+production without changing `master` at the same moment, and a rollback can
+move it back.
+To refresh after a deployed release or rollback, use a local Luca checkout:
+
+```bash
+bun run contracts:sync --repo /path/to/luca --deployed --write
+bun run openapi:generate
+bun run docs:generate
+bun run verify
+```
+
+`--ref SHA` is available for preparing a future contract change, but the
+release gate will pass only when the resulting pin matches production.
+
+To verify every snapshot against the private Luca source tree as well, run
+`bun run contracts:sync --repo /path/to/luca --deployed --check` with a local
+Luca checkout. The GitHub check uses the deployed API and recorded digests;
+the Luca repository does not permit read-only deploy keys for cross-repository
+checkout.
+
+The operation coverage check also works against the pinned snapshot:
+
 ```bash
 bun run openapi:check
 ```
@@ -94,9 +121,10 @@ client's responses are unchanged.
 When an `apps/api` change touches a public route:
 
 1. `bun --cwd apps/api run openapi:snapshot`
-2. Commit the Luca API change, then run
-   `bun run contracts:sync --repo /path/to/luca --ref origin/master --write`
-   here. Use the source commit's ref when it is not yet on `origin/master`.
+2. After the Luca release deploys, run
+   `bun run contracts:sync --repo /path/to/luca --deployed --write` here.
+   Use `--ref SHA` to prepare an MCP change before Luca deploys, then refresh
+   from production before merging or releasing it.
 3. Run `bun run openapi:generate` and `bun run docs:generate` here.
 4. Commit the contract snapshots and regenerated MCP files together in this repo.
 5. Add a `CHANGELOG.md` entry under `Unreleased` for anything a client can see.
