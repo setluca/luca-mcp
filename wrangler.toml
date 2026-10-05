@@ -1,0 +1,85 @@
+# Remote MCP transport Worker (setluca-mcp). The stdio npm package is built
+# separately (tsconfig.build.json excludes src/worker.ts); wrangler bundles
+# the Worker straight from src. The deploy credentials are kept in the GitHub
+# production environment and sourced from Infisical, never committed here.
+#
+# The top level is the local `wrangler dev` config and points at a local API.
+# It uses its own Worker name so a deploy without `--env production` cannot
+# replace the production Worker with a localhost build.
+name = "setluca-mcp-dev"
+main = "src/worker.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+# Bound the bearer/OAuth resolution path before it can build a per-request
+# MCP server. MCP_AUTH_RATE_LIMIT is charged per bearer token,
+# MCP_TOKEN_ADDRESS_RATE_LIMIT per client address for requests with one (so
+# rotating garbage tokens still hits a limit), and MCP_ANONYMOUS_RATE_LIMIT per
+# client address for requests without one. The in-memory fallback in
+# rate-limit.ts keeps non-Worker runtimes safe; these bindings make the limits
+# shared across isolates, and production refuses to run without all three.
+# Namespace ids are account-wide, so each environment uses its own.
+[[ratelimits]]
+name = "MCP_AUTH_RATE_LIMIT"
+namespace_id = "2001"
+[ratelimits.simple]
+limit = 60
+period = 60
+
+[[ratelimits]]
+name = "MCP_TOKEN_ADDRESS_RATE_LIMIT"
+namespace_id = "2002"
+[ratelimits.simple]
+limit = 600
+period = 60
+
+[[ratelimits]]
+name = "MCP_ANONYMOUS_RATE_LIMIT"
+namespace_id = "2003"
+[ratelimits.simple]
+limit = 600
+period = 60
+
+[vars]
+LUCA_API_BASE_URL = "http://localhost:8787"
+LUCA_TOOLSET = "full"
+
+[env.production]
+name = "setluca-mcp"
+
+[env.production.vars]
+NODE_ENV = "production"
+LUCA_API_BASE_URL = "https://api.setluca.com"
+MCP_PUBLIC_ORIGIN = "https://mcp.setluca.com"
+LUCA_TOOLSET = "full"
+
+[[env.production.routes]]
+pattern = "mcp.setluca.com"
+custom_domain = true
+
+[env.production.observability]
+enabled = true
+
+[[env.production.ratelimits]]
+name = "MCP_AUTH_RATE_LIMIT"
+namespace_id = "1001"
+[env.production.ratelimits.simple]
+limit = 60
+period = 60
+
+[[env.production.ratelimits]]
+name = "MCP_ANONYMOUS_RATE_LIMIT"
+namespace_id = "1002"
+[env.production.ratelimits.simple]
+limit = 600
+period = 60
+
+[[env.production.ratelimits]]
+name = "MCP_TOKEN_ADDRESS_RATE_LIMIT"
+namespace_id = "1003"
+[env.production.ratelimits.simple]
+limit = 600
+period = 60

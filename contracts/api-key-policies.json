@@ -1,0 +1,1636 @@
+[
+  {
+    "id": "capabilities.get",
+    "method": "GET",
+    "path": "/api/capabilities",
+    "scopes": [
+      "leads:read",
+      "conversations:read",
+      "bookings:read",
+      "campaigns:read",
+      "broadcasts:read",
+      "webhooks:read",
+      "integrations:read"
+    ]
+  },
+  {
+    "id": "leads.list",
+    "method": "GET",
+    "path": "/api/leads",
+    "scopes": [
+      "leads:read"
+    ]
+  },
+  {
+    "id": "leads.fieldDefinitions.list",
+    "method": "GET",
+    "path": "/api/leads/field-definitions",
+    "scopes": [
+      "leads:read"
+    ]
+  },
+  {
+    "id": "leads.fieldDefinitions.upsert",
+    "method": "POST",
+    "path": "/api/leads/field-definitions",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.importPreview",
+    "method": "POST",
+    "path": "/api/leads/imports/preview",
+    "scopes": [
+      "leads:read"
+    ]
+  },
+  {
+    "id": "leads.importApply",
+    "method": "POST",
+    "path": "/api/leads/imports/apply",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.get",
+    "method": "GET",
+    "path": "/api/leads/{id}",
+    "scopes": [
+      "leads:read"
+    ]
+  },
+  {
+    "id": "leads.explain",
+    "method": "GET",
+    "path": "/api/leads/{id}/explain",
+    "scopes": [
+      "leads:read"
+    ]
+  },
+  {
+    "id": "leads.create",
+    "method": "POST",
+    "path": "/api/leads",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.update",
+    "method": "PATCH",
+    "path": "/api/leads/{id}",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.identities.attach",
+    "method": "POST",
+    "path": "/api/leads/{id}/identities",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.consents.grant",
+    "method": "POST",
+    "path": "/api/leads/{id}/consents",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.consents.revoke",
+    "method": "POST",
+    "path": "/api/leads/{id}/consents/revoke",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.notes.add",
+    "method": "POST",
+    "path": "/api/leads/{id}/notes",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.draft",
+    "method": "POST",
+    "path": "/api/leads/{id}/draft",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.notes.delete",
+    "method": "DELETE",
+    "path": "/api/leads/{id}/notes/{noteId}",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "conversations.summary",
+    "method": "GET",
+    "path": "/api/conversations/summary",
+    "scopes": [
+      "conversations:read"
+    ]
+  },
+  {
+    "id": "conversations.list",
+    "method": "GET",
+    "path": "/api/conversations",
+    "scopes": [
+      "conversations:read"
+    ]
+  },
+  {
+    "id": "conversations.get",
+    "method": "GET",
+    "path": "/api/conversations/{id}",
+    "scopes": [
+      "conversations:read"
+    ]
+  },
+  {
+    "id": "conversations.messages",
+    "method": "GET",
+    "path": "/api/conversations/{id}/messages",
+    "scopes": [
+      "conversations:read"
+    ]
+  },
+  {
+    "id": "conversations.profile_refresh",
+    "method": "POST",
+    "path": "/api/conversations/{id}/profile-refresh",
+    "scopes": [
+      "conversations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "conversations.send",
+    "method": "POST",
+    "path": "/api/conversations/{id}/send",
+    "scopes": [
+      "conversations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "conversations.partial_send_retry",
+    "method": "POST",
+    "path": "/api/conversations/{id}/messages/{messageId}/retry",
+    "scopes": [
+      "conversations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.composer",
+    "method": "GET",
+    "path": "/api/review-queue/{id}/composer",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
+    "id": "reviewQueue.list",
+    "method": "GET",
+    "path": "/api/review-queue",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
+    "id": "reviewQueue.explain",
+    "method": "GET",
+    "path": "/api/review-queue/{id}/explain",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
+    "id": "reviewQueue.approve",
+    "method": "POST",
+    "path": "/api/review-queue/{id}/approve",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.media.retry",
+    "method": "POST",
+    "path": "/api/review-queue/{id}/media/{mediaId}/retry",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.reject",
+    "method": "POST",
+    "path": "/api/review-queue/{id}/reject",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.restore",
+    "method": "POST",
+    "path": "/api/review-queue/{id}/restore",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.sla",
+    "method": "GET",
+    "path": "/api/review-queue/sla",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
+    "id": "reviewQueue.objectionVariant",
+    "method": "POST",
+    "path": "/api/review-queue/{id}/objection-variant",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.list",
+    "method": "GET",
+    "path": "/api/bookings",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.availability",
+    "method": "GET",
+    "path": "/api/bookings/availability",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.managedAvailability",
+    "method": "GET",
+    "path": "/api/bookings/managed-availability",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.types.list",
+    "method": "GET",
+    "path": "/api/bookings/types",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.types.schedule",
+    "method": "GET",
+    "path": "/api/bookings/types/{id}/schedule",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.types.attendees",
+    "method": "GET",
+    "path": "/api/bookings/types/{id}/attendees",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.providers.list",
+    "method": "GET",
+    "path": "/api/bookings/providers",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.providers.get",
+    "method": "GET",
+    "path": "/api/bookings/providers/{provider}",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.calendars.list",
+    "method": "GET",
+    "path": "/api/bookings/calendars",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.needsOutcome",
+    "method": "GET",
+    "path": "/api/bookings/needs-outcome",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.lifecycleAttention",
+    "method": "GET",
+    "path": "/api/bookings/lifecycle-attention",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.outcomeReasons.list",
+    "method": "GET",
+    "path": "/api/bookings/outcome-reasons",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.get",
+    "method": "GET",
+    "path": "/api/bookings/{id}",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.brief",
+    "method": "GET",
+    "path": "/api/bookings/{id}/brief",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.outcome.get",
+    "method": "GET",
+    "path": "/api/bookings/{id}/outcome",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.outcome.history",
+    "method": "GET",
+    "path": "/api/bookings/{id}/outcome/history",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.create",
+    "method": "POST",
+    "path": "/api/bookings",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.update",
+    "method": "PATCH",
+    "path": "/api/bookings/{id}",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.cancel",
+    "method": "DELETE",
+    "path": "/api/bookings/{id}",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.outcome.record",
+    "method": "POST",
+    "path": "/api/bookings/{id}/outcome",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.outcomeReasons.create",
+    "method": "POST",
+    "path": "/api/bookings/outcome-reasons",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.outcomeReasons.update",
+    "method": "PATCH",
+    "path": "/api/bookings/outcome-reasons/{id}",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.lifecycleResolution",
+    "method": "POST",
+    "path": "/api/bookings/{id}/lifecycle-resolution",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.providerSync.retry",
+    "method": "POST",
+    "path": "/api/bookings/{id}/provider-sync/retry",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.guestLinks.create",
+    "method": "POST",
+    "path": "/api/bookings/{id}/guest-links",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.guestLinks.revoke",
+    "method": "DELETE",
+    "path": "/api/bookings/{id}/guest-links",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.types.create",
+    "method": "POST",
+    "path": "/api/bookings/types",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.types.update",
+    "method": "PATCH",
+    "path": "/api/bookings/types/{id}",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.types.delete",
+    "method": "DELETE",
+    "path": "/api/bookings/types/{id}",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.types.schedule.replace",
+    "method": "PUT",
+    "path": "/api/bookings/types/{id}/schedule",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.types.attendees.add",
+    "method": "POST",
+    "path": "/api/bookings/types/{id}/attendees",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.types.attendees.remove",
+    "method": "DELETE",
+    "path": "/api/bookings/types/{id}/attendees/{attendeeId}",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.calendars.select",
+    "method": "PUT",
+    "path": "/api/bookings/calendars",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.calendars.remove",
+    "method": "DELETE",
+    "path": "/api/bookings/calendars",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "callEvents.needingFeedback",
+    "method": "GET",
+    "path": "/api/call-events",
+    "scopes": [
+      "call_events:read"
+    ]
+  },
+  {
+    "id": "callEvents.byBooking",
+    "method": "GET",
+    "path": "/api/call-events/by-booking/{bookingId}",
+    "scopes": [
+      "call_events:read"
+    ]
+  },
+  {
+    "id": "callEvents.byLead",
+    "method": "GET",
+    "path": "/api/call-events/by-lead/{leadId}",
+    "scopes": [
+      "call_events:read"
+    ]
+  },
+  {
+    "id": "callEvents.get",
+    "method": "GET",
+    "path": "/api/call-events/{id}",
+    "scopes": [
+      "call_events:read"
+    ]
+  },
+  {
+    "id": "callEvents.backfill",
+    "method": "POST",
+    "path": "/api/call-events/backfill/{bookingId}",
+    "scopes": [
+      "call_events:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "callEvents.feedback",
+    "method": "POST",
+    "path": "/api/call-events/{id}/feedback",
+    "scopes": [
+      "call_events:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "callEvents.summary.generate",
+    "method": "POST",
+    "path": "/api/call-events/{id}/summary",
+    "scopes": [
+      "call_events:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "callEvents.pushToCrm",
+    "method": "POST",
+    "path": "/api/call-events/{id}/push-to-crm",
+    "scopes": [
+      "call_events:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "callEvents.undoOutcome",
+    "method": "POST",
+    "path": "/api/call-events/{id}/undo-outcome",
+    "scopes": [
+      "call_events:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "callEvents.summary.replace",
+    "method": "PUT",
+    "path": "/api/call-events/{id}/summary",
+    "scopes": [
+      "call_events:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.list",
+    "method": "GET",
+    "path": "/api/campaigns",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "campaigns.commentEvents.list",
+    "method": "GET",
+    "path": "/api/campaigns/comment-events",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "campaigns.providerCapabilities",
+    "method": "GET",
+    "path": "/api/campaigns/{id}/provider-capabilities",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "campaigns.get",
+    "method": "GET",
+    "path": "/api/campaigns/{id}",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "campaigns.analytics",
+    "method": "GET",
+    "path": "/api/campaigns/{id}/analytics",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "campaigns.simulations.list",
+    "method": "GET",
+    "path": "/api/campaigns/{id}/simulations",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "campaigns.simulations.get",
+    "method": "GET",
+    "path": "/api/campaigns/{id}/simulations/{simulationId}",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "campaigns.create",
+    "method": "POST",
+    "path": "/api/campaigns",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.generate",
+    "method": "POST",
+    "path": "/api/campaigns/generate",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.draft.update",
+    "method": "PATCH",
+    "path": "/api/campaigns/{id}/draft",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.simulations.create",
+    "method": "POST",
+    "path": "/api/campaigns/{id}/simulations",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.enroll",
+    "method": "POST",
+    "path": "/api/campaigns/{id}/enrollments",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.enrollments.list",
+    "method": "GET",
+    "path": "/api/campaigns/{id}/enrollments",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "campaigns.commentSimulationSuite.run",
+    "method": "POST",
+    "path": "/api/campaigns/{id}/comment-simulation-suite",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.publish",
+    "method": "POST",
+    "path": "/api/campaigns/{id}/publish",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.setStatus",
+    "method": "POST",
+    "path": "/api/campaigns/{id}/status",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.duplicate",
+    "method": "POST",
+    "path": "/api/campaigns/{id}/duplicate",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.versions.list",
+    "method": "GET",
+    "path": "/api/campaigns/{id}/versions",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "campaigns.enrollments.timeline",
+    "method": "GET",
+    "path": "/api/campaigns/{id}/enrollments/{enrollmentId}/timeline",
+    "scopes": [
+      "campaigns:read"
+    ]
+  },
+  {
+    "id": "broadcasts.list",
+    "method": "GET",
+    "path": "/api/broadcasts",
+    "scopes": [
+      "broadcasts:read"
+    ]
+  },
+  {
+    "id": "broadcasts.get",
+    "method": "GET",
+    "path": "/api/broadcasts/{id}",
+    "scopes": [
+      "broadcasts:read"
+    ]
+  },
+  {
+    "id": "broadcasts.create",
+    "method": "POST",
+    "path": "/api/broadcasts",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "broadcasts.preview",
+    "method": "POST",
+    "path": "/api/broadcasts/{id}/preview",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "broadcasts.approve",
+    "method": "POST",
+    "path": "/api/broadcasts/{id}/approve",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "broadcasts.launch",
+    "method": "POST",
+    "path": "/api/broadcasts/{id}/launch",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "broadcasts.pause",
+    "method": "POST",
+    "path": "/api/broadcasts/{id}/pause",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "broadcasts.retry",
+    "method": "POST",
+    "path": "/api/broadcasts/{id}/retry",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "broadcasts.cancel",
+    "method": "POST",
+    "path": "/api/broadcasts/{id}/cancel",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "webhooks.events.list",
+    "method": "GET",
+    "path": "/api/webhook-events",
+    "scopes": [
+      "webhooks:read"
+    ]
+  },
+  {
+    "id": "webhooks.subscriptions.list",
+    "method": "GET",
+    "path": "/api/webhook-subscriptions",
+    "scopes": [
+      "webhooks:read"
+    ]
+  },
+  {
+    "id": "webhooks.subscriptions.create",
+    "method": "POST",
+    "path": "/api/webhook-subscriptions",
+    "scopes": [
+      "webhooks:write"
+    ]
+  },
+  {
+    "id": "webhooks.subscriptions.update",
+    "method": "PATCH",
+    "path": "/api/webhook-subscriptions/{id}",
+    "scopes": [
+      "webhooks:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "webhooks.subscriptions.delete",
+    "method": "DELETE",
+    "path": "/api/webhook-subscriptions/{id}",
+    "scopes": [
+      "webhooks:write"
+    ]
+  },
+  {
+    "id": "webhooks.testDelivery",
+    "method": "POST",
+    "path": "/api/webhook-subscriptions/test-delivery",
+    "scopes": [
+      "webhooks:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "webhooks.deliveries.list",
+    "method": "GET",
+    "path": "/api/webhook-subscriptions/deliveries",
+    "scopes": [
+      "webhooks:read"
+    ]
+  },
+  {
+    "id": "webhooks.signatureGuide",
+    "method": "GET",
+    "path": "/api/webhook-subscriptions/signature-guide",
+    "scopes": [
+      "webhooks:read"
+    ]
+  },
+  {
+    "id": "webhooks.deliveries.replay",
+    "method": "POST",
+    "path": "/api/webhook-subscriptions/deliveries/{deliveryId}/replay",
+    "scopes": [
+      "webhooks:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "webhooks.events.replay",
+    "method": "POST",
+    "path": "/api/webhook-subscriptions/events/{eventId}/replay",
+    "scopes": [
+      "webhooks:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "webhooks.events.bulkReplay",
+    "method": "POST",
+    "path": "/api/webhook-subscriptions/events/replay",
+    "scopes": [
+      "webhooks:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.connectors.list",
+    "method": "GET",
+    "path": "/api/integrations/connectors",
+    "scopes": [
+      "integrations:read"
+    ]
+  },
+  {
+    "id": "integrations.crm.connections.list",
+    "method": "GET",
+    "path": "/api/integrations/crm/connections",
+    "scopes": [
+      "integrations:read"
+    ]
+  },
+  {
+    "id": "integrations.crm.oauthUrl",
+    "method": "GET",
+    "path": "/api/integrations/crm/providers/{provider}/oauth-url",
+    "scopes": [
+      "integrations:write"
+    ]
+  },
+  {
+    "id": "integrations.crm.oauthCallback",
+    "method": "POST",
+    "path": "/api/integrations/crm/oauth/callback",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.crm.connections.create",
+    "method": "POST",
+    "path": "/api/integrations/crm/connections",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.crm.connections.schema",
+    "method": "GET",
+    "path": "/api/integrations/crm/connections/{id}/schema",
+    "scopes": [
+      "integrations:read"
+    ]
+  },
+  {
+    "id": "integrations.crm.connections.health",
+    "method": "POST",
+    "path": "/api/integrations/crm/connections/{id}/health",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.crm.connections.webhooksSetup",
+    "method": "POST",
+    "path": "/api/integrations/crm/connections/{id}/webhooks/setup",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.crm.mappings.suggest",
+    "method": "POST",
+    "path": "/api/integrations/crm/connections/{id}/mappings/suggest",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.crm.mappings.confirm",
+    "method": "PUT",
+    "path": "/api/integrations/crm/connections/{id}/mappings",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.crm.syncRuns.create",
+    "method": "POST",
+    "path": "/api/integrations/crm/connections/{id}/sync-runs",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.crm.syncRuns.list",
+    "method": "GET",
+    "path": "/api/integrations/crm/connections/{id}/sync-runs",
+    "scopes": [
+      "integrations:read"
+    ]
+  },
+  {
+    "id": "integrations.crm.webhooks.record",
+    "method": "POST",
+    "path": "/api/integrations/crm/webhooks/{provider}",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "integrations.events.list",
+    "method": "GET",
+    "path": "/api/integrations/events",
+    "scopes": [
+      "integrations:read"
+    ]
+  },
+  {
+    "id": "voice.profile",
+    "method": "GET",
+    "path": "/api/voice/profile",
+    "scopes": [
+      "voice:read"
+    ]
+  },
+  {
+    "id": "voice.corpus",
+    "method": "GET",
+    "path": "/api/voice",
+    "scopes": [
+      "voice:read"
+    ]
+  },
+  {
+    "id": "coach.profile",
+    "method": "GET",
+    "path": "/api/coaches/me",
+    "scopes": [
+      "coach:read"
+    ]
+  },
+  {
+    "id": "coach.niche",
+    "method": "GET",
+    "path": "/api/coaches/niche",
+    "scopes": [
+      "coach:read"
+    ]
+  },
+  {
+    "id": "coach.nicheProfile",
+    "method": "GET",
+    "path": "/api/coaches/niche-profile",
+    "scopes": [
+      "coach:read"
+    ]
+  },
+  {
+    "id": "coach.objectionPlaybook",
+    "method": "GET",
+    "path": "/api/coaches/objection-playbook",
+    "scopes": [
+      "coach:read"
+    ]
+  },
+  {
+    "id": "coach.postCallSettings",
+    "method": "GET",
+    "path": "/api/coaches/post-call-settings",
+    "scopes": [
+      "coach:read"
+    ]
+  },
+  {
+    "id": "coach.postCallCrmMapping",
+    "method": "GET",
+    "path": "/api/coaches/post-call-crm-mapping",
+    "scopes": [
+      "coach:read"
+    ]
+  },
+  {
+    "id": "coach.postCallDealSync",
+    "method": "GET",
+    "path": "/api/coaches/post-call-deal-sync",
+    "scopes": [
+      "coach:read"
+    ]
+  },
+  {
+    "id": "coach.auditLog",
+    "method": "GET",
+    "path": "/api/audit-log",
+    "scopes": [
+      "coach:read"
+    ]
+  },
+  {
+    "id": "usage.spend",
+    "method": "GET",
+    "path": "/api/usage",
+    "scopes": [
+      "usage:read"
+    ]
+  },
+  {
+    "id": "usage.messages",
+    "method": "GET",
+    "path": "/api/usage/messages",
+    "scopes": [
+      "usage:read"
+    ]
+  },
+  {
+    "id": "safety.accounts",
+    "method": "GET",
+    "path": "/api/account-safety",
+    "scopes": [
+      "safety:read"
+    ]
+  },
+  {
+    "id": "channels.list",
+    "method": "GET",
+    "path": "/api/channels",
+    "scopes": [
+      "channels:read"
+    ]
+  },
+  {
+    "id": "channels.catalog",
+    "method": "GET",
+    "path": "/api/channels/catalog",
+    "scopes": [
+      "channels:read"
+    ]
+  },
+  {
+    "id": "channels.features",
+    "method": "GET",
+    "path": "/api/channels/features",
+    "scopes": [
+      "channels:read"
+    ]
+  },
+  {
+    "id": "channels.get",
+    "method": "GET",
+    "path": "/api/channels/{id}",
+    "scopes": [
+      "channels:read"
+    ]
+  },
+  {
+    "id": "reports.morning",
+    "method": "GET",
+    "path": "/api/reports/morning",
+    "scopes": [
+      "reports:read"
+    ]
+  },
+  {
+    "id": "reports.scorecard",
+    "method": "GET",
+    "path": "/api/reports/scorecard",
+    "scopes": [
+      "reports:read"
+    ]
+  },
+  {
+    "id": "insights.unreadCount",
+    "method": "GET",
+    "path": "/api/insights/unread-count",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "insights.markRead",
+    "method": "POST",
+    "path": "/api/insights/{id}/read",
+    "scopes": [
+      "insights:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "insights.dismiss",
+    "method": "POST",
+    "path": "/api/insights/{id}/dismiss",
+    "scopes": [
+      "insights:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "insights.markActioned",
+    "method": "POST",
+    "path": "/api/insights/{id}/action",
+    "scopes": [
+      "insights:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "insights.settings.get",
+    "method": "GET",
+    "path": "/api/insights/settings",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "insights.settings.update",
+    "method": "PUT",
+    "path": "/api/insights/settings",
+    "scopes": [
+      "insights:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "learning.panel",
+    "method": "GET",
+    "path": "/api/teach-luca",
+    "scopes": [
+      "learning:read"
+    ]
+  },
+  {
+    "id": "learning.frameworkPerformance",
+    "method": "GET",
+    "path": "/api/framework-performance",
+    "scopes": [
+      "learning:read"
+    ]
+  },
+  {
+    "id": "learning.abTests.list",
+    "method": "GET",
+    "path": "/api/ab-tests",
+    "scopes": [
+      "learning:read"
+    ]
+  },
+  {
+    "id": "learning.abTests.get",
+    "method": "GET",
+    "path": "/api/ab-tests/{id}",
+    "scopes": [
+      "learning:read"
+    ]
+  },
+  {
+    "id": "learning.proposals.list",
+    "method": "GET",
+    "path": "/api/learning-proposals",
+    "scopes": [
+      "learning:read"
+    ]
+  },
+  {
+    "id": "learning.proposals.dismiss",
+    "method": "POST",
+    "path": "/api/learning-proposals/{id}/dismiss",
+    "scopes": [
+      "learning:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "knowledge.suggestions",
+    "method": "GET",
+    "path": "/api/knowledge/suggestions",
+    "scopes": [
+      "knowledge:read"
+    ]
+  },
+  {
+    "id": "knowledge.approveSuggestion",
+    "method": "POST",
+    "path": "/api/knowledge/suggestions/{id}/approve",
+    "scopes": [
+      "knowledge:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "knowledge.rejectSuggestion",
+    "method": "POST",
+    "path": "/api/knowledge/suggestions/{id}/reject",
+    "scopes": [
+      "knowledge:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "knowledge.sources.list",
+    "method": "GET",
+    "path": "/api/knowledge/sources",
+    "scopes": [
+      "knowledge:read"
+    ]
+  },
+  {
+    "id": "knowledge.sources.sync",
+    "method": "POST",
+    "path": "/api/knowledge/sources/{id}/sync",
+    "scopes": [
+      "knowledge:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "knowledge.sources.disconnect",
+    "method": "DELETE",
+    "path": "/api/knowledge/sources/{id}",
+    "scopes": [
+      "knowledge:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "memory.list",
+    "method": "GET",
+    "path": "/api/memory",
+    "scopes": [
+      "memory:read"
+    ]
+  },
+  {
+    "id": "memory.update",
+    "method": "PATCH",
+    "path": "/api/memory/{id}",
+    "scopes": [
+      "memory:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "memory.setArchived",
+    "method": "POST",
+    "path": "/api/memory/bulk",
+    "scopes": [
+      "memory:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "cadences.rescueStart",
+    "method": "POST",
+    "path": "/api/cadences/rescue",
+    "scopes": [
+      "cadences:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "cadences.pause",
+    "method": "POST",
+    "path": "/api/leads/{id}/cadence/pause",
+    "scopes": [
+      "cadences:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "analytics.leadScore",
+    "method": "GET",
+    "path": "/api/analytics/lead-score/{leadId}",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.funnel",
+    "method": "GET",
+    "path": "/api/analytics/funnel",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.revenue",
+    "method": "GET",
+    "path": "/api/analytics/revenue",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.speedImpact",
+    "method": "GET",
+    "path": "/api/analytics/speed-impact",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.forecast",
+    "method": "GET",
+    "path": "/api/analytics/forecast",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.callIntelligence",
+    "method": "GET",
+    "path": "/api/analytics/call-intelligence",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.callIntelligenceCalls",
+    "method": "GET",
+    "path": "/api/analytics/call-intelligence/calls",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.learningInsights",
+    "method": "GET",
+    "path": "/api/analytics/learning-insights",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.crmSyncHealth",
+    "method": "GET",
+    "path": "/api/analytics/crm-sync-health",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.objections",
+    "method": "GET",
+    "path": "/api/analytics/objections",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.objectionDrilldown",
+    "method": "GET",
+    "path": "/api/analytics/objections/{type}",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.ghostedLeads",
+    "method": "GET",
+    "path": "/api/analytics/ghosted-leads",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.trustScore",
+    "method": "GET",
+    "path": "/api/analytics/trust-score",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.trends",
+    "method": "GET",
+    "path": "/api/analytics/trends",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.lossReasons",
+    "method": "GET",
+    "path": "/api/analytics/loss-reasons",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.recommendations",
+    "method": "GET",
+    "path": "/api/analytics/recommendations",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.contentAttribution",
+    "method": "GET",
+    "path": "/api/analytics/content-attribution",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.contentPerformance",
+    "method": "GET",
+    "path": "/api/analytics/content-performance",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.topicPerformance",
+    "method": "GET",
+    "path": "/api/analytics/topic-performance",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.benchmarks",
+    "method": "GET",
+    "path": "/api/analytics/benchmarks",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.benchmarkConsent",
+    "method": "GET",
+    "path": "/api/analytics/benchmark-consent",
+    "scopes": [
+      "analytics:read"
+    ]
+  },
+  {
+    "id": "analytics.insights",
+    "method": "GET",
+    "path": "/api/insights",
+    "scopes": [
+      "analytics:read"
+    ]
+  }
+]
