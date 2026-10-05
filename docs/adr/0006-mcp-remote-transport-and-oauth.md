@@ -1,5 +1,8 @@
 # ADR 0006: MCP remote transport and OAuth 2.1
 
+This decision was written before the MCP moved out of Luca's `apps/mcp`.
+Paths below describe the original location; current code lives in this repo.
+
 Date: 2026-07-09
 
 ## Status

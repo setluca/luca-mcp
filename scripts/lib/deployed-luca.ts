@@ -6,8 +6,6 @@ import * as Schema from "effect/Schema";
 import { JsonValue } from "../../src/serialization.ts";
 import { LUCA_CONTRACT_FILES } from "./contract-files.ts";
 
-const LUCA_API_ORIGIN = "https://api.setluca.com";
-
 const Commit = /^[0-9a-f]{40}$/u;
 
 const DeploymentHealth = Schema.Struct({
@@ -68,11 +66,18 @@ export function assertDeployedContracts(input: {
   }
 }
 
-export async function fetchDeployedJson(path: string): Promise<JsonValue> {
-  const response = await fetch(`${LUCA_API_ORIGIN}${path}`, {
-    cache: "no-store",
+export async function fetchDeployedJson(
+  path: "/health" | "/openapi.json"
+): Promise<JsonValue> {
+  const options = {
+    cache: "no-store" as const,
     signal: AbortSignal.timeout(20_000),
-  });
+  };
+
+  const response =
+    path === "/health"
+      ? await fetch("https://api.setluca.com/health", options)
+      : await fetch("https://api.setluca.com/openapi.json", options);
 
   if (!response.ok) {
     throw new Error(`Luca ${path} returned HTTP ${response.status}`);

@@ -13,24 +13,24 @@ bun run verify
 `bun run verify` chains the whole local gate in the order below. Run it before
 opening a PR.
 
-| Script                             | What it checks                                                                                       |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `bun run quality`                  | formatting, Oxlint including anti-slop and Effect rules, Knip, and Fallow dead-code and health gates |
-| `bun run docs:check`               | `docs/tools.md` matches the catalog                                                                  |
-| `bun run catalog:check`            | `src/generated/route-catalog.ts` matches the OpenAPI snapshot                                        |
-| `bun run openapi:inputs:check`     | `src/generated/openapi-inputs.ts`, with its Effect Schema input fields, matches the snapshot         |
-| `bun run openapi:outputs:check`    | `src/generated/openapi-outputs.ts`, with its redacted-field lists, matches the snapshot              |
-| `bun run openapi:check`            | every registered operation still exists in the snapshot (`--live` checks the deployed document)      |
-| `bun run registry:check`           | `server.json` version, tool count, and env vars match the code                                       |
-| `bun run typecheck`                | strict TypeScript via `tsc --noEmit`                                                                 |
-| `bun run coverage`                 | Vitest tests with 90% line, statement, and function coverage and 85% branch coverage                 |
-| `bun run build`                    | emits `dist/` with `tsc`                                                                             |
-| `bun run test:stdio`               | starts the built stdio server and checks MCP discovery                                               |
-| `bun run contracts:deployed:check` | pinned Luca commit and OpenAPI match the current production API                                      |
+| Script                             | What it checks                                                                                                               |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `bun run quality`                  | formatting, Oxlint including anti-slop and Effect rules, Knip, and Fallow dead code, duplication, security, and health gates |
+| `bun run docs:check`               | `docs/tools.md` matches the catalog                                                                                          |
+| `bun run catalog:check`            | `src/generated/route-catalog.ts` matches the OpenAPI snapshot                                                                |
+| `bun run openapi:inputs:check`     | `src/generated/openapi-inputs.ts`, with its Effect Schema input fields, matches the snapshot                                 |
+| `bun run openapi:outputs:check`    | `src/generated/openapi-outputs.ts`, with its redacted-field lists, matches the snapshot                                      |
+| `bun run openapi:check`            | every registered operation still exists in the snapshot (`--live` checks the deployed document)                              |
+| `bun run registry:check`           | `server.json` version, tool count, and env vars match the code                                                               |
+| `bun run typecheck`                | strict TypeScript via `tsc --noEmit`                                                                                         |
+| `bun run coverage`                 | Vitest tests with 90% line, statement, and function coverage and 85% branch coverage                                         |
+| `bun run build`                    | emits `dist/` with `tsc`                                                                                                     |
+| `bun run test:stdio`               | starts the built stdio server and checks MCP discovery                                                                       |
+| `bun run contracts:deployed:check` | pinned Luca commit and OpenAPI match the current production API                                                              |
 
 Outside that chain:
 
-- `bun run lint`: Oxlint without warnings as errors, useful while editing.
+- `bun run lint`: Oxlint with errors and warnings treated as failures.
 - `bun run test:mutation`: Stryker, for the modules a change touches.
 - `bun run test:integration`: opt-in live Luca API tests. See
   [integration-testing.md](./integration-testing.md).

@@ -304,19 +304,9 @@ which ones it retries for you, and what to do about each status code.
 
 ## For contributors
 
-The deep technical material lives in [docs/](./docs):
-[Architecture](./docs/architecture.md) ·
-[Development](./docs/development.md) ·
-[Client setup](./docs/client-setup.md) ·
-[Configuration](./docs/configuration.md) ·
-[Security boundary](./docs/security.md) ·
-[Remote transport](./docs/remote.md) ·
-[Tool reference](./docs/tools.md) ·
-[Prompts and resources](./docs/prompts-and-resources.md) ·
-[Scopes](./docs/scopes.md) ·
-[Errors](./docs/errors.md) ·
-[Release](./docs/release.md) ·
-[Connector directory](./docs/connector-directory.md)
+Start with the [documentation index](./docs/README.md). It groups setup,
+architecture, development, security, and release guides by task. Agents can use
+[AGENTS.md](./AGENTS.md) for the short repository checklist.
 
 Released versions are in [CHANGELOG.md](./CHANGELOG.md).
 

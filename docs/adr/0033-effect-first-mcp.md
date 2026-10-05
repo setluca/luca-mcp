@@ -1,8 +1,11 @@
-# ADR 0033: Effect-first `apps/mcp`
+# ADR 0033: Effect-first MCP
+
+This decision was written when the MCP lived in Luca's `apps/mcp` directory.
+Paths below record that history. The server now lives in this repository.
 
 ## Status
 
-Accepted. Supersedes [ADR 0002](./0002-effect-ts-boundaries.md) for
+Accepted. Supersedes Luca ADR 0002 for
 `apps/mcp`.
 
 ## Context
@@ -57,7 +60,7 @@ transport edge.
 - `Effect.runPromise` and its variants appear only in the SDK callbacks, the
   Worker `fetch` export, and script entry points.
 - There is no process-wide `ManagedRuntime`, for the same reason as
-  [ADR 0028](./0028-effect-first-api-lib-modules.md): Worker bindings arrive
+  Luca ADR 0028: Worker bindings arrive
   per request.
 - Scripts under `apps/mcp/scripts` are Effect programs that use `FileSystem`,
   `Path`, and `Console`. Tests use `@effect/vitest` and provide layers in place

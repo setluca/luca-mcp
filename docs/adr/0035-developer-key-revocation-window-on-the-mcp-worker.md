@@ -1,5 +1,8 @@
 # ADR 0035: Developer key revocation reaches the MCP Worker within 60 seconds
 
+This decision was written before the MCP moved out of Luca's `apps/mcp`.
+The resolver it refers to now lives in this repository's `src/resolvers.ts`.
+
 ## Status
 
 Accepted.

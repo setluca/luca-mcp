@@ -77,14 +77,21 @@ function fieldsSource(route: string, spec: OpenApiInputSpec) {
 
   // The generated module imports only `Schema`. A named reference or an
   // auxiliary declaration would need more than that, and no route has one.
-  return root === undefined ||
-    !Arr.isReadonlyArrayEmpty(code.artifacts) ||
-    !Arr.isReadonlyArrayEmpty(code.references.nonRecursives) ||
-    !R.isEmptyRecord(code.references.recursives)
+  return root === undefined || hasUnsupportedReferences(code)
     ? exitWith([
         `${route}: Effect printed an input schema with references or imports, which src/generated/openapi-inputs.ts cannot hold.`,
       ])
     : Effect.succeed(root.runtime);
+}
+
+function hasUnsupportedReferences(
+  code: ReturnType<typeof SchemaRepresentation.toCodeDocument>
+): boolean {
+  return [
+    !Arr.isReadonlyArrayEmpty(code.artifacts),
+    !Arr.isReadonlyArrayEmpty(code.references.nonRecursives),
+    !R.isEmptyRecord(code.references.recursives),
+  ].includes(true);
 }
 
 /**

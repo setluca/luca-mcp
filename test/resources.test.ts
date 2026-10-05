@@ -1,5 +1,6 @@
 import { assert, describe, expect, it } from "vitest";
 
+import { operationById } from "../src/operations/catalog.ts";
 import { LUCA_RESOURCES } from "../src/resources.ts";
 
 function resourceByName(name: string) {
@@ -50,6 +51,23 @@ describe("LUCA_RESOURCES", () => {
     expect(resource.buildInput({ conversationId: "conv_1" })).toEqual({
       id: "conv_1",
     });
+  });
+
+  it("uses the first URI variable and leaves missing identifiers for input validation", () => {
+    const lead = resourceByName("luca-lead");
+
+    expect(lead.buildInput({ leadId: ["lead_1", "lead_2"] })).toEqual({
+      id: "lead_1",
+    });
+    expect(lead.buildInput({ leadId: [] })).toEqual({});
+    expect(lead.buildInput({})).toEqual({});
+  });
+
+  it("fails loudly when code references an operation absent from the catalog", () => {
+    expect(operationById("leads.get").id).toBe("leads.get");
+    expect(() => operationById("missing.operation")).toThrow(
+      /not in the catalog/u
+    );
   });
 
   it("pins luca-queue-today's metadata", () => {

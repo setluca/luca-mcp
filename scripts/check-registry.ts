@@ -110,8 +110,17 @@ function includesWholeNumber(haystack: string, needle: number): boolean {
  * with fixtures instead of writing files to disk.
  */
 export function checkRegistry(inputs: RegistryCheckInputs): string[] {
-  const { server, pkg, lucaMcpVersion, operationCount, taskToolCount } = inputs;
+  return [
+    ...checkVersions(inputs),
+    ...checkIdentity(inputs),
+    ...checkDescription(inputs),
+    ...checkEnvironment(inputs.server),
+    ...checkRemotes(inputs.server.remotes ?? []),
+  ];
+}
 
+function checkVersions(inputs: RegistryCheckInputs): string[] {
+  const { server, pkg, lucaMcpVersion } = inputs;
   const errors: string[] = [];
 
   if (server.version !== pkg.version) {
@@ -134,6 +143,13 @@ export function checkRegistry(inputs: RegistryCheckInputs): string[] {
     );
   }
 
+  return errors;
+}
+
+function checkIdentity({ server, pkg }: RegistryCheckInputs): string[] {
+  const errors: string[] = [];
+  const pkgEntry = server.packages?.[0];
+
   if (pkgEntry?.identifier !== pkg.name) {
     errors.push(
       `server.json packages[0].identifier (${pkgEntry?.identifier}) does not match package.json name (${pkg.name}). Fix server.json.`
@@ -149,6 +165,15 @@ export function checkRegistry(inputs: RegistryCheckInputs): string[] {
     );
   }
 
+  return errors;
+}
+
+function checkDescription({
+  server,
+  operationCount,
+  taskToolCount,
+}: RegistryCheckInputs): string[] {
+  const errors: string[] = [];
   const description = server.description ?? "";
 
   if (!includesWholeNumber(description, operationCount)) {
@@ -169,8 +194,16 @@ export function checkRegistry(inputs: RegistryCheckInputs): string[] {
     );
   }
 
+  return errors;
+}
+
+function checkEnvironment(server: ServerJson): string[] {
+  const errors: string[] = [];
+
   const declaredNames = HashSet.fromIterable(
-    (pkgEntry?.environmentVariables ?? []).map((entry) => entry.name)
+    (server.packages?.[0]?.environmentVariables ?? []).map(
+      (entry) => entry.name
+    )
   );
 
   Arr.forEach(READ_ENVIRONMENT_VARIABLES, (name) => {
@@ -180,8 +213,6 @@ export function checkRegistry(inputs: RegistryCheckInputs): string[] {
       );
     }
   });
-
-  errors.push(...checkRemotes(server.remotes ?? []));
 
   return errors;
 }

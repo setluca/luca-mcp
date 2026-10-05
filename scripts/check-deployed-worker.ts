@@ -1,10 +1,6 @@
 import * as Schema from "effect/Schema";
 
-const expectedVersion = process.argv[2];
-
-if (!expectedVersion) {
-  throw new Error("Usage: bun scripts/check-deployed-worker.ts <version>");
-}
+import { isEntryPoint } from "./lib/script.ts";
 
 const origin = "https://mcp.setluca.com";
 
@@ -22,13 +18,26 @@ const ProtectedResource = Schema.Struct({
   authorization_servers: Schema.Array(Schema.String),
 });
 
-async function checkDeployment(): Promise<void> {
+export async function checkDeployment(
+  expectedVersion: string,
+  fetcher: typeof fetch = fetch
+): Promise<void> {
   const options = {
     cache: "no-store" as const,
     signal: AbortSignal.timeout(10_000),
   };
 
-  const cardResponse = await fetch(
+  await checkServerCard(expectedVersion, fetcher, options);
+  await checkOAuthMetadata(fetcher, options);
+  await checkChallenge(fetcher, options);
+}
+
+async function checkServerCard(
+  expectedVersion: string,
+  fetcher: typeof fetch,
+  options: RequestInit
+): Promise<void> {
+  const cardResponse = await fetcher(
     `${origin}/.well-known/mcp/server-card.json`,
     options
   );
@@ -47,8 +56,13 @@ async function checkDeployment(): Promise<void> {
       `Server card has version ${card.serverInfo.version} and endpoint ${card.endpoint}`
     );
   }
+}
 
-  const metadataResponse = await fetch(metadataUrl, options);
+async function checkOAuthMetadata(
+  fetcher: typeof fetch,
+  options: RequestInit
+): Promise<void> {
+  const metadataResponse = await fetcher(metadataUrl, options);
 
   if (!metadataResponse.ok) {
     throw new Error(`OAuth metadata returned ${metadataResponse.status}`);
@@ -66,8 +80,13 @@ async function checkDeployment(): Promise<void> {
       "OAuth metadata does not point at the Luca API and MCP resource"
     );
   }
+}
 
-  const unauthenticated = await fetch(resource, options);
+async function checkChallenge(
+  fetcher: typeof fetch,
+  options: RequestInit
+): Promise<void> {
+  const unauthenticated = await fetcher(resource, options);
   const challenge = unauthenticated.headers.get("www-authenticate");
 
   if (
@@ -80,21 +99,29 @@ async function checkDeployment(): Promise<void> {
   }
 }
 
-for (let attempt = 1; attempt <= 12; attempt++) {
-  try {
-    await checkDeployment();
-    console.log(`MCP Worker ${expectedVersion} is live at ${resource}`);
-    process.exit(0);
-  } catch (error) {
-    if (attempt === 12) {
-      throw error;
-    }
+if (isEntryPoint(import.meta.filename)) {
+  const expectedVersion = process.argv[2];
 
-    console.log(
-      `Worker check ${attempt}/12: ${String(error)}; retrying in 5 seconds`
-    );
-    await new Promise((resolve) => {
-      setTimeout(resolve, 5_000);
-    });
+  if (!expectedVersion) {
+    throw new Error("Usage: bun scripts/check-deployed-worker.ts <version>");
+  }
+
+  for (let attempt = 1; attempt <= 12; attempt++) {
+    try {
+      await checkDeployment(expectedVersion);
+      console.log(`MCP Worker ${expectedVersion} is live at ${resource}`);
+      process.exit(0);
+    } catch (error) {
+      if (attempt === 12) {
+        throw error;
+      }
+
+      console.log(
+        `Worker check ${attempt}/12: ${String(error)}; retrying in 5 seconds`
+      );
+      await new Promise((resolve) => {
+        setTimeout(resolve, 5_000);
+      });
+    }
   }
 }

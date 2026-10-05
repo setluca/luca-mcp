@@ -61,7 +61,7 @@ Catalog:
   `luca://operations` resource. `src/operations.ts` re-exports the public parts.
 - `src/task-tools/`: the hand-written intent-level tools that compose several
   operations behind one call.
-- `src/generated/`: schemas generated from `apps/api/openapi.json`. Never edit
+- `src/generated/`: schemas generated from `contracts/openapi.json`. Never edit
   these by hand. Tool inputs are generated as Effect Schema source, converted by
   `src/openapi-schema.ts` at generation time. Outputs stay JSON Schema, and the
   server converts them at runtime.
@@ -81,7 +81,7 @@ Transport and behavior:
 Scripts:
 
 - `scripts/check-openapi.ts`: checks that registered operations still exist in
-  the OpenAPI document (`apps/api/openapi.json` by default, `--live` for the
+  the pinned OpenAPI document (`contracts/openapi.json` by default, `--live` for the
   deployed document).
 - `scripts/generate-route-catalog.ts`, `scripts/generate-openapi-inputs.ts`,
   `scripts/generate-openapi-outputs.ts`: regenerate `src/generated/`.

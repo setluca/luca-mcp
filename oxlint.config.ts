@@ -42,15 +42,12 @@ const duplicateEffectRules = [
   "require-safety-comment-for-type-assertion",
 ] as const;
 
-const effectRulesOff = Object.fromEntries(
-  Object.keys(effect.rules).map((rule) => [`effect/${rule}`, "off"] as const)
-);
-
 export default defineConfig({
   extends: [core, vitest],
   env: { builtin: true, node: false },
   ignorePatterns: [
     "coverage/**",
+    "contracts/**",
     "dist/**",
     "src/generated/**",
     "tools/oxlint/anti-slop/**",
@@ -86,9 +83,9 @@ export default defineConfig({
     ...Object.fromEntries(
       duplicateEffectRules.map((rule) => [`effect/${rule}`, "off"])
     ),
-    "effect/avoid-non-null-assertion": "off",
+    // These model external JSON, configuration, and SDK callback boundaries.
+    // Option would change wire shapes; the SDK controls callback execution.
     "effect/avoid-process-env": "off",
-    "effect/avoid-react-hooks": "off",
     "effect/casting-awareness": "off",
     "effect/effect-run-in-body": "off",
     "effect/prefer-option-over-null": "off",
@@ -140,16 +137,42 @@ export default defineConfig({
       files: ["scripts/**/*.{ts,js}", "**/*.config.ts", "oxlint.config.ts"],
       env: { node: true },
       rules: {
-        // These files are Node/Bun tooling, not the Effect MCP runtime.
-        ...effectRulesOff,
+        // Build and release scripts use host APIs and process errors at the CLI boundary.
+        "effect/prefer-option-over-null": "off",
+        "effect/use-filesystem-service": "off",
+        "effect/use-path-service": "off",
+        "effect/avoid-sync-fs": "off",
+        "effect/avoid-native-object-helpers": "off",
+        "effect/imperative-loops": "off",
+        "effect/avoid-untagged-errors": "off",
+        "effect/use-console-service": "off",
+        "effect/avoid-native-fetch": "off",
+        "effect/avoid-try-catch": "off",
+        "effect/use-command-executor-service": "off",
+        "effect/avoid-node-imports": "off",
+        "effect/avoid-direct-json": "off",
+        "effect/no-length-comparison": "off",
+        "effect/prefer-arr-match": "off",
       },
     },
     {
       files: ["test/**/*.{ts,js}", "**/*.{test,spec}.ts"],
       env: { node: true, vitest: true },
       rules: {
-        // Fixtures deliberately use native APIs; runtime code keeps Effect rules.
-        ...effectRulesOff,
+        // Test fixtures use host APIs and unsafe casts to exercise malformed inputs.
+        "effect/avoid-ts-ignore": "off",
+        "effect/require-schema-type-alias": "off",
+        "effect/use-filesystem-service": "off",
+        "effect/use-path-service": "off",
+        "effect/avoid-sync-fs": "off",
+        "effect/avoid-node-imports": "off",
+        "effect/avoid-native-object-helpers": "off",
+        "effect/avoid-direct-json": "off",
+        "effect/avoid-untagged-errors": "off",
+        "effect/avoid-non-null-assertion": "off",
+        "effect/use-command-executor-service": "off",
+        "effect/use-temp-file-scoped": "off",
+        "effect/imperative-loops": "off",
         "anti-slop/no-chained-type-assertions": "off",
         "anti-slop/no-module-mocking": "off",
         "anti-slop/no-unknown-parameters": "off",

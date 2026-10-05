@@ -1,37 +1,39 @@
 # Luca MCP documentation
 
-How the server works, what it is allowed to reach, and how to change it.
+Start with the page that matches your task. [AGENTS.md](../AGENTS.md) has the
+short checklist for agents working in this repository.
 
-| Doc                                                         | Covers                                                            |
-| ----------------------------------------------------------- | ----------------------------------------------------------------- |
-| [Architecture](./architecture.md)                           | The two transports, the module layout, and one request end to end |
-| [Client setup](./client-setup.md)                           | Running a local build against an MCP client                       |
-| [Configuration](./configuration.md)                         | Environment variables, Worker settings, auth headers, toolsets    |
-| [Connector directory](./connector-directory.md)             | Listing Luca in the Claude and ChatGPT directories                |
-| [Development](./development.md)                             | Scripts, the verify chain, adding a tool                          |
-| [Errors](./errors.md)                                       | What a failed tool call looks like and what each code means       |
-| [Examples](./examples.md)                                   | Worked tool sequences from a client                               |
-| [Integration testing](./integration-testing.md)             | The opt-in live tests                                             |
-| [MCP Inspector](./inspector.md)                             | Interactive protocol debugging                                    |
-| [Maintenance](./maintenance.md)                             | Drift checks, dependency updates, server identity                 |
-| [Pagination and tool count](./pagination-and-tool-count.md) | How paging works and why the count is what it is                  |
-| [Prompts and resources](./prompts-and-resources.md)         | Every prompt and resource, generated                              |
-| [Registry listing](./registry.md)                           | `server.json` and the official MCP registry                       |
-| [Release](./release.md)                                     | Cutting a version and what the tag ships                          |
-| [Remote transport](./remote.md)                             | The Worker at `mcp.setluca.com`, bearer auth, OAuth               |
-| [Scopes](./scopes.md)                                       | API scopes, OAuth scopes, and which grants which, generated       |
-| [Security boundary](./security.md)                          | What the server may reach, untrusted content, confirm gates       |
-| [Tool reference](./tools.md)                                | Every tool, generated                                             |
+## Use the server
 
-Three of these are generated: `tools.md`, `prompts-and-resources.md`, and
-`scopes.md`. Never edit them by hand. Regenerate all three from the catalogs
-they read with:
+| Task                                    | Read                                                                                            |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Connect an MCP client                   | [Client setup](./client-setup.md), [Configuration](./configuration.md)                          |
+| Try a tool or debug the protocol        | [Examples](./examples.md), [MCP Inspector](./inspector.md), [Errors](./errors.md)               |
+| Find a tool, prompt, resource, or scope | [Tools](./tools.md), [Prompts and resources](./prompts-and-resources.md), [Scopes](./scopes.md) |
+| Understand paging and tool counts       | [Pagination and tool count](./pagination-and-tool-count.md)                                     |
 
-```bash
-bun run docs:generate
-```
+## Change the server
 
-`docs:check`, which `verify` runs, fails when any of them is stale.
+| Task                                  | Read                                            |
+| ------------------------------------- | ----------------------------------------------- |
+| Find the code for a request           | [Architecture](./architecture.md)               |
+| Add a tool or run checks              | [Development](./development.md)                 |
+| Update Luca contracts or dependencies | [Maintenance](./maintenance.md)                 |
+| Test against a live Luca workspace    | [Integration testing](./integration-testing.md) |
+| Check the trust boundary              | [Security boundary](./security.md)              |
 
-The release history is in [CHANGELOG.md](../CHANGELOG.md), one directory up,
-because it ships in the npm tarball.
+## Ship and operate
+
+| Task                                     | Read                                            |
+| ---------------------------------------- | ----------------------------------------------- |
+| Release npm and the Worker               | [Release](./release.md)                         |
+| Understand the hosted endpoint and OAuth | [Remote transport](./remote.md)                 |
+| Update MCP registry metadata             | [Registry listing](./registry.md)               |
+| List the connector in a directory        | [Connector directory](./connector-directory.md) |
+
+The decisions behind the current design live in [ADRs](./adr/). Operational
+steps live in [runbooks](./runbooks/). The [changelog](../CHANGELOG.md) records
+published versions.
+
+`tools.md`, `prompts-and-resources.md`, and `scopes.md` are generated. Update the
+catalog, run `bun run docs:generate`, then run `bun run docs:check`.
