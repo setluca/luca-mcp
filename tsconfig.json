@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ES2024"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    // Relative imports name the TypeScript file they actually resolve to
+    // (`./server.ts`), and the emitter rewrites each specifier to `./server.js`
+    // on the way into dist/. Source stays readable as TypeScript; the published
+    // tarball keeps the explicit extensions Node's ESM resolver requires.
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "types": ["node"],
+    "exactOptionalPropertyTypes": true,
+    "incremental": false,
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts", "*.config.ts"]
+}

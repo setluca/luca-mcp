@@ -1,0 +1,78 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.setluca/luca-mcp",
+  "description": "Run DM sales in Luca from any MCP client: 188 API tools and 15 task tools for leads and calls.",
+  "version": "0.3.0",
+  "websiteUrl": "https://setluca.com/developers",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.setluca.com/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@setluca/mcp",
+      "version": "0.3.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "LUCA_API_KEY",
+          "description": "Luca developer API key (from Luca settings, developer API keys).",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "LUCA_API_TOKEN",
+          "description": "Alias for LUCA_API_KEY. Used only when LUCA_API_KEY is not set.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "LUCA_API_BASE_URL",
+          "description": "Luca API origin. Defaults to https://api.setluca.com.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LUCA_AUTH_HEADER",
+          "description": "Header used to send the API key. Defaults to x-api-key.",
+          "isRequired": false,
+          "isSecret": false,
+          "choices": ["x-api-key", "authorization", "bearer"],
+          "default": "x-api-key"
+        },
+        {
+          "name": "LUCA_WORKSPACE_ID",
+          "description": "Optional default workspace id for every call.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LUCA_WORKSPACE_SLUG",
+          "description": "Optional default workspace slug for every call.",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LUCA_REQUEST_TIMEOUT_MS",
+          "description": "How long one API attempt may run before it is cancelled and retried. Defaults to 30000.",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "30000"
+        },
+        {
+          "name": "LUCA_TOOLSET",
+          "description": "Which tool surface to register. Defaults to full.",
+          "isRequired": false,
+          "isSecret": false,
+          "choices": ["full", "tasks"],
+          "default": "full"
+        }
+      ]
+    }
+  ]
+}
