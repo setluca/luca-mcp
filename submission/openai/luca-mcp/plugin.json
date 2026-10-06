@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "luca-mcp",
-  "version": "0.1.2",
-  "description": "Connect an AI assistant to a Luca workspace for lead, inbox, booking, and campaign work.",
+  "version": "0.1.3",
+  "description": "Manage a coach's DM sales operations in Luca: leads, conversations, draft replies, bookings, and campaigns.",
   "author": {
     "name": "SetLuca, LLC"
   },
@@ -10,10 +10,10 @@
     "com.openai": {
       "interface": {
         "displayName": "Luca",
-        "shortDescription": "Work with your Luca inbox",
-        "longDescription": "Connect your Luca workspace to an AI assistant. Review leads and conversations, triage draft replies, prepare for calls, track bookings, and inspect campaign and broadcast results. Actions that reach a lead require your explicit confirmation. Access is limited to the Luca permissions granted when you connect.",
+        "shortDescription": "Manage coach sales in Luca",
+        "longDescription": "Luca helps coaches, creators, and experts manage the business work behind sales conversations in direct messages. Connect your Luca workspace to review leads and conversations, triage draft replies, prepare for calls, track bookings, and inspect campaign and broadcast results. This plugin works only with the connected Luca account and its granted permissions. Actions that contact a lead or affect an outside system require your explicit confirmation.",
         "developerName": "SetLuca, LLC",
-        "category": "Productivity",
+        "category": "Business & Operations",
         "defaultPrompt": [
           "What needs my attention in Luca today?",
           "Show my review queue and explain what is waiting.",
@@ -78,7 +78,7 @@
         }
       },
       "publication": {
-        "release_notes": "Updated Luca MCP plugin for the production 0.3.5 server. Review leads, inbox work, bookings, and campaign results with clearer guidance for redacted data."
+        "release_notes": "Clarified Luca's coach sales purpose and selected Business & Operations. The MCP server remains at production version 0.3.5."
       }
     }
   }
