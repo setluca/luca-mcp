@@ -31,7 +31,7 @@
           "positive": [
             {
               "description": "In a reviewer workspace with current activity, summarize the morning report and cite the returned counts or items.",
-              "prompt": "Run Luca's morning report for this workspace. What needs my attention today?",
+              "prompt": "Run Luca's morning report for this workspace. Summarize only the returned report; do not check other Luca data or take action.",
               "tools_triggered": "luca_morning_report",
               "expected_behavior": "Call luca_morning_report. Summarize only activity returned by the tool, including any review items or follow-ups it reports. Do not invent counts or imply an action was taken."
             },
