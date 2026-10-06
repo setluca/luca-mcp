@@ -19,11 +19,13 @@ The business publisher displayed by OpenAI on October 6, 2026 was
 in this package. The saved portal draft imported version `0.1.0`, and OpenAI
 verified `mcp.setluca.com` after the production Worker served the challenge
 token. The dedicated reviewer granted `luca:read` and `luca:draft` to ChatGPT
-on October 6, 2026. The portal shows Authorized, but its tool scan cannot
-reach the deployed `0.3.0` Worker: that build sends token checks through an
-unsupported Cloudflare redirect mode and the public API's WAF. The `0.3.1`
-release candidate in this repository fixes both paths. Rerun the portal scan
-after that release reaches production before claiming tool discovery passed.
+on October 6, 2026. The portal shows Authorized. MCP `0.3.1` is live and its
+authenticated portal scan discovered all 203 tools. Ten findings remain: four
+tools say an update needs OpenAI review, three external-system tools need an
+`openWorldHint` correction, one settings read creates defaults on first use,
+and two tool names need clearer context. The `0.3.2` release candidate fixes
+the four annotation findings and clarifies the two display names without
+renaming tools. Rescan after release and review any findings that remain.
 
 The dedicated production account `openai-reviewer@setluca.com` owns **OpenAI
 Review Workspace**. It has synthetic lead, conversation, pending review draft,

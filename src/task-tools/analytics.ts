@@ -287,9 +287,9 @@ const getAnalytics = taskTool({
 
 const magicMonday = taskTool({
   name: "luca_analytics_magic_monday",
-  title: "Get the Magic Monday report",
+  title: "Read the weekly business report",
   description:
-    "Return the coach's weekly business intelligence report: pipeline funnel, revenue and ROI, response-speed impact, a point-in-time revenue forecast, and call intelligence (show/close rates), all for the current week. Composes five analytics reads into a single call. Example: call with {} on Monday morning for the week's report.",
+    "Return the current week's business report (called Magic Monday in Luca): pipeline funnel, revenue and ROI, response-speed impact, a point-in-time revenue forecast, and call intelligence (show/close rates). Composes five analytics reads into a single call. Example: call with {} for the weekly report.",
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
   },

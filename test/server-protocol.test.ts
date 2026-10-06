@@ -141,12 +141,25 @@ describe("MCP protocol", () => {
       .filter(
         (tool) =>
           tool.annotations?.readOnlyHint === true &&
-          (tool.annotations.destructiveHint !== false ||
-            tool.annotations.openWorldHint !== false)
+          tool.annotations.destructiveHint !== false
       )
       .map((tool) => tool.name);
 
     expect(unsafeReads).toEqual([]);
+
+    for (const name of [
+      "luca_integrations_crm_connections_schema",
+      "luca_integrations_crm_connections_health",
+      "luca_knowledge_sources_sync",
+    ]) {
+      const tool = tools.find((candidate) => candidate.name === name);
+      expect(tool?.annotations?.openWorldHint, name).toBe(true);
+    }
+
+    expect(
+      tools.find((tool) => tool.name === "luca_insights_settings_get")
+        ?.annotations?.readOnlyHint
+    ).toBe(false);
 
     for (const name of [
       "luca_conversations_send",

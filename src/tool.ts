@@ -171,7 +171,7 @@ function buildFromTaskTool(tool: LucaTaskTool): RegisterableTool {
       ...openApiToolOutputFields({ body: null, untrustedContent }),
       result: tool.outputSchema,
     },
-    readOnly: composed.every((operation) => operation.method === "GET"),
+    readOnly: composed.every((operation) => operation.readOnly),
     // A task tool overwrites or removes existing state when any write it
     // composes does.
     mutatesExisting: composed.some((operation) => operation.mutatesExisting),

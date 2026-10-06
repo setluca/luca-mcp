@@ -32,6 +32,7 @@ export const insightsOperations: readonly LucaOperation[] = [
   op({
     id: "insights.settings.get",
     title: "Read alert delivery settings",
+    readOnly: false,
     description:
       "Read which insight alerts reach the coach and how. The row is created with defaults on the first read, so this never 404s. Check it before concluding a quiet feed means nothing is happening \u2014 it may just be muted.",
   }),

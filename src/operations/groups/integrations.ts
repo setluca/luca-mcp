@@ -26,6 +26,7 @@ export const integrationsOperations: readonly LucaOperation[] = [
   op({
     id: "integrations.crm.connections.schema",
     title: "Read a CRM's field schema",
+    openWorld: true,
     // sampleRecords are literal contact and deal rows from the coach's CRM, which leads and other people filled in.
     untrustedContent: true,
     description: "Discover CRM provider schema.",
@@ -33,6 +34,7 @@ export const integrationsOperations: readonly LucaOperation[] = [
   op({
     id: "integrations.crm.connections.health",
     title: "Check a CRM connection's health",
+    openWorld: true,
     description: "Probe CRM provider health.",
   }),
   op({

@@ -52,7 +52,7 @@ export function operationAnnotationSource(
 ): ToolAnnotationSource {
   return {
     title: operation.title,
-    readOnly: operation.method === "GET",
+    readOnly: operation.readOnly,
     mutatesExisting: operation.mutatesExisting,
     ...optionalField("confirm", operation.confirm),
     openWorld: operation.openWorld,

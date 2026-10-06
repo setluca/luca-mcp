@@ -2300,7 +2300,7 @@ describe("luca_analytics_magic_monday", () => {
   it("pins the exact metadata", () => {
     const tool = getTool("luca_analytics_magic_monday");
     expect(tool.name).toBe("luca_analytics_magic_monday");
-    expect(tool.title).toBe("Get the Magic Monday report");
+    expect(tool.title).toBe("Read the weekly business report");
     expect(fromTaskTool(tool).readOnly).toBe(true);
     expect(fromTaskTool(tool).untrustedContent).toBe(false);
     expect(fromTaskTool(tool).confirm).toBeUndefined();
