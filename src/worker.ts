@@ -307,10 +307,9 @@ function route(
     toolset: resolveToolset(new URL(request.url), env),
     allowedOrigins: parseAllowedOrigins(env.MCP_ALLOWED_ORIGINS),
     // The SDK reports these through a plain callback, outside any Effect.
-    onError: (error) => {
-      Effect.runSync(
-        logJson({ msg: "mcp.transport_error", error: error.message })
-      );
+    onError: () => {
+      // SDK errors can contain client-controlled request text. Do not log it.
+      Effect.runSync(logJson({ msg: "mcp.transport_error" }));
     },
     rateLimits,
   });

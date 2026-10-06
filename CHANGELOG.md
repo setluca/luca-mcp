@@ -17,6 +17,12 @@ input schema, or changing what a tool does to a workspace.
 - Mark live booking provider and calendar reads, plus call feedback that can
   start no-show recovery, as reaching outside the Luca workspace in MCP tool
   annotations.
+- Mark booking outcomes that can queue CRM deal-stage updates as reaching
+  outside Luca, calendar selection as reading Google, and CRM OAuth URL creation
+  as a state-changing GET. State-changing GETs no longer retry without an
+  idempotency key.
+- Keep unexpected tool and transport error messages out of client results and
+  Worker logs.
 
 ## [0.3.2] - 2026-10-06
 

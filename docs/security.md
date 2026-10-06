@@ -273,6 +273,12 @@ state-machine checks in `apps/api`, not a replacement for them. The API still
 rejects an invalid state, such as launching an unapproved broadcast, whatever
 the MCP client sends.
 
+`luca_bookings_outcome_record` can queue a CRM deal-stage update for a won or
+lost outcome. Its `openWorldHint` reports that effect. It does not yet require
+`confirm: true`; changing that existing call contract is deferred from 0.3.3.
+The composed `luca_close_call_loop` has the same limitation for won or lost
+outcomes. Both still require Luca's `bookings:write` scope.
+
 ### `destructiveHint` is wider than the confirm gate
 
 The gate above decides which tools refuse to run without `confirm: true`. The

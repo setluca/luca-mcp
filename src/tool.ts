@@ -278,9 +278,8 @@ function toolResult(
   input: unknown
 ) {
   const logCall = (outcome: ToolOutcome, elapsed?: Duration.Duration) =>
-    // A defect's own message never lands here: it can carry arbitrary thrown
-    // text derived from the call's input. The client still sees it in the
-    // tool result.
+    // A defect's own message never lands here or in the tool result: it can
+    // carry arbitrary thrown text derived from the call's input.
     logAgentSurfaceEvent("mcp.tool.called", {
       toolName: tool.name,
       toolset: surface.toolset,
@@ -350,14 +349,11 @@ function settle(
     ];
   }
 
-  const defect = Cause.squash(cause);
-
   return [
     "defect",
-    asErrorResult(
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- boundary narrows an unknown thrown value that carries no tag
-      defect instanceof Error ? defect : new Error(String(defect))
-    ),
+    // A defect may include request data or credentials in its message. Keep
+    // the protocol error generic and record only the defect outcome in logs.
+    asErrorResult("Unexpected Luca MCP tool failure"),
   ];
 }
 
@@ -434,7 +430,7 @@ type ToolErrorResult = {
 };
 
 function asErrorResult(
-  error: LucaError | Error,
+  error: LucaError | Error | string,
   meta?: Record<string, readonly string[]>
 ): ToolErrorResult {
   return {

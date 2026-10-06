@@ -617,6 +617,15 @@ describe("operation manifest", () => {
       destructiveHint: false,
       idempotentHint: false,
     });
+
+    // This GET stores a fresh OAuth state record for the callback.
+    expect(
+      operationAnnotations(getOperation("integrations.crm.oauthUrl"))
+    ).toMatchObject({
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    });
   });
 
   it("marks open-world only the calls that reach past the workspace", () => {
@@ -646,6 +655,7 @@ describe("operation manifest", () => {
         "webhooks.events.bulkReplay",
         // A connected calendar or CRM.
         "bookings.create",
+        "bookings.calendars.select",
         "bookings.availability",
         "bookings.managedAvailability",
         "bookings.providers.get",
@@ -653,6 +663,7 @@ describe("operation manifest", () => {
         "bookings.cancel",
         "bookings.providerSync.retry",
         "bookings.lifecycleResolution",
+        "bookings.outcome.record",
         "callEvents.feedback",
         "callEvents.summary.replace",
         "callEvents.pushToCrm",
@@ -668,15 +679,21 @@ describe("operation manifest", () => {
 
   it("confirm-gates writes to external systems", () => {
     // An open-world write lands somewhere Luca cannot take it back from: a
-    // lead's inbox, an outside URL, a connected calendar or CRM. The CRM
-    // health probe and knowledge sync query external systems but do not write
-    // to them, so neither needs a confirmation gate.
+    // lead's inbox, an outside URL, a connected calendar or CRM. CRM health,
+    // knowledge sync, and calendar selection read an external system but do
+    // not write to it, so they need no confirmation gate. Booking outcome
+    // recording is an existing ungated CRM write; the new gate is deferred.
     const ungated = LUCA_OPERATIONS.filter(
       (operation) =>
         operation.method !== "GET" &&
         operationAnnotations(operation).openWorldHint &&
         !Arr.contains(
-          ["integrations.crm.connections.health", "knowledge.sources.sync"],
+          [
+            "integrations.crm.connections.health",
+            "knowledge.sources.sync",
+            "bookings.calendars.select",
+            "bookings.outcome.record",
+          ],
           operation.id
         ) &&
         operation.confirm === undefined

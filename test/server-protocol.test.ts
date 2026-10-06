@@ -163,6 +163,10 @@ describe("MCP protocol", () => {
       tools.find((tool) => tool.name === "luca_insights_settings_get")
         ?.annotations?.readOnlyHint
     ).toBe(false);
+    expect(
+      tools.find((tool) => tool.name === "luca_integrations_crm_oauth_url")
+        ?.annotations?.readOnlyHint
+    ).toBe(false);
 
     for (const name of [
       "luca_conversations_send",
@@ -170,6 +174,8 @@ describe("MCP protocol", () => {
       "luca_campaigns_publish",
       "luca_broadcasts_launch",
       "luca_bookings_create",
+      "luca_bookings_calendars_select",
+      "luca_bookings_outcome_record",
       "luca_call_events_feedback",
       "luca_approve_and_send",
       "luca_book_call",
@@ -1000,10 +1006,10 @@ describe("MCP protocol", () => {
     expect(requests).toHaveLength(1);
   });
 
-  it("formats unexpected tool defects as MCP tool errors", async () => {
+  it("does not disclose unexpected defect messages in MCP tool errors", async () => {
     const { client, close } = await connect(() =>
       // oxlint-disable-next-line effect/avoid-untagged-errors -- an untyped defect is the case under test
-      Effect.die(new Error("boom"))
+      Effect.die(new Error("secret-from-request"))
     );
 
     onTestFinished(close);
@@ -1017,9 +1023,10 @@ describe("MCP protocol", () => {
     expect(result.content).toContainEqual(
       expect.objectContaining({
         type: "text",
-        text: "boom",
+        text: "Unexpected Luca MCP tool failure",
       })
     );
+    expect(JSON.stringify(result)).not.toContain("secret-from-request");
   });
 });
 

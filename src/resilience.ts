@@ -15,8 +15,8 @@ import {
 } from "./errors.ts";
 
 /**
- * The statuses worth sending again. All four mean the request never reached the
- * handler, so a replay cannot repeat an effect the first attempt already had.
+ * The statuses worth considering for a retry. A gateway can answer after the
+ * handler ran, so a replay is still subject to read-only or idempotency rules.
  *
  * 500 is deliberately not here. A 500 means the handler ran and threw, which
  * may well be after it wrote something. Replaying that without an idempotency
@@ -24,10 +24,6 @@ import {
  */
 
 const RETRYABLE_STATUSES = HashSet.fromIterable([429, 502, 503, 504]);
-
-/** Methods with no effect to repeat, so a replay is safe with or without a key. */
-
-const REPLAYABLE_METHODS = HashSet.fromIterable(["GET", "HEAD"]);
 
 /**
  * The longest server-requested wait we will sit through. Past this the server
@@ -50,13 +46,15 @@ const httpRetrySchedule = Schedule.max([
 ]);
 
 /**
- * Everything the retry rules read about a request: the method decides whether a
- * replay can repeat an effect, and the key decides whether the API would dedupe
- * it if it did. Nothing else bears on the decision, so nothing else is here.
+ * Everything the retry rules read about a request: the catalog's read-only
+ * guarantee decides whether a replay can repeat an effect, and the key decides
+ * whether the API would dedupe a state-changing call. The method is retained
+ * for the timeout message, not as a replay-safety shortcut.
  * The per-attempt timeout bounds a request but never decides a replay.
  */
 export type RetryPolicy = {
   readonly method: string;
+  readonly readOnly: boolean;
   readonly idempotencyKey: string | undefined;
 };
 
@@ -68,6 +66,7 @@ export type RetryPolicy = {
 type RetryableRequest = {
   readonly operation: {
     readonly method: string;
+    readonly readOnly: boolean;
     readonly idempotencyRequired: boolean;
   };
   readonly idempotencyKey?: string;
@@ -124,7 +123,7 @@ function isTransient(error: LucaError): boolean {
 }
 
 /**
- * Whether this failure may be sent again. Reads are always replayable. A write
+ * Whether this failure may be sent again. Read-only calls are replayable. A write
  * is replayable only when it carries an idempotency key, because the API dedupes
  * by [organizationId, coachId, actorId, method, path, key] and that is the only
  * replay which cannot file the same write twice.
@@ -141,10 +140,7 @@ export function mayRetry(policy: RetryPolicy, error: LucaError): boolean {
     return false;
   }
 
-  return (
-    HashSet.has(REPLAYABLE_METHODS, policy.method) ||
-    policy.idempotencyKey !== undefined
-  );
+  return policy.readOnly || policy.idempotencyKey !== undefined;
 }
 
 /**
@@ -191,9 +187,9 @@ function lastFailureNote(lastFailure: Option.Option<LucaError>): string {
 }
 
 /**
- * The timeout a caller reads. A read can be sent again. A write that timed out
- * may or may not have landed, so the message says so and names the key that
- * makes a second send safe.
+ * The timeout a caller reads. A read-only call can be sent again. A call that
+ * changes state and timed out may or may not have landed, so the message says
+ * so and names the key that makes a second send safe when there is one.
  */
 function timeoutError(
   policy: RetryPolicy,
@@ -202,7 +198,7 @@ function timeoutError(
 ) {
   const base = `Luca API did not answer within ${ms}ms${lastFailureNote(lastFailure)}`;
 
-  if (HashSet.has(REPLAYABLE_METHODS, policy.method)) {
+  if (policy.readOnly) {
     return new LucaTimeoutError({ message: base });
   }
 
@@ -247,6 +243,7 @@ export function resilient<A>(
 
     const policy: RetryPolicy = {
       method: request.operation.method,
+      readOnly: request.operation.readOnly,
       idempotencyKey,
     };
 

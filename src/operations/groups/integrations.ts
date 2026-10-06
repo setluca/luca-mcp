@@ -10,7 +10,10 @@ export const integrationsOperations: readonly LucaOperation[] = [
   op({
     id: "integrations.crm.oauthUrl",
     title: "Start a CRM connection",
-    description: "Create a CRM provider OAuth URL.",
+    // This GET stores a fresh OAuth state record for the callback.
+    readOnly: false,
+    description:
+      "Create a CRM provider OAuth URL and store its one-time state.",
   }),
   op({
     id: "integrations.crm.connections.list",

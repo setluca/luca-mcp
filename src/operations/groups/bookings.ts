@@ -151,8 +151,10 @@ export const bookingsOperations: readonly LucaOperation[] = [
     id: "bookings.outcome.record",
     title: "Record a booking's outcome",
     mutatesExisting: true,
+    // Won and lost outcomes queue a deal-stage change in the connected CRM.
+    openWorld: true,
     description:
-      "Record what the call was worth: won, lost with a reason, or still open. To correct an earlier outcome send the expectedVersion you read; a stale version returns 409 with the current one.",
+      "Record what the call was worth: won, lost with a reason, or still open. Won and lost outcomes can update a connected CRM deal stage. To correct an earlier outcome send the expectedVersion you read; a stale version returns 409 with the current one.",
   }),
   op({
     id: "bookings.lifecycleResolution",
@@ -242,6 +244,8 @@ export const bookingsOperations: readonly LucaOperation[] = [
     id: "bookings.calendars.select",
     title: "Select a booking calendar",
     mutatesExisting: true,
+    // Selection checks that the calendar exists in the connected Google account.
+    openWorld: true,
     description:
       "Add or update a calendar selection, either for conflict checks or as the destination new bookings are written to. The destination has to be writable: a read-only calendar returns 400, and a Google connection needing attention returns 409.",
   }),
