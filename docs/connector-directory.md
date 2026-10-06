@@ -55,8 +55,12 @@ None of these exist yet. Don't describe them as shipped in a submission.
   `openai-reviewer@setluca.com` account and seeded OpenAI Review Workspace are
   ready. Its credentials are in Infisical production at
   `/operations/openai-review`. ChatGPT has a read and draft OAuth grant. The
-  `0.3.5` release is live. The fresh authenticated portal scan discovered all
-  203 tools and left only a general server-instructions manual-review notice.
+  `0.3.5` release is live. The portal's plugin package `0.1.3` selects Business
+  & Operations and passed its metadata check. A fresh authenticated MCP scan
+  discovered all 203 tools with no tool findings. Only a generic nonblocking
+  server-instructions review notice remains; OpenAI supplies no actionable
+  instruction-level finding. The existing confirmation and redaction guidance
+  remains in place for review.
   Eight live ChatGPT reviewer cases passed. The reviewer grant redacts sample
   lead names and draft text, and ChatGPT describes those fields as unavailable.
   Final review submission remains pending the publisher's legal attestations.

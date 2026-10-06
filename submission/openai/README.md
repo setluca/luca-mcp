@@ -4,14 +4,15 @@
 server. The ZIP should contain that directory as its single root. The icon is
 the current public Luca wordmark, downloaded from the server card's PNG URL.
 From this directory, rebuild the archive with
-`zip -r luca-mcp-0.1.2.zip luca-mcp` before changing the saved draft.
+`zip -r luca-mcp-0.1.3.zip luca-mcp` before changing the saved draft.
 
 This package is a draft for connecting and verifying the MCP endpoint. The
 reviewer test runs passed, and the package includes a demo recording URL. The
 portal's remaining declarations must be checked before submission. It has saved
 secure reviewer access instructions and all-supported-country targeting. The
 five positive and three negative review cases are drafted from the tool catalog.
-The listing category is Productivity.
+The listing category is Business & Operations. The copy identifies coach DM
+sales as the main purpose and names the work available through Luca.
 
 The business publisher displayed by OpenAI on October 6, 2026 was
 `SetLuca, LLC` with status `Approved`. No credentials or challenge token belong
@@ -31,9 +32,14 @@ The latest live ChatGPT tests correctly identify blanked lead names and draft
 text as unavailable through this connection. The positive test expectations in
 the ZIP account for that redaction. The recording uses only synthetic reviewer
 workspace data and is attached to the public `mcp-v0.3.5` GitHub release.
-The portal imported plugin package `0.1.2`, including the recording URL,
-five positive cases, three negative cases, and the Productivity category.
-It marks its category-check warning and MCP notice as nonblocking for review.
+The portal imported plugin package `0.1.3`, including the recording URL,
+five positive cases, three negative cases, and the Business & Operations
+category. Its metadata check reports no issues. A fresh authenticated scan
+discovered all 203 tools without tool findings. Its sole remaining finding is
+"These server instructions need further review." The portal provides no
+specific failing instruction or correction, and marks this notice nonblocking
+for submission. Keep the confirmation and redaction instructions for reviewer
+assessment rather than removing those safety cues to suppress the notice.
 Final submission requires the publisher's legal and compliance attestations.
 
 The dedicated production account `openai-reviewer@setluca.com` owns **OpenAI
