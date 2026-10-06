@@ -250,7 +250,8 @@ const describeUrl = (url: URL) => `${url.origin}${url.pathname}`;
 function sendOnce(
   config: LucaConfig,
   input: LucaRequest,
-  requestIdempotencyKey: string | undefined
+  requestIdempotencyKey: string | undefined,
+  fetchImpl: typeof fetch
 ) {
   return Effect.gen(function* () {
     const url = yield* buildUrl(config, input);
@@ -259,10 +260,11 @@ function sendOnce(
     const response = yield* Effect.tryPromise({
       try: (signal) =>
         // fallow-ignore-next-line security-sink -- the origin is the configured Luca api base url and the path comes from the generated operation manifest with its params encoded, so a tool argument can never move the destination host
-        fetch(url, {
+        fetchImpl(url, {
           ...init,
-          // A redirect would carry the API key to a host we never named.
-          redirect: "error",
+          // Cloudflare supports manual redirects, not `error`. A 3xx response
+          // falls through as an HTTP error without forwarding the API key.
+          redirect: "manual",
           signal,
         }),
       catch: (cause) =>
@@ -324,14 +326,19 @@ function sendOnce(
   });
 }
 
-export function createLucaApi(config: LucaConfig): LucaApi {
+export function createLucaApi(
+  config: LucaConfig,
+  fetchImpl: typeof fetch = fetch
+): LucaApi {
   const timeoutMs = config.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
 
   return {
     // The key each attempt carries is minted by `resilient`, which also decides
     // whether a failure may be replayed under it.
     request: (input) =>
-      resilient(input, timeoutMs, (key) => sendOnce(config, input, key)),
+      resilient(input, timeoutMs, (key) =>
+        sendOnce(config, input, key, fetchImpl)
+      ),
   };
 }
 

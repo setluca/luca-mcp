@@ -17,8 +17,8 @@ These hold for both directories unless a row says otherwise.
 | Requirement                                               | How it is met                                                                                                                                                                                                     |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tool names at most 64 characters                          | 203 tools, longest is 48                                                                                                                                                                                          |
-| Every tool carries a `title`                              | `check-registry.ts` fails a build on a missing or machine-shaped title                                                                                                                                            |
-| `readOnlyHint` / `destructiveHint` where they apply       | `src/annotations.ts` derives both from the route's method and its confirm gate, and sets `openWorldHint` from the catalog                                                                                         |
+| Every tool carries a `title`                              | `check-registry.ts` rejects missing or machine-shaped operation titles; the protocol test checks every title in `tools/list`                                                                                      |
+| Safety hints on every tool                                | `src/annotations.ts` derives the hints from the route and catalog; the protocol test checks their presence, read-only consistency, and representative outside-world actions                                       |
 | Real-world side effects wait for the user                 | 28 operations and 5 task tools reject a call without `confirm: true`. See [security.md](./security.md#confirmation-gate-for-destructive-tools)                                                                    |
 | Server instructions                                       | `LUCA_SERVER_INSTRUCTIONS` in `src/server.ts` names the starting tools, the confirm rule, and that lead-authored text is untrusted                                                                                |
 | Server name, title, website, and icons                    | `LUCA_SERVER_INFO` in `src/server.ts` carries the title, `https://setluca.com`, and SVG and 512px PNG icons. The server card at `/.well-known/mcp/server-card.json` repeats them                                  |
@@ -38,7 +38,7 @@ These hold for both directories unless a row says otherwise.
 | Privacy policy                                            | https://setluca.com/privacy, covering collection, use, sharing, protection, retention, and choices, with an email and a postal address. Summarized for this server in the README                                  |
 | Public documentation by publish date                      | https://api.setluca.com/docs, https://setluca.com/developers, and this package's README                                                                                                                           |
 
-## Not done yet
+## Remaining work
 
 ### Auth work in the code
 
@@ -51,14 +51,21 @@ None of these exist yet. Don't describe them as shipped in a submission.
 
 ### Work outside the code
 
-- **Demo account.** A seeded workspace and login for reviewers in both
-  directories. See item 2 below.
+- **OpenAI reviewer connection.** The dedicated
+  `openai-reviewer@setluca.com` account and seeded OpenAI Review Workspace are
+  ready. Its credentials are in Infisical production at
+  `/operations/openai-review`. ChatGPT has the approved read and draft OAuth
+  grant. The portal still needs live tool discovery and review-case runs after
+  the `0.3.1` Worker fix is released. See `submission/openai/README.md`.
+- **Claude reviewer access.** Confirm the dedicated account and its fixtures
+  meet Claude's review requirements before using it there. See item 2 below.
 - **Final icon.** The current icons point at the site favicon and app icon
   with a `wordmark-1` version tag. The listing icon isn't final.
-- **OpenAI domain verification.** The route is live, but the token from the
-  OpenAI apps portal still has to be set on the production Worker and verified.
-- **Portal submissions.** Neither the Claude nor the ChatGPT submission has
-  been filed.
+- **OpenAI domain verification.** Completed October 6, 2026. The production
+  Worker serves the challenge token and the portal shows Domain verified.
+  The token is a Worker secret and must not be committed here.
+- **Portal submissions.** An OpenAI plugin draft exists, but it has not been
+  submitted for review. No Claude submission has been filed.
 
 ## What a human has to do in the Claude portal
 
@@ -87,5 +94,5 @@ own, and an incomplete test account is the one Anthropic calls out by name.
   reads destructive on its own, and `test/operations.test.ts` fails if one does
   not. A new POST that reaches a real lead does not. It needs `confirmRequired`
   on its catalog entry, and that is what makes it destructive.
-- **A new tool inherits the whole checklist.** CI gates the name length, the
-  title, and the description. Nothing else in the table above is gated.
+- **A new tool inherits the whole checklist.** CI gates the name length, title,
+  description, and all four safety hints on the published `tools/list` shape.

@@ -36,6 +36,9 @@ on October 5, 2026, proved this release path:
   `mcpName`.
 - The old `Publish MCP` workflow in `setluca/luca` is disabled. Keep it off
   while this repository owns the release.
+- The 0.3.1 Worker requires a `LUCA_API` service binding to the production
+  `setluca-api` Worker. `wrangler.toml` declares it; production requests fail
+  closed if the binding is missing.
 
 These settings live outside this repository and may change. Check them before
 future releases. The workflow is the final test of publishing and deployment

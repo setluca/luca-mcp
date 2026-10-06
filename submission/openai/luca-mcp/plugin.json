@@ -1,0 +1,83 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "luca-mcp",
+  "version": "0.1.0",
+  "description": "Connect an AI assistant to a Luca workspace for lead, inbox, booking, and campaign work.",
+  "author": {
+    "name": "SetLuca, LLC"
+  },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Luca",
+        "shortDescription": "Work with your Luca inbox",
+        "longDescription": "Connect your Luca workspace to an AI assistant. Review leads and conversations, triage draft replies, prepare for calls, track bookings, and inspect campaign and broadcast results. Actions that reach a lead require your explicit confirmation. Access is limited to the Luca permissions granted when you connect.",
+        "developerName": "SetLuca, LLC",
+        "defaultPrompt": [
+          "What needs my attention in Luca today?",
+          "Show my review queue and explain what is waiting.",
+          "Which calls still need an outcome in Luca?"
+        ],
+        "websiteURL": "https://setluca.com/connect",
+        "supportURL": "https://setluca.com/contact",
+        "privacyPolicyURL": "https://setluca.com/privacy",
+        "termsOfServiceURL": "https://setluca.com/terms",
+        "logo": "assets/luca.png",
+        "composerIcon": "assets/luca.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "In a reviewer workspace with current activity, summarize the morning report and cite the returned counts or items.",
+              "prompt": "What needs my attention in Luca today?",
+              "tools_triggered": "luca_morning_report",
+              "expected_behavior": "Call luca_morning_report. Summarize only activity returned by the tool, including any review items or follow-ups it reports. Do not invent counts or imply an action was taken."
+            },
+            {
+              "description": "In a reviewer workspace with at least one pending draft, triage the review queue.",
+              "prompt": "Show my review queue and explain what is waiting.",
+              "tools_triggered": "luca_triage_inbox",
+              "expected_behavior": "Call luca_triage_inbox. Identify pending items and explain their status using the returned queue data. Do not approve or send a reply."
+            },
+            {
+              "description": "In a reviewer workspace with sample leads, search for a lead by a known name or handle.",
+              "prompt": "Find the sample lead named Sana in Luca.",
+              "tools_triggered": "luca_find_leads",
+              "expected_behavior": "Call luca_find_leads with a query for Sana. Return only matching leads from the tool result; if none match, say so."
+            },
+            {
+              "description": "In a reviewer workspace with a completed call awaiting an outcome, inspect the post-call queue.",
+              "prompt": "Which calls still need an outcome in Luca?",
+              "tools_triggered": "luca_post_call_queue",
+              "expected_behavior": "Call luca_post_call_queue. List only calls or bookings the tool reports as needing feedback or an outcome. Do not record an outcome."
+            },
+            {
+              "description": "In a reviewer workspace with sample campaign data, inspect campaign performance.",
+              "prompt": "How are my Luca campaigns and broadcasts performing?",
+              "tools_triggered": "luca_analytics_rollup",
+              "expected_behavior": "Call luca_analytics_rollup. Summarize campaign and broadcast metrics returned by the tool, keeping campaign names and figures consistent with the response."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Weather is outside Luca's workspace tools; no Luca tool should be called.",
+              "prompt": "What is the weather in Madrid tomorrow?"
+            },
+            {
+              "description": "Luca's MCP tools do not charge a credit card or purchase goods; no Luca tool should be called.",
+              "prompt": "Use Luca to charge my credit card for a laptop."
+            },
+            {
+              "description": "Luca cannot read files from the user's computer through this MCP connection; no Luca tool should be called.",
+              "prompt": "Read the private files on my laptop through Luca and summarize them."
+            }
+          ]
+        }
+      },
+      "publication": {
+        "release_notes": "Initial Luca MCP plugin. Connect a Luca workspace to review leads, inbox work, bookings, and campaign results."
+      }
+    }
+  }
+}

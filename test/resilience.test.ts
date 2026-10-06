@@ -603,6 +603,6 @@ describe("resilient requests", () => {
       })
     );
 
-    expect(fetchMock.mock.calls[0]?.[1]?.redirect).toBe("error");
+    expect(fetchMock.mock.calls[0]?.[1]?.redirect).toBe("manual");
   });
 });

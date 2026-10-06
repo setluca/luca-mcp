@@ -108,6 +108,62 @@ describe("MCP protocol", () => {
     );
   }, 15_000);
 
+  it("lists directory-ready titles and annotations for every tool", async () => {
+    const { client, close } = await connect(() => Effect.succeed({}));
+
+    onTestFinished(close);
+
+    const { tools } = await client.listTools();
+
+    for (const tool of tools) {
+      expect(
+        tool.title?.trim().length,
+        `${tool.name} is missing a title`
+      ).toBeGreaterThan(0);
+      expect(
+        tool.annotations?.title?.trim(),
+        `${tool.name} is missing an annotation title`
+      ).toBe(tool.title);
+
+      for (const hint of [
+        "readOnlyHint",
+        "destructiveHint",
+        "idempotentHint",
+        "openWorldHint",
+      ] as const) {
+        expect([true, false], `${tool.name} is missing ${hint}`).toContain(
+          tool.annotations?.[hint]
+        );
+      }
+    }
+
+    const unsafeReads = tools
+      .filter(
+        (tool) =>
+          tool.annotations?.readOnlyHint === true &&
+          (tool.annotations.destructiveHint !== false ||
+            tool.annotations.openWorldHint !== false)
+      )
+      .map((tool) => tool.name);
+
+    expect(unsafeReads).toEqual([]);
+
+    for (const name of [
+      "luca_conversations_send",
+      "luca_review_queue_approve",
+      "luca_campaigns_publish",
+      "luca_broadcasts_launch",
+      "luca_bookings_create",
+      "luca_approve_and_send",
+      "luca_book_call",
+    ]) {
+      const tool = tools.find((candidate) => candidate.name === name);
+
+      expect(tool, `${name} is missing from tools/list`).toBeDefined();
+      expect(tool?.annotations?.openWorldHint, name).toBe(true);
+    }
+  }, 15_000);
+
   it("registers lead/thread/queue resources and reads them via the API", async () => {
     const requests: LucaRequest[] = [];
 

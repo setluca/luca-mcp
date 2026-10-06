@@ -69,7 +69,7 @@ describe("apiKeyResolver", () => {
       "https://api.setluca.com/api/capabilities",
       expect.objectContaining({
         method: "GET",
-        redirect: "error",
+        redirect: "manual",
         headers: expect.objectContaining({ "x-api-key": VALID_API_KEY }),
       })
     );

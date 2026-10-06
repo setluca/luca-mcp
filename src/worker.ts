@@ -46,6 +46,8 @@ import { LUCA_TASK_TOOLS } from "./task-tools.ts";
  */
 type WorkerEnv = {
   readonly LUCA_API_BASE_URL?: string;
+  /** Direct binding to setluca-api; bypasses the public WAF. */
+  readonly LUCA_API?: { readonly fetch: typeof fetch };
   /** x-api-key (default), authorization, or its alias bearer. */
   readonly LUCA_AUTH_HEADER?: string;
   /** Per-attempt timeout for calls to the Luca API, in milliseconds. */
@@ -128,6 +130,23 @@ function loadRateLimits(
     : Effect.succeed(DEV_RATE_LIMITS);
 }
 
+/** Production must use the API service binding for verification and tools. */
+function loadApiFetch(
+  env: WorkerEnv
+): Effect.Effect<typeof fetch, LucaConfigError> {
+  if (env.LUCA_API !== undefined) {
+    return Effect.succeed(env.LUCA_API.fetch.bind(env.LUCA_API));
+  }
+
+  return env.NODE_ENV === "production"
+    ? Effect.fail(
+        new LucaConfigError({
+          message: "LUCA_API service binding must be bound in production",
+        })
+      )
+    : Effect.succeed(fetch);
+}
+
 /**
  * MCP_PUBLIC_ORIGIN as a bare origin, or undefined when unset. A value with a
  * path, a query, or a scheme other than http(s) fails the request at load:
@@ -195,12 +214,13 @@ type LoadedConfig = {
   readonly settings: RemoteSettings;
   readonly rateLimits: RateLimits;
   readonly publicOrigin: string | undefined;
+  readonly apiFetch: typeof fetch;
 };
 
 function route(
   request: Request,
   env: WorkerEnv,
-  { settings, rateLimits, publicOrigin }: LoadedConfig
+  { settings, rateLimits, publicOrigin, apiFetch }: LoadedConfig
 ): Effect.Effect<Response> {
   const origin = publicOrigin ?? new URL(request.url).origin;
 
@@ -276,12 +296,13 @@ function route(
     );
   }
 
-  const apiKey = apiKeyResolver(settings);
-  const oauth = oauthResolver(settings);
+  const apiKey = apiKeyResolver(settings, apiFetch);
+  const oauth = oauthResolver(settings, apiFetch);
 
   const respond = createRemoteResponder({
     resolveToken: (token) =>
       looksLikeDeveloperKey(token) ? apiKey(token) : oauth(token),
+    apiFetch,
     resourceMetadataUrl,
     toolset: resolveToolset(new URL(request.url), env),
     allowedOrigins: parseAllowedOrigins(env.MCP_ALLOWED_ORIGINS),
@@ -305,6 +326,7 @@ export default {
           settings: loadRemoteSettings(env),
           rateLimits: loadRateLimits(env),
           publicOrigin: loadPublicOrigin(env),
+          apiFetch: loadApiFetch(env),
         },
         { concurrency: 1 }
       ).pipe(
