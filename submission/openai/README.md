@@ -19,9 +19,9 @@ in this package. The saved portal draft imported version `0.1.0`, and OpenAI
 verified `mcp.setluca.com` after the production Worker served the challenge
 token. The dedicated reviewer granted `luca:read` and `luca:draft` to ChatGPT
 on October 6, 2026. The portal shows Authorized. MCP `0.3.5` is deployed. Its
-authenticated portal scan will be repeated before submission. The earlier scan
-discovered all 203 tools and cleared the original seven tool findings. The
-server-instructions advisory needs manual review.
+fresh authenticated portal scan discovered all 203 tools and left only a
+general server-instructions manual-review notice. The earlier tool-name
+finding cleared on the fresh scan.
 
 The portal's private reviewer form has the dedicated sign-in instructions and
 credentials saved. The password stays in Infisical and the portal, never in
@@ -31,6 +31,10 @@ The latest live ChatGPT tests correctly identify blanked lead names and draft
 text as unavailable through this connection. The positive test expectations in
 the ZIP account for that redaction. The recording uses only synthetic reviewer
 workspace data and is attached to the public `mcp-v0.3.5` GitHub release.
+The portal imported plugin package `0.1.2`, including the recording URL,
+five positive cases, three negative cases, and the Productivity category.
+It marks its category-check warning and MCP notice as nonblocking for review.
+Final submission requires the publisher's legal and compliance attestations.
 
 The dedicated production account `openai-reviewer@setluca.com` owns **OpenAI
 Review Workspace**. It has synthetic lead, conversation, pending review draft,
