@@ -10,6 +10,14 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-10-06
+
+### Fixed
+
+- Tell AI clients that a redacted OAuth grant may blank lead names and draft
+  text. Empty sensitive fields must be reported as unavailable, not as proof
+  that the underlying record is empty.
+
 ## [0.3.3] - 2026-10-06
 
 ### Fixed

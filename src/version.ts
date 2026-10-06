@@ -9,7 +9,7 @@
  *
  * Bump this in the same commit as package.json and server.json.
  */
-export const LUCA_MCP_VERSION = "0.3.3";
+export const LUCA_MCP_VERSION = "0.3.4";
 
 /** The user-agent every outbound Luca API call identifies itself with. */
 export const LUCA_MCP_USER_AGENT = `luca-mcp/${LUCA_MCP_VERSION}`;
