@@ -55,12 +55,11 @@ None of these exist yet. Don't describe them as shipped in a submission.
   `openai-reviewer@setluca.com` account and seeded OpenAI Review Workspace are
   ready. Its credentials are in Infisical production at
   `/operations/openai-review`. ChatGPT has a read and draft OAuth grant. The
-  `0.3.5` release is live. The earlier portal scan discovered all 203 tools
-  and cleared the original tool findings; server instructions still require
-  manual review. Eight live ChatGPT reviewer cases passed. The reviewer grant
-  redacts sample lead names and draft text, and ChatGPT now describes those
-  fields as unavailable. A fresh portal scan and final review submission
-  remain.
+  `0.3.5` release is live. The fresh authenticated portal scan discovered all
+  203 tools and left only a general server-instructions manual-review notice.
+  Eight live ChatGPT reviewer cases passed. The reviewer grant redacts sample
+  lead names and draft text, and ChatGPT describes those fields as unavailable.
+  Final review submission remains pending the publisher's legal attestations.
   See `submission/openai/README.md`.
 - **Claude reviewer access.** Confirm the dedicated account and its fixtures
   meet Claude's review requirements before using it there. See item 2 below.
