@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "luca-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Connect an AI assistant to a Luca workspace for lead, inbox, booking, and campaign work.",
   "author": {
     "name": "SetLuca, LLC"
@@ -13,6 +13,7 @@
         "shortDescription": "Work with your Luca inbox",
         "longDescription": "Connect your Luca workspace to an AI assistant. Review leads and conversations, triage draft replies, prepare for calls, track bookings, and inspect campaign and broadcast results. Actions that reach a lead require your explicit confirmation. Access is limited to the Luca permissions granted when you connect.",
         "developerName": "SetLuca, LLC",
+        "category": "Productivity",
         "defaultPrompt": [
           "What needs my attention in Luca today?",
           "Show my review queue and explain what is waiting.",
@@ -30,7 +31,7 @@
           "positive": [
             {
               "description": "In a reviewer workspace with current activity, summarize the morning report and cite the returned counts or items.",
-              "prompt": "What needs my attention in Luca today?",
+              "prompt": "Run Luca's morning report for this workspace. Summarize only the returned report; do not check other Luca data or take action.",
               "tools_triggered": "luca_morning_report",
               "expected_behavior": "Call luca_morning_report. Summarize only activity returned by the tool, including any review items or follow-ups it reports. Do not invent counts or imply an action was taken."
             },
@@ -76,7 +77,7 @@
         }
       },
       "publication": {
-        "release_notes": "Initial Luca MCP plugin. Connect a Luca workspace to review leads, inbox work, bookings, and campaign results."
+        "release_notes": "Updated Luca MCP plugin for the production 0.3.4 server. Review leads, inbox work, bookings, and campaign results with clearer guidance for redacted data."
       }
     }
   }

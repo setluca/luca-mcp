@@ -89,7 +89,7 @@ const triageInbox = taskTool({
   name: TRIAGE_INBOX_TOOL_NAME,
   title: "Triage the review queue",
   description:
-    "Return the coach's prioritized reply queue: pending drafts with lead context and, for the top items, why Luca drafted what it drafted. Start every review session here, then act on an item with luca_approve_and_send, luca_draft_reply, or luca_review_queue_reject. Example: call with { explainTop: 3 } to get the queue plus explanations for the three most urgent drafts.",
+    "Return the coach's prioritized reply queue: pending drafts with lead context and, for the top items, why Luca drafted what it drafted. With a redacted OAuth grant, lead names and draft text can be blanked; describe them as unavailable rather than empty. Start every review session here, then act on an item with luca_approve_and_send, luca_draft_reply, or luca_review_queue_reject. Example: call with { explainTop: 3 } to get the queue plus explanations for the three most urgent drafts.",
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     limit: Schema.optionalKey(
