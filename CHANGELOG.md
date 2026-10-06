@@ -10,6 +10,14 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.3.5] - 2026-10-06
+
+### Fixed
+
+- Put redacted-content guidance beside successful tool results that contain
+  lead-authored content. Clients can now see the warning with the returned data,
+  even when they ignore server instructions and output-schema annotations.
+
 ## [0.3.4] - 2026-10-06
 
 ### Fixed

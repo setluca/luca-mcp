@@ -363,6 +363,9 @@ type ToolCallResult =
   | ReturnType<typeof confirmationError>
   | ReturnType<typeof asSuccessResult>;
 
+const POSSIBLE_REDACTION_NOTE =
+  "If this connection has redacted content access, Luca may blank lead names, messages, and draft text. A blank sensitive field may mean unavailable; do not claim the underlying record is empty.";
+
 /** The Effect program that runs an operation, auto-paginating list tools. */
 export function operationProgram(
   operation: LucaOperation,
@@ -408,7 +411,7 @@ function asSuccessResult(
       {
         type: "text" as const,
         text: tool.untrustedContent
-          ? `[UNTRUSTED CONTENT] ${UNTRUSTED_CONTENT_NOTE}\n\n${text}`
+          ? `[UNTRUSTED CONTENT] ${UNTRUSTED_CONTENT_NOTE}\n[POSSIBLE REDACTION] ${POSSIBLE_REDACTION_NOTE}\n\n${text}`
           : text,
       },
     ],
