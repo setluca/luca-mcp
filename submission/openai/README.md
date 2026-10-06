@@ -4,11 +4,11 @@
 server. The ZIP should contain that directory as its single root. The icon is
 the current public Luca wordmark, downloaded from the server card's PNG URL.
 From this directory, rebuild the archive with
-`zip -r luca-mcp-0.1.1.zip luca-mcp` before changing the saved draft.
+`zip -r luca-mcp-0.1.2.zip luca-mcp` before changing the saved draft.
 
-This package is a draft for connecting and verifying the MCP endpoint. It is
-not ready for public review until an actual demo recording URL, reviewer test
-runs, and the portal's required declarations are complete. The portal has saved
+This package is a draft for connecting and verifying the MCP endpoint. The
+reviewer test runs passed, and the package includes a demo recording URL. The
+portal's remaining declarations must be checked before submission. It has saved
 secure reviewer access instructions and all-supported-country targeting. The
 five positive and three negative review cases are drafted from the tool catalog.
 The listing category is Productivity.
@@ -18,19 +18,19 @@ The business publisher displayed by OpenAI on October 6, 2026 was
 in this package. The saved portal draft imported version `0.1.0`, and OpenAI
 verified `mcp.setluca.com` after the production Worker served the challenge
 token. The dedicated reviewer granted `luca:read` and `luca:draft` to ChatGPT
-on October 6, 2026. The portal shows Authorized. MCP `0.3.3` is live. Its
-authenticated portal scan discovered all 203 tools and cleared all seven tool
-findings. Only an advisory requiring manual review of server instructions
-remains. A subsequent `0.3.4` patch clarifies how AI clients should interpret
-fields blanked by a redacted OAuth grant.
+on October 6, 2026. The portal shows Authorized. MCP `0.3.5` is deployed. Its
+authenticated portal scan will be repeated before submission. The earlier scan
+discovered all 203 tools and cleared the original seven tool findings. The
+server-instructions advisory needs manual review.
 
 The portal's private reviewer form has the dedicated sign-in instructions and
 credentials saved. The password stays in Infisical and the portal, never in
 this package. Hands-on ChatGPT tests confirmed the reviewer workspace is
 connected, but the read/draft grant blanks sample lead names and draft text.
-The five positive cases need a dedicated reviewer grant with
-`luca:full_content` so their expected results are visible. A demo recording URL
-is also required.
+The latest live ChatGPT tests correctly identify blanked lead names and draft
+text as unavailable through this connection. The positive test expectations in
+the ZIP account for that redaction. The recording uses only synthetic reviewer
+workspace data and is attached to the public `mcp-v0.3.5` GitHub release.
 
 The dedicated production account `openai-reviewer@setluca.com` owns **OpenAI
 Review Workspace**. It has synthetic lead, conversation, pending review draft,

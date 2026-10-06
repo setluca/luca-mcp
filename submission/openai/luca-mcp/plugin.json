@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "luca-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Connect an AI assistant to a Luca workspace for lead, inbox, booking, and campaign work.",
   "author": {
     "name": "SetLuca, LLC"
@@ -27,31 +27,32 @@
         "composerIcon": "assets/luca.png"
       },
       "review": {
+        "demo_recording_url": "https://github.com/setluca/luca-mcp/releases/download/mcp-v0.3.5/luca-mcp-openai-reviewer-demo.mp4",
         "test_cases": {
           "positive": [
             {
               "description": "In a reviewer workspace with current activity, summarize the morning report and cite the returned counts or items.",
               "prompt": "Run Luca's morning report for this workspace. Summarize only the returned report; do not check other Luca data or take action.",
               "tools_triggered": "luca_morning_report",
-              "expected_behavior": "Call luca_morning_report. Summarize only activity returned by the tool, including any review items or follow-ups it reports. Do not invent counts or imply an action was taken."
+              "expected_behavior": "Call luca_morning_report. Summarize only activity returned by the tool, including any review items or follow-ups it reports. If sensitive details are blanked by the reviewer connection, say they are unavailable. Do not invent counts or imply an action was taken."
             },
             {
               "description": "In a reviewer workspace with at least one pending draft, triage the review queue.",
               "prompt": "Show my review queue and explain what is waiting.",
               "tools_triggered": "luca_triage_inbox",
-              "expected_behavior": "Call luca_triage_inbox. Identify pending items and explain their status using the returned queue data. Do not approve or send a reply."
+              "expected_behavior": "Call luca_triage_inbox. Identify pending items and explain their status using the returned queue data. If lead names or draft text are blanked by the reviewer connection, say they are unavailable, not empty. Do not approve or send a reply."
             },
             {
               "description": "In a reviewer workspace with sample leads, search for a lead by a known name or handle.",
               "prompt": "Find the sample lead named Sana in Luca.",
               "tools_triggered": "luca_find_leads",
-              "expected_behavior": "Call luca_find_leads with a query for Sana. Return only matching leads from the tool result; if none match, say so."
+              "expected_behavior": "Call luca_find_leads with a query for Sana. Return only matching leads from the tool result. If the name is blanked by the reviewer connection, say it cannot be independently confirmed; do not infer that the lead has no name."
             },
             {
               "description": "In a reviewer workspace with a completed call awaiting an outcome, inspect the post-call queue.",
               "prompt": "Which calls still need an outcome in Luca?",
               "tools_triggered": "luca_post_call_queue",
-              "expected_behavior": "Call luca_post_call_queue. List only calls or bookings the tool reports as needing feedback or an outcome. Do not record an outcome."
+              "expected_behavior": "Call luca_post_call_queue. List only calls or bookings the tool reports as needing feedback or an outcome. Treat blank sensitive lead details as unavailable. Do not record an outcome."
             },
             {
               "description": "In a reviewer workspace with sample campaign data, inspect campaign performance.",
@@ -77,7 +78,7 @@
         }
       },
       "publication": {
-        "release_notes": "Updated Luca MCP plugin for the production 0.3.4 server. Review leads, inbox work, bookings, and campaign results with clearer guidance for redacted data."
+        "release_notes": "Updated Luca MCP plugin for the production 0.3.5 server. Review leads, inbox work, bookings, and campaign results with clearer guidance for redacted data."
       }
     }
   }
