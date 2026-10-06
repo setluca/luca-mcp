@@ -602,8 +602,9 @@ describe("task tool defects", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content).toEqual([
-      { type: "text", text: "api client blew up" },
+      { type: "text", text: "Unexpected Luca MCP tool failure" },
     ]);
+    expect(JSON.stringify(result)).not.toContain("api client blew up");
   }, 15_000);
 });
 

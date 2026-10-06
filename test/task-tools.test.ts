@@ -2669,26 +2669,35 @@ describe("luca_close_call_loop", () => {
 
   const CALL_EVENT = ok({ callEvent: { id: "call-1" } });
 
-  it("requires confirm only when the attendance is no_show", () => {
+  it("requires confirm for no-show recovery and CRM deal outcomes", () => {
     const { confirm } = fromTaskTool(tool());
 
     expect("confirm" in tool().inputSchema).toBe(false);
     expect("confirm" in fromTaskTool(tool()).inputSchema).toBe(true);
     expect(needsConfirmation(confirm, { attendance: "no_show" })).toBe(true);
 
+    for (const outcome of ["won", "lost"]) {
+      expect(
+        needsConfirmation(confirm, { attendance: "completed", outcome })
+      ).toBe(true);
+    }
+
     Arr.forEach(["completed", "rescheduled", "cancelled"], (attendance) => {
       expect(needsConfirmation(confirm, { attendance })).toBe(false);
     });
+    expect(
+      needsConfirmation(confirm, { attendance: "completed", outcome: "open" })
+    ).toBe(false);
   });
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Close the loop on a call");
     expect(fromTaskTool(tool()).readOnly).toBe(false);
     expect(fromTaskTool(tool()).untrustedContent).toBe(true);
-    // Only a no_show report can start recovery that messages the lead, so the
-    // gate is conditional rather than "always".
+    // No-show recovery and won/lost CRM updates are conditional effects.
     expect(fromTaskTool(tool()).confirm).toMatchObject({
-      description: "attendance is no_show (can start recovery messaging)",
+      description:
+        "attendance is no_show or outcome is won or lost (can message a lead or update a connected CRM deal)",
     });
     expect(tool().composes).toEqual([
       "callEvents.byBooking",
@@ -2700,7 +2709,7 @@ describe("luca_close_call_loop", () => {
   it("pins the exact name and description", () => {
     expect(tool().name).toBe("luca_close_call_loop");
     expect(tool().description).toBe(
-      'File what happened on a call and what it was worth, in one call. Reports attendance on the call event (completed, no_show, rescheduled, or cancelled) and, when an outcome is given, records the booking outcome: won with an amount, lost with a reason id from luca_bookings_outcome_reasons_list, or open with the next follow-up. This tool sends no message to the lead itself, but the records it files start work in the API. Reporting a no_show can start no-show recovery, which schedules a message to the lead when the booking type has recovery on, so pass confirm: true only after the coach says to report the no-show. A completed call queues its summary, which can later sync to the connected CRM. A won or lost outcome queues a CRM deal-stage update, and lost also moves the lead to lost. Example: { bookingId, attendance: "completed", outcome: "won", amountMinor: 250000, currency: "USD" }.'
+      'File what happened on a call and what it was worth, in one call. Reports attendance on the call event (completed, no_show, rescheduled, or cancelled) and, when an outcome is given, records the booking outcome: won with an amount, lost with a reason id from luca_bookings_outcome_reasons_list, or open with the next follow-up. This tool sends no message to the lead itself, but the records it files start work in the API. Reporting a no_show can start no-show recovery, which schedules a message to the lead when the booking type has recovery on. A completed call queues its summary, which can later sync to the connected CRM. A won or lost outcome queues a CRM deal-stage update, and lost also moves the lead to lost. Pass confirm: true before reporting a no_show or recording a won or lost outcome. Example: { bookingId, attendance: "completed", outcome: "won", amountMinor: 250000, currency: "USD", confirm: true }.'
     );
   });
 

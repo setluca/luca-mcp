@@ -10,6 +10,25 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-10-06
+
+### Fixed
+
+- Mark live booking provider and calendar reads, plus call feedback that can
+  start no-show recovery, as reaching outside the Luca workspace in MCP tool
+  annotations.
+- Mark booking outcomes that can queue CRM deal-stage updates as reaching
+  outside Luca, calendar selection as reading Google, and CRM OAuth URL creation
+  as a state-changing GET. State-changing GETs no longer retry without an
+  idempotency key.
+- Require confirmation for won or lost booking outcomes, directly and through
+  the call-closing task tool, before either can queue a connected CRM deal update.
+  Existing calls without `confirm: true` now receive `confirmation_required`;
+  this safety change is intentionally included in 0.3.3 despite the normal
+  major-version rule for a changed tool-call contract.
+- Keep unexpected tool and transport error messages out of client results and
+  Worker logs.
+
 ## [0.3.2] - 2026-10-06
 
 ### Fixed

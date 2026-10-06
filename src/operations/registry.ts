@@ -190,9 +190,9 @@ export type LucaOperation = {
   /** Absent when the operation needs no confirmation; see {@link ConfirmGate}. */
   readonly confirm?: ConfirmGate;
   /**
-   * The call can change something outside the coach's Luca workspace: it
-   * messages a lead, posts to an outside URL, or writes to a connected calendar
-   * or CRM. Clients read it as the MCP `openWorldHint`.
+   * The call can read or change something outside the coach's Luca workspace:
+   * a lead's inbox, an outside URL, or a connected calendar or CRM. Clients
+   * read it as the MCP `openWorldHint`.
    */
   readonly openWorld: boolean;
   /**

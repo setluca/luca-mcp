@@ -34,6 +34,8 @@ export const callEventsOperations: readonly LucaOperation[] = [
   op({
     id: "callEvents.feedback",
     title: "Report how a call went",
+    // A no-show report can start recovery messaging to the lead.
+    openWorld: true,
     mutatesExisting: true,
     untrustedContent: true,
     // Only a no_show can start recovery that messages the lead, so only that

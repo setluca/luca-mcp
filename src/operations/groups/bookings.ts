@@ -1,3 +1,4 @@
+import { isJsonObject } from "../../serialization.ts";
 import { op } from "../registry.ts";
 import type { LucaOperation } from "../registry.ts";
 
@@ -33,12 +34,16 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.availability",
     title: "Read open call slots",
+    // Availability comes from the connected booking provider.
+    openWorld: true,
     description:
       "List open slots the coach can actually be booked into. Check this before booking.",
   }),
   op({
     id: "bookings.managedAvailability",
     title: "Read Luca-managed call slots",
+    // Google Calendar removes conflicts from Luca-managed slots.
+    openWorld: true,
     description:
       "List open slots for one of Luca's own call types, with calendar conflicts already removed.",
   }),
@@ -69,6 +74,8 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.providers.get",
     title: "Get a booking provider",
+    // Event types and calendars are fetched from the provider account.
+    openWorld: true,
     description:
       "List the event types and calendars in one connected provider account.",
   }),
@@ -145,8 +152,16 @@ export const bookingsOperations: readonly LucaOperation[] = [
     id: "bookings.outcome.record",
     title: "Record a booking's outcome",
     mutatesExisting: true,
+    // Won and lost outcomes queue a deal-stage change in the connected CRM.
+    openWorld: true,
+    confirm: {
+      applies: (input) =>
+        isJsonObject(input.body) &&
+        (input.body.status === "won" || input.body.status === "lost"),
+      description: "status is won or lost (can update a connected CRM deal)",
+    },
     description:
-      "Record what the call was worth: won, lost with a reason, or still open. To correct an earlier outcome send the expectedVersion you read; a stale version returns 409 with the current one.",
+      "Record what the call was worth: won, lost with a reason, or still open. Won and lost outcomes can update a connected CRM deal stage, so pass confirm: true for those outcomes. To correct an earlier outcome send the expectedVersion you read; a stale version returns 409 with the current one.",
   }),
   op({
     id: "bookings.lifecycleResolution",
@@ -236,6 +251,8 @@ export const bookingsOperations: readonly LucaOperation[] = [
     id: "bookings.calendars.select",
     title: "Select a booking calendar",
     mutatesExisting: true,
+    // Selection checks that the calendar exists in the connected Google account.
+    openWorld: true,
     description:
       "Add or update a calendar selection, either for conflict checks or as the destination new bookings are written to. The destination has to be writable: a read-only calendar returns 400, and a Google connection needing attention returns 409.",
   }),

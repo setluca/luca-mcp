@@ -19,13 +19,19 @@ The business publisher displayed by OpenAI on October 6, 2026 was
 in this package. The saved portal draft imported version `0.1.0`, and OpenAI
 verified `mcp.setluca.com` after the production Worker served the challenge
 token. The dedicated reviewer granted `luca:read` and `luca:draft` to ChatGPT
-on October 6, 2026. The portal shows Authorized. MCP `0.3.1` is live and its
-authenticated portal scan discovered all 203 tools. Ten findings remain: four
-tools say an update needs OpenAI review, three external-system tools need an
-`openWorldHint` correction, one settings read creates defaults on first use,
-and two tool names need clearer context. The `0.3.2` release candidate fixes
-the four annotation findings and clarifies the two display names without
-renaming tools. Rescan after release and review any findings that remain.
+on October 6, 2026. The portal shows Authorized. MCP `0.3.2` is live and its
+authenticated portal scan discovered all 203 tools. Eight findings remain:
+server instructions and two tools need manual review; two tools have external
+access hints to correct; and three tool names need clearer context. Version
+`0.3.3` prepares corrections for those two external access hints and two
+adjacent booking availability reads that also query connected calendars or
+providers. Tool names remain stable. Rescan after release and review findings
+that remain.
+
+The portal's private reviewer form has the dedicated sign-in instructions and
+credentials saved. The password stays in Infisical and the portal, never in
+this package. The five positive and three negative review cases still need
+to be run with reviewer data; a demo recording URL is still needed.
 
 The dedicated production account `openai-reviewer@setluca.com` owns **OpenAI
 Review Workspace**. It has synthetic lead, conversation, pending review draft,

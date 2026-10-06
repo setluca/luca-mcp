@@ -26,14 +26,23 @@ function getOperation(id: string) {
   return operation;
 }
 
-const READ: RetryPolicy = { method: "GET", idempotencyKey: undefined };
-
-const UNKEYED_WRITE: RetryPolicy = {
-  method: "POST",
+const READ: RetryPolicy = {
+  method: "GET",
+  readOnly: true,
   idempotencyKey: undefined,
 };
 
-const KEYED_WRITE: RetryPolicy = { method: "POST", idempotencyKey: "key-1" };
+const UNKEYED_WRITE: RetryPolicy = {
+  method: "POST",
+  readOnly: false,
+  idempotencyKey: undefined,
+};
+
+const KEYED_WRITE: RetryPolicy = {
+  method: "POST",
+  readOnly: false,
+  idempotencyKey: "key-1",
+};
 
 function httpError(status: number, retryAfterMs?: number) {
   return new LucaHttpError({
@@ -95,12 +104,12 @@ describe("mayRetry", () => {
     });
   });
 
-  it("replays a HEAD as freely as a GET", () => {
-    // No route in the catalog answers HEAD today. The rule is about the method
-    // having no effect to repeat, not about which routes happen to exist.
+  it("replays a read-only HEAD as freely as a read-only GET", () => {
+    // No route in the catalog answers HEAD today. The rule follows the
+    // operation's read-only guarantee, not which methods routes happen to use.
     expect(
       mayRetry(
-        { method: "HEAD", idempotencyKey: undefined },
+        { method: "HEAD", readOnly: true, idempotencyKey: undefined },
         new LucaNetworkError({ message: "socket closed" })
       )
     ).toBe(true);
@@ -124,6 +133,11 @@ describe("mayRetry", () => {
     const error = new LucaNetworkError({ message: "socket closed" });
     expect(mayRetry(UNKEYED_WRITE, error)).toBe(false);
     expect(mayRetry(KEYED_WRITE, error)).toBe(true);
+  });
+
+  it("does not replay a GET that creates state", () => {
+    const error = new LucaNetworkError({ message: "socket closed" });
+    expect(mayRetry({ ...READ, readOnly: false }, error)).toBe(false);
   });
 
   it("gives up when the server asks for a wait longer than we will hold", () => {
@@ -154,6 +168,26 @@ describe("resilient requests", () => {
 
     expect(Result.isSuccess(result)).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("sends a state-changing GET only once after a network failure", async () => {
+    const fetchMock = vi
+      .fn()
+      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
+      .mockRejectedValueOnce(new Error("socket closed"))
+      .mockResolvedValue(
+        new Response(encodeUnknownJson({ authUrl: "unused" }))
+      );
+
+    const result = await runFast(
+      api(fetchMock).request({
+        operation: getOperation("integrations.crm.oauthUrl"),
+        pathParams: { provider: "hubspot" },
+      })
+    );
+
+    expect(Result.isFailure(result)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("waits out a Retry-After before replaying a 429", async () => {
