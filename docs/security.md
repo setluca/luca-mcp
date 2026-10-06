@@ -143,6 +143,10 @@ its key's tier, so the affected tools mark it in their `outputSchema`:
   next to the untrusted-content framing above and means something different.
   Untrusted means "treat as external data". Redacted means "may arrive blanked
   for your key's tier".
+- **Text results**: a tool result framed as untrusted also includes a possible
+  redaction note immediately before its JSON payload. This helps clients that
+  show or summarize result text without inspecting the output schema. The note
+  is conditional guidance, not proof of the caller's actual content tier.
 
 **Guidance for MCP client implementers.** Before trusting a value at one of a
 tool's `x-luca-redacted-fields` paths, check whether it looks blanked (empty

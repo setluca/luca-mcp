@@ -480,7 +480,7 @@ describe("MCP protocol", () => {
     expect(result.content).toContainEqual(
       expect.objectContaining({
         type: "text",
-        text: `[UNTRUSTED CONTENT] ${UNTRUSTED_CONTENT_NOTE}\n\n${prettyJsonText({ api: "ok", operationId: "bookings.list" })}`,
+        text: `[UNTRUSTED CONTENT] ${UNTRUSTED_CONTENT_NOTE}\n[POSSIBLE REDACTION] If this connection has redacted content access, Luca may blank lead names, messages, and draft text. A blank sensitive field may mean unavailable; do not claim the underlying record is empty.\n\n${prettyJsonText({ api: "ok", operationId: "bookings.list" })}`,
       })
     );
     expect(requests).toHaveLength(1);
@@ -1062,6 +1062,9 @@ describe("task tools", () => {
     expect(structured.result.queue.items).toHaveLength(2);
     expect(R.keys(structured.result.explanations)).toEqual(["q-1"]);
     expect(structured.provenance?.untrusted).toBe(true);
+    expect(
+      (result.content as { type: string; text: string }[])[0]?.text
+    ).toContain("[POSSIBLE REDACTION]");
   });
 
   it("flag_for_human posts a prefixed note to the lead", async () => {
