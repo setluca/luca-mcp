@@ -247,6 +247,69 @@ describe("worker fetch handler", () => {
     );
   });
 
+  it("requires the direct Luca API binding in production", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    onTestFinished(() => consoleError.mockRestore());
+
+    const limit = vi.fn(async () => ({ success: true }));
+
+    const response = await worker.fetch(
+      new Request("https://mcp.example.com/mcp", { method: "POST" }),
+      {
+        ...ENV,
+        NODE_ENV: "production",
+        MCP_AUTH_RATE_LIMIT: { limit },
+        MCP_TOKEN_ADDRESS_RATE_LIMIT: { limit },
+        MCP_ANONYMOUS_RATE_LIMIT: { limit },
+      }
+    );
+
+    expect(response.status).toBe(500);
+    expect(consoleError).toHaveBeenCalledWith(
+      expect.stringContaining("LUCA_API service binding")
+    );
+  });
+
+  it("resolves bearer tokens through the direct Luca API binding", async () => {
+    const serviceFetch = vi.fn<typeof fetch>(async () =>
+      Response.json({ error: "unauthorized" }, { status: 401 })
+    );
+
+    const globalFetch = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", globalFetch);
+
+    onTestFinished(() => {
+      vi.unstubAllGlobals();
+    });
+
+    const limit = vi.fn(async () => ({ success: true }));
+
+    const response = await worker.fetch(
+      new Request("https://mcp.example.com/mcp", {
+        method: "POST",
+        headers: { authorization: "Bearer eyJhbGciOiJFZERTQSJ9.e30.sig" },
+      }),
+      {
+        ...ENV,
+        NODE_ENV: "production",
+        LUCA_API: { fetch: serviceFetch },
+        MCP_AUTH_RATE_LIMIT: { limit },
+        MCP_TOKEN_ADDRESS_RATE_LIMIT: { limit },
+        MCP_ANONYMOUS_RATE_LIMIT: { limit },
+      }
+    );
+
+    expect(response.status).toBe(401);
+    expect(serviceFetch).toHaveBeenCalledWith(
+      "https://api.example.com/oauth/resolve",
+      expect.objectContaining({ redirect: "manual" })
+    );
+    expect(globalFetch).not.toHaveBeenCalled();
+  });
+
   it("serves the tasks toolset when /mcp asks for it with ?toolset=tasks", async () => {
     // The developer key is verified against the API before a server is built.
     vi.stubGlobal(

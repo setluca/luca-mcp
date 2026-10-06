@@ -41,6 +41,8 @@ export type { TokenResolver } from "./token-verification.ts";
 
 export type RemoteHandlerOptions = {
   readonly resolveToken: TokenResolver;
+  /** Transport for Luca API calls after token resolution. */
+  readonly apiFetch?: typeof fetch;
   /** Path the MCP endpoint is served at. Defaults to `/mcp`. */
   readonly mcpPath?: string;
   /**
@@ -325,7 +327,10 @@ export function createRemoteResponder(options: RemoteHandlerOptions) {
       const handler = createMcpHandler(
         () =>
           createLucaServer({
-            lucaLayer: Layer.succeed(LucaApi, createLucaApi(config.value)),
+            lucaLayer: Layer.succeed(
+              LucaApi,
+              createLucaApi(config.value, options.apiFetch)
+            ),
             ...optionalField("toolset", options.toolset),
             ...optionalField(
               "resourceMetadataUrl",

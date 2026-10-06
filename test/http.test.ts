@@ -43,6 +43,32 @@ describe("createLucaApi", () => {
     vi.unstubAllGlobals();
   });
 
+  it("uses the supplied API transport for tool calls", async () => {
+    const globalFetch = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", globalFetch);
+
+    const serviceFetch = vi.fn<typeof fetch>(async () =>
+      Response.json({ capabilities: [] })
+    );
+
+    const api = createLucaApi(
+      {
+        apiBaseUrl: "https://api.example.com",
+        apiKey: Redacted.make("luca_test"),
+        authHeader: "x-api-key",
+      },
+      serviceFetch
+    );
+
+    expect(
+      await Effect.runPromise(
+        api.request({ operation: getOperation("capabilities.get") })
+      )
+    ).toEqual({ capabilities: [] });
+    expect(serviceFetch).toHaveBeenCalledOnce();
+    expect(globalFetch).not.toHaveBeenCalled();
+  });
+
   it("sends auth, workspace, query, body, and idempotency headers", async () => {
     const fetchMock = vi.fn(
       async () =>

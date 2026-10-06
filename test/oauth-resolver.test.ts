@@ -194,7 +194,22 @@ describe("oauthResolver", () => {
     await run(resolve, "some.jwt.token");
     expect(fetchMock).toHaveBeenCalledWith(
       expect.any(String),
-      expect.objectContaining({ redirect: "error" })
+      expect.objectContaining({ redirect: "manual" })
+    );
+  });
+
+  it("fails closed on a redirect instead of accepting its response", async () => {
+    const resolve = oauthResolver(
+      settings,
+      (async () =>
+        new Response(null, {
+          status: 302,
+          headers: { location: "https://other.example/oauth/resolve" },
+        })) as typeof fetch
+    );
+
+    expect(await failureTag(resolve, "some.jwt.token")).toBe(
+      "TokenVerificationUnavailable"
     );
   });
 

@@ -52,8 +52,9 @@ export const sha256Hex = (value: string) =>
  * One bounded call to the Luca API that carries a token, with `read` turning
  * the response into the verdict. Timeout but no retry: this is on the auth
  * path of every request, and the client retries a 503 on its own schedule. A
- * redirect is an error, because it would carry the token to a host we never
- * named.
+ * redirect is refused, because it would carry the token to a host we never
+ * named. Cloudflare Workers does not support `redirect: "error"`, so fetch
+ * uses `manual` and we reject 3xx responses before the resolver reads them.
  */
 export function callApi<A>(
   settings: RemoteSettings,
@@ -72,12 +73,20 @@ export function callApi<A>(
     try: () =>
       fetchImpl(`${settings.apiBaseUrl}${request.path}`, {
         ...request.init,
-        redirect: "error",
+        redirect: "manual",
         signal: controller.signal,
       }),
     catch: unavailable("Could not reach token verification"),
   }).pipe(
-    Effect.flatMap(read),
+    Effect.flatMap((response) =>
+      response.status >= 300 && response.status < 400
+        ? Effect.fail(
+            new TokenVerificationUnavailable({
+              message: "Token verification redirected",
+            })
+          )
+        : read(response)
+    ),
     Effect.timeoutOrElse({
       duration: Duration.millis(timeoutMs),
       orElse: () =>

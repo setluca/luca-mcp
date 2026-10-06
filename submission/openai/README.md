@@ -18,7 +18,12 @@ The business publisher displayed by OpenAI on October 6, 2026 was
 `SetLuca, LLC` with status `Approved`. No credentials or challenge token belong
 in this package. The saved portal draft imported version `0.1.0`, and OpenAI
 verified `mcp.setluca.com` after the production Worker served the challenge
-token. OAuth connection and tool discovery await a Luca workspace consent.
+token. The dedicated reviewer granted `luca:read` and `luca:draft` to ChatGPT
+on October 6, 2026. The portal shows Authorized, but its tool scan cannot
+reach the deployed `0.3.0` Worker: that build sends token checks through an
+unsupported Cloudflare redirect mode and the public API's WAF. The `0.3.1`
+release candidate in this repository fixes both paths. Rerun the portal scan
+after that release reaches production before claiming tool discovery passed.
 
 The dedicated production account `openai-reviewer@setluca.com` owns **OpenAI
 Review Workspace**. It has synthetic lead, conversation, pending review draft,

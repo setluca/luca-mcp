@@ -75,6 +75,7 @@ environment. It takes no API key, since every request brings its own token.
 | Setting                        | Default                   | Description                                                                                                                                                                 |
 | ------------------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `LUCA_API_BASE_URL`            | `https://api.setluca.com` | Luca API origin. OAuth discovery points clients at `<origin>/api/auth`.                                                                                                     |
+| `LUCA_API`                     | none                      | Cloudflare service binding to `setluca-api`. Required in production for token verification and tool calls; it avoids the public API's WAF challenge.                        |
 | `LUCA_AUTH_HEADER`             | `x-api-key`               | How the Worker forwards the key to the API: `x-api-key`, or `authorization` (alias `bearer`). Anything else fails closed.                                                   |
 | `LUCA_REQUEST_TIMEOUT_MS`      | `30000`                   | Per-attempt timeout for every API call a tool makes, in milliseconds. Token resolution uses it too, capped at 5 seconds.                                                    |
 | `LUCA_TOOLSET`                 | `full`                    | Default tool set. A `?toolset=` query parameter overrides it per request.                                                                                                   |
@@ -84,7 +85,7 @@ environment. It takes no API key, since every request brings its own token.
 | `MCP_AUTH_RATE_LIMIT`          | none                      | Cloudflare rate-limit binding charged per bearer token. `wrangler.toml` sets it to 60 requests per 60 seconds.                                                              |
 | `MCP_TOKEN_ADDRESS_RATE_LIMIT` | none                      | Cloudflare rate-limit binding charged per client address for requests with a token. 600 requests per 60 seconds.                                                            |
 | `MCP_ANONYMOUS_RATE_LIMIT`     | none                      | Cloudflare rate-limit binding charged per client address for requests without a token. 600 requests per 60 seconds.                                                         |
-| `NODE_ENV`                     | none                      | `production` makes all three rate-limit bindings required. `wrangler.toml` sets it for the production environment.                                                          |
+| `NODE_ENV`                     | none                      | `production` makes the API service binding and all three rate-limit bindings required. `wrangler.toml` sets it for the production environment.                              |
 
 The Worker reads `LUCA_API_BASE_URL`, `LUCA_AUTH_HEADER`, and
 `LUCA_REQUEST_TIMEOUT_MS` with the same parser the stdio server uses. An

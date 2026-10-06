@@ -33,6 +33,11 @@ reads.
 
 `wrangler.toml` names the top-level Worker `setluca-mcp-dev`, pointed at a local
 API, so a deploy without `--env production` can't replace production.
+The production Worker calls `setluca-api` through its `LUCA_API` service
+binding. Public requests to `api.setluca.com` pass through a WAF challenge when
+made by a Worker, so the binding is required for both OAuth token checks and
+tool calls. The configured API URL still supplies the request host and OAuth
+discovery origin.
 
 Properties worth knowing:
 

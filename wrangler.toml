@@ -56,6 +56,12 @@ LUCA_API_BASE_URL = "https://api.setluca.com"
 MCP_PUBLIC_ORIGIN = "https://mcp.setluca.com"
 LUCA_TOOLSET = "full"
 
+# Direct API calls avoid the public Cloudflare WAF, which challenges Worker
+# egress and prevents OAuth resolution and every authenticated tool call.
+[[env.production.services]]
+binding = "LUCA_API"
+service = "setluca-api"
+
 [[env.production.routes]]
 pattern = "mcp.setluca.com"
 custom_domain = true

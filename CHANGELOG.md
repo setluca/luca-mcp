@@ -10,6 +10,21 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-06
+
+### Fixed
+
+- Restore authenticated remote MCP discovery and tool calls on Cloudflare.
+  Token checks and tool requests now use a direct service binding to Luca's API,
+  avoiding the public API's WAF challenge. Both paths use Cloudflare's supported
+  manual redirect mode and still reject redirected responses without forwarding
+  credentials.
+
+### Changed
+
+- The remote tool catalog includes explicit safety annotations for directory
+  review. The protocol suite checks the published `tools/list` shape.
+
 ## [0.3.0] - 2026-10-05
 
 This is the first Luca MCP release from its own repository. The package and
