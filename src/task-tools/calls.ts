@@ -166,12 +166,15 @@ const closeCallLoop = taskTool({
   name: "luca_close_call_loop",
   title: "Close the loop on a call",
   description:
-    'File what happened on a call and what it was worth, in one call. Reports attendance on the call event (completed, no_show, rescheduled, or cancelled) and, when an outcome is given, records the booking outcome: won with an amount, lost with a reason id from luca_bookings_outcome_reasons_list, or open with the next follow-up. This tool sends no message to the lead itself, but the records it files start work in the API. Reporting a no_show can start no-show recovery, which schedules a message to the lead when the booking type has recovery on, so pass confirm: true only after the coach says to report the no-show. A completed call queues its summary, which can later sync to the connected CRM. A won or lost outcome queues a CRM deal-stage update, and lost also moves the lead to lost. Example: { bookingId, attendance: "completed", outcome: "won", amountMinor: 250000, currency: "USD" }.',
-  // Only a no_show can message the lead (through recovery), so only that
-  // report needs approval. The other attendance values stay ungated.
+    'File what happened on a call and what it was worth, in one call. Reports attendance on the call event (completed, no_show, rescheduled, or cancelled) and, when an outcome is given, records the booking outcome: won with an amount, lost with a reason id from luca_bookings_outcome_reasons_list, or open with the next follow-up. This tool sends no message to the lead itself, but the records it files start work in the API. Reporting a no_show can start no-show recovery, which schedules a message to the lead when the booking type has recovery on. A completed call queues its summary, which can later sync to the connected CRM. A won or lost outcome queues a CRM deal-stage update, and lost also moves the lead to lost. Pass confirm: true before reporting a no_show or recording a won or lost outcome. Example: { bookingId, attendance: "completed", outcome: "won", amountMinor: 250000, currency: "USD", confirm: true }.',
+  // Recovery messaging and CRM deal updates are the two external effects.
   confirm: {
-    applies: (input) => input.attendance === "no_show",
-    description: "attendance is no_show (can start recovery messaging)",
+    applies: (input) =>
+      input.attendance === "no_show" ||
+      input.outcome === "won" ||
+      input.outcome === "lost",
+    description:
+      "attendance is no_show or outcome is won or lost (can message a lead or update a connected CRM deal)",
   },
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,

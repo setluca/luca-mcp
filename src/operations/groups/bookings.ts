@@ -1,3 +1,4 @@
+import { isJsonObject } from "../../serialization.ts";
 import { op } from "../registry.ts";
 import type { LucaOperation } from "../registry.ts";
 
@@ -153,8 +154,14 @@ export const bookingsOperations: readonly LucaOperation[] = [
     mutatesExisting: true,
     // Won and lost outcomes queue a deal-stage change in the connected CRM.
     openWorld: true,
+    confirm: {
+      applies: (input) =>
+        isJsonObject(input.body) &&
+        (input.body.status === "won" || input.body.status === "lost"),
+      description: "status is won or lost (can update a connected CRM deal)",
+    },
     description:
-      "Record what the call was worth: won, lost with a reason, or still open. Won and lost outcomes can update a connected CRM deal stage. To correct an earlier outcome send the expectedVersion you read; a stale version returns 409 with the current one.",
+      "Record what the call was worth: won, lost with a reason, or still open. Won and lost outcomes can update a connected CRM deal stage, so pass confirm: true for those outcomes. To correct an earlier outcome send the expectedVersion you read; a stale version returns 409 with the current one.",
   }),
   op({
     id: "bookings.lifecycleResolution",

@@ -474,6 +474,7 @@ describe("operation manifest", () => {
         "leads.consents.grant",
         "bookings.cancel",
         "bookings.create",
+        "bookings.outcome.record",
         "bookings.update",
         "campaigns.setStatus",
         "webhooks.subscriptions.create",
@@ -532,6 +533,22 @@ describe("operation manifest", () => {
     expect("confirm" in getOperation("callEvents.feedback").inputSchema).toBe(
       true
     );
+  });
+
+  it("gates only booking outcomes that can change a connected CRM deal", () => {
+    const operation = getOperation("bookings.outcome.record");
+
+    for (const status of ["won", "lost"]) {
+      expect(needsConfirmation(operation.confirm, { body: { status } })).toBe(
+        true
+      );
+    }
+
+    expect(
+      needsConfirmation(operation.confirm, { body: { status: "open" } })
+    ).toBe(false);
+    expect(needsConfirmation(operation.confirm, {})).toBe(false);
+    expect("confirm" in operation.inputSchema).toBe(true);
   });
 
   it("exposes confirmRequired in the operation manifest", () => {
@@ -681,8 +698,7 @@ describe("operation manifest", () => {
     // An open-world write lands somewhere Luca cannot take it back from: a
     // lead's inbox, an outside URL, a connected calendar or CRM. CRM health,
     // knowledge sync, and calendar selection read an external system but do
-    // not write to it, so they need no confirmation gate. Booking outcome
-    // recording is an existing ungated CRM write; the new gate is deferred.
+    // not write to it, so they need no confirmation gate.
     const ungated = LUCA_OPERATIONS.filter(
       (operation) =>
         operation.method !== "GET" &&
@@ -692,7 +708,6 @@ describe("operation manifest", () => {
             "integrations.crm.connections.health",
             "knowledge.sources.sync",
             "bookings.calendars.select",
-            "bookings.outcome.record",
           ],
           operation.id
         ) &&

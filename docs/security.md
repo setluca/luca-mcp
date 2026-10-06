@@ -246,9 +246,12 @@ Four task tools carry the gate on every call, because they compose those
 operations for the same effect: `luca_approve_and_send`,
 `luca_rescue_silent_leads`, `luca_book_call`, and `luca_reschedule_call`.
 
-`luca_close_call_loop` is gated only when `attendance` is `no_show`, the one
-report that can start recovery messaging to the lead. Other attendance values
-run without `confirm`. A task tool declares such a narrowed gate with its own
+`luca_bookings_outcome_record` is gated when `status` is `won` or `lost`, because
+those outcomes can queue a connected CRM deal-stage update. `open` needs no
+confirmation. `luca_close_call_loop` is gated when `attendance` is `no_show`
+or `outcome` is `won` or `lost`; the first can start recovery messaging to the
+lead, and the latter two can update a CRM deal. Other combinations run without
+`confirm`. A task tool declares such a narrowed gate with its own
 `confirm: { applies, description }`, the same shape operations use. A task tool
 that composes an operation gated every time is gated every time. One that
 composes only conditionally gated operations needs its own narrowed gate, and
@@ -272,12 +275,6 @@ lead, aren't gated. The gate is defense in depth on top of the review-queue and
 state-machine checks in `apps/api`, not a replacement for them. The API still
 rejects an invalid state, such as launching an unapproved broadcast, whatever
 the MCP client sends.
-
-`luca_bookings_outcome_record` can queue a CRM deal-stage update for a won or
-lost outcome. Its `openWorldHint` reports that effect. It does not yet require
-`confirm: true`; changing that existing call contract is deferred from 0.3.3.
-The composed `luca_close_call_loop` has the same limitation for won or lost
-outcomes. Both still require Luca's `bookings:write` scope.
 
 ### `destructiveHint` is wider than the confirm gate
 

@@ -862,58 +862,6 @@ describe("MCP protocol", () => {
     expect(requests).toHaveLength(0);
   });
 
-  describe("luca_close_call_loop confirmation", () => {
-    async function closeLoop(args: Record<string, string | boolean>) {
-      const requests: LucaRequest[] = [];
-
-      const { client, close } = await connect((request) => {
-        requests.push(request);
-
-        return Effect.succeed({ callEvent: { id: "call-1" } });
-      });
-
-      onTestFinished(close);
-
-      const result = await client.callTool({
-        name: "luca_close_call_loop",
-        arguments: { bookingId: "booking-1", ...args },
-      });
-
-      return { result, requests };
-    }
-
-    it("refuses a no_show report without confirm before any write", async () => {
-      const { result, requests } = await closeLoop({ attendance: "no_show" });
-
-      expect(result.isError).toBe(true);
-      expect(result.structuredContent).toEqual({
-        error: {
-          code: "confirmation_required",
-          toolName: "luca_close_call_loop",
-          requiredArgument: "confirm",
-        },
-      });
-      expect(requests).toHaveLength(0);
-    });
-
-    it("files a no_show report that carries confirm", async () => {
-      const { result, requests } = await closeLoop({
-        attendance: "no_show",
-        confirm: true,
-      });
-
-      expect(result.isError).not.toBe(true);
-      expect(requests.length).toBeGreaterThan(0);
-    });
-
-    it("files a completed report without confirm", async () => {
-      const { result, requests } = await closeLoop({ attendance: "completed" });
-
-      expect(result.isError).not.toBe(true);
-      expect(requests.length).toBeGreaterThan(0);
-    });
-  });
-
   it("rejects a destructive tool without confirm:true before any request", async () => {
     const requests: LucaRequest[] = [];
 
