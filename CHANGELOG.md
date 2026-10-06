@@ -10,6 +10,14 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-10-06
+
+### Fixed
+
+- Mark live booking provider and calendar reads, plus call feedback that can
+  start no-show recovery, as reaching outside the Luca workspace in MCP tool
+  annotations.
+
 ## [0.3.2] - 2026-10-06
 
 ### Fixed

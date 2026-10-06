@@ -38,7 +38,7 @@ export type ToolAnnotationSource = {
   readonly mutatesExisting: boolean;
   /** Absent when no call needs `confirm: true`. */
   readonly confirm?: ConfirmGate;
-  /** The call can change something outside the coach's Luca workspace. */
+  /** The call can read or change something outside the coach's Luca workspace. */
   readonly openWorld: boolean;
 };
 

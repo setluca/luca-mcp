@@ -148,6 +148,9 @@ describe("MCP protocol", () => {
     expect(unsafeReads).toEqual([]);
 
     for (const name of [
+      "luca_bookings_availability",
+      "luca_bookings_managed_availability",
+      "luca_bookings_providers_get",
       "luca_integrations_crm_connections_schema",
       "luca_integrations_crm_connections_health",
       "luca_knowledge_sources_sync",
@@ -167,6 +170,7 @@ describe("MCP protocol", () => {
       "luca_campaigns_publish",
       "luca_broadcasts_launch",
       "luca_bookings_create",
+      "luca_call_events_feedback",
       "luca_approve_and_send",
       "luca_book_call",
     ]) {

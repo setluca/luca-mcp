@@ -55,9 +55,10 @@ None of these exist yet. Don't describe them as shipped in a submission.
   `openai-reviewer@setluca.com` account and seeded OpenAI Review Workspace are
   ready. Its credentials are in Infisical production at
   `/operations/openai-review`. ChatGPT has the approved read and draft OAuth
-  grant. The `0.3.1` portal scan discovered all 203 tools. The review-case
-  runs and ten portal findings still need attention; `0.3.2` prepares the
-  MCP annotation corrections. See `submission/openai/README.md`.
+  grant. The `0.3.2` portal scan discovered all 203 tools and left eight
+  findings. Version `0.3.3` prepares the confirmed booking and call feedback
+  annotation corrections. Review-case runs and manual portal review remain.
+  See `submission/openai/README.md`.
 - **Claude reviewer access.** Confirm the dedicated account and its fixtures
   meet Claude's review requirements before using it there. See item 2 below.
 - **Final icon.** The current icons point at the site favicon and app icon

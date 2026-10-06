@@ -33,12 +33,16 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.availability",
     title: "Read open call slots",
+    // Availability comes from the connected booking provider.
+    openWorld: true,
     description:
       "List open slots the coach can actually be booked into. Check this before booking.",
   }),
   op({
     id: "bookings.managedAvailability",
     title: "Read Luca-managed call slots",
+    // Google Calendar removes conflicts from Luca-managed slots.
+    openWorld: true,
     description:
       "List open slots for one of Luca's own call types, with calendar conflicts already removed.",
   }),
@@ -69,6 +73,8 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.providers.get",
     title: "Get a booking provider",
+    // Event types and calendars are fetched from the provider account.
+    openWorld: true,
     description:
       "List the event types and calendars in one connected provider account.",
   }),
