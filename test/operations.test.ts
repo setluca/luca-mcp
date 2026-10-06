@@ -608,6 +608,15 @@ describe("operation manifest", () => {
       idempotentHint: true,
       openWorldHint: false,
     });
+
+    // This GET inserts the default settings row on first use.
+    expect(
+      operationAnnotations(getOperation("insights.settings.get"))
+    ).toMatchObject({
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: false,
+    });
   });
 
   it("marks open-world only the calls that reach past the workspace", () => {
@@ -645,17 +654,27 @@ describe("operation manifest", () => {
         "callEvents.pushToCrm",
         "integrations.crm.connections.webhooksSetup",
         "integrations.crm.syncRuns.create",
+        // These read outside Luca without changing the outside system.
+        "integrations.crm.connections.schema",
+        "integrations.crm.connections.health",
+        "knowledge.sources.sync",
       ])
     );
   });
 
-  it("confirm-gates every write that reaches past the workspace", () => {
+  it("confirm-gates writes to external systems", () => {
     // An open-world write lands somewhere Luca cannot take it back from: a
-    // lead's inbox, an outside URL, a connected calendar or CRM.
+    // lead's inbox, an outside URL, a connected calendar or CRM. The CRM
+    // health probe and knowledge sync query external systems but do not write
+    // to them, so neither needs a confirmation gate.
     const ungated = LUCA_OPERATIONS.filter(
       (operation) =>
         operation.method !== "GET" &&
         operationAnnotations(operation).openWorldHint &&
+        !Arr.contains(
+          ["integrations.crm.connections.health", "knowledge.sources.sync"],
+          operation.id
+        ) &&
         operation.confirm === undefined
     ).map((operation) => operation.id);
 

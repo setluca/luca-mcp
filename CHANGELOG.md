@@ -10,6 +10,15 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-10-06
+
+### Fixed
+
+- Correct MCP safety hints for CRM schema and health probes, knowledge-source
+  syncs, and the settings read that creates defaults on first use.
+- Clarify the display names and descriptions of the ghosted-lead analytics and
+  weekly business report tools without changing their stable tool names.
+
 ## [0.3.1] - 2026-10-06
 
 ### Fixed

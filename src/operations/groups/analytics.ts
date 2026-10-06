@@ -44,9 +44,9 @@ export const analyticsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "analytics.ghostedLeads",
-    title: "List ghosted leads",
+    title: "Analyze leads who stopped replying",
     description:
-      "Ghosted-lead counts, rescue-recovery rate, lost-revenue estimate, and top conversation-killer clusters for a period.",
+      "Summarize leads who stopped replying during a period, including their count, follow-up recovery rate, estimated lost revenue, and common reasons conversations stalled. This is an aggregate report, not a list of individual leads.",
     // Each top-killer cluster label is free text drawn from lead messages.
     untrustedContent: true,
   }),

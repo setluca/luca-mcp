@@ -33,6 +33,7 @@ export const knowledgeOperations: readonly LucaOperation[] = [
     id: "knowledge.sources.sync",
     title: "Re-sync a knowledge source",
     mutatesExisting: true,
+    openWorld: true,
     description:
       "Queue a re-read of one knowledge source now rather than waiting for its next scheduled sync. It returns as soon as the job is queued, so any new suggestions appear on a later read.",
   }),
