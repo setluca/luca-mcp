@@ -38,7 +38,7 @@ These hold for both directories unless a row says otherwise.
 | Privacy policy                                            | https://setluca.com/privacy, covering collection, use, sharing, protection, retention, and choices, with an email and a postal address. Summarized for this server in the README                                  |
 | Public documentation by publish date                      | https://api.setluca.com/docs, https://setluca.com/developers, and this package's README                                                                                                                           |
 
-## Not done yet
+## Remaining work
 
 ### Auth work in the code
 
@@ -51,14 +51,20 @@ None of these exist yet. Don't describe them as shipped in a submission.
 
 ### Work outside the code
 
-- **Demo account.** A seeded workspace and login for reviewers in both
-  directories. See item 2 below.
+- **OpenAI reviewer connection.** The dedicated
+  `openai-reviewer@setluca.com` account and seeded OpenAI Review Workspace are
+  ready. Its credentials are in Infisical production at
+  `/operations/openai-review`. The portal still needs OAuth consent, live tool
+  discovery, and review-case runs. See `submission/openai/README.md`.
+- **Claude reviewer access.** Confirm the dedicated account and its fixtures
+  meet Claude's review requirements before using it there. See item 2 below.
 - **Final icon.** The current icons point at the site favicon and app icon
   with a `wordmark-1` version tag. The listing icon isn't final.
-- **OpenAI domain verification.** The route is live, but the token from the
-  OpenAI apps portal still has to be set on the production Worker and verified.
-- **Portal submissions.** Neither the Claude nor the ChatGPT submission has
-  been filed.
+- **OpenAI domain verification.** Completed October 6, 2026. The production
+  Worker serves the challenge token and the portal shows Domain verified.
+  The token is a Worker secret and must not be committed here.
+- **Portal submissions.** An OpenAI plugin draft exists, but it has not been
+  submitted for review. No Claude submission has been filed.
 
 ## What a human has to do in the Claude portal
 
