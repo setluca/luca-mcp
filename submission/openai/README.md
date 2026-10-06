@@ -6,17 +6,16 @@ the current public Luca wordmark, downloaded from the server card's PNG URL.
 From this directory, rebuild the archive with
 `zip -r luca-mcp-0.1.3.zip luca-mcp` before changing the saved draft.
 
-This package is a draft for connecting and verifying the MCP endpoint. The
-reviewer test runs passed, and the package includes a demo recording URL. The
-portal's remaining declarations must be checked before submission. It has saved
-secure reviewer access instructions and all-supported-country targeting. The
-five positive and three negative review cases are drafted from the tool catalog.
+This package is the source for the version now in OpenAI review. The reviewer
+test runs passed, and the package includes a demo recording URL. The portal has
+secure reviewer access instructions and all-supported-country targeting. Its
+five positive and three negative review cases come from the tool catalog.
 The listing category is Business & Operations. The copy identifies coach DM
 sales as the main purpose and names the work available through Luca.
 
 The business publisher displayed by OpenAI on October 6, 2026 was
 `SetLuca, LLC` with status `Approved`. No credentials or challenge token belong
-in this package. The saved portal draft imported version `0.1.0`, and OpenAI
+in this package. The initial portal draft imported version `0.1.0`, and OpenAI
 verified `mcp.setluca.com` after the production Worker served the challenge
 token. The dedicated reviewer granted `luca:read` and `luca:draft` to ChatGPT
 on October 6, 2026. The portal shows Authorized. MCP `0.3.5` is deployed. Its
@@ -40,7 +39,9 @@ discovered all 203 tools without tool findings. Its sole remaining finding is
 specific failing instruction or correction, and marks this notice nonblocking
 for submission. Keep the confirmation and redaction instructions for reviewer
 assessment rather than removing those safety cues to suppress the notice.
-Final submission requires the publisher's legal and compliance attestations.
+The publisher confirmed the six legal and compliance attestations. The portal
+accepted version `0.1.3` for review on October 6, 2026 and displays **In
+review**. It is not published; approval and publication are separate steps.
 
 The dedicated production account `openai-reviewer@setluca.com` owns **OpenAI
 Review Workspace**. It has synthetic lead, conversation, pending review draft,

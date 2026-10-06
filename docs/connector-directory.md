@@ -63,7 +63,9 @@ None of these exist yet. Don't describe them as shipped in a submission.
   remains in place for review.
   Eight live ChatGPT reviewer cases passed. The reviewer grant redacts sample
   lead names and draft text, and ChatGPT describes those fields as unavailable.
-  Final review submission remains pending the publisher's legal attestations.
+  The publisher confirmed the required attestations, and OpenAI accepted plugin
+  package `0.1.3` for review on October 6, 2026. The portal displays **In
+  review** and **Not published**.
   See `submission/openai/README.md`.
 - **Claude reviewer access.** Confirm the dedicated account and its fixtures
   meet Claude's review requirements before using it there. See item 2 below.
@@ -72,8 +74,8 @@ None of these exist yet. Don't describe them as shipped in a submission.
 - **OpenAI domain verification.** Completed October 6, 2026. The production
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.
-- **Portal submissions.** An OpenAI plugin draft exists, but it has not been
-  submitted for review. No Claude submission has been filed.
+- **Portal submissions.** The OpenAI plugin is in review, pending OpenAI's
+  decision. No Claude submission has been filed.
 
 ## What a human has to do in the Claude portal
 
