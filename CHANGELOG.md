@@ -10,6 +10,8 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-13
+
 ### Added
 
 - Add a `claude` toolset, selected with `?toolset=claude` or
