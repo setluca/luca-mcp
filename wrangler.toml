@@ -54,6 +54,9 @@ name = "setluca-mcp"
 NODE_ENV = "production"
 LUCA_API_BASE_URL = "https://api.setluca.com"
 MCP_PUBLIC_ORIGIN = "https://mcp.setluca.com"
+# Claude's custom connector sends its own Origin. Without these hosts the
+# origin check answers 403 before sign-in instead of the 401 OAuth challenge.
+MCP_ALLOWED_ORIGINS = "claude.ai,claude.com"
 LUCA_TOOLSET = "full"
 
 # Direct API calls avoid the public Cloudflare WAF, which challenges Worker

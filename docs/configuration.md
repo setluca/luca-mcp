@@ -103,6 +103,8 @@ The Worker checks the `Origin` header before it resolves any token. A request
 with no `Origin` passes, since it doesn't come from a browser. A browser request
 passes when its origin's host is the Worker's own host or one listed in
 `MCP_ALLOWED_ORIGINS`. Any other origin gets a 403, which blocks DNS-rebinding
-attacks from a page the coach happens to have open.
+attacks from a page the coach happens to have open. Production allows
+`claude.ai` and `claude.com`, because Claude's custom connector sends one of
+them as its `Origin`.
 
 Until `OPENAI_APPS_CHALLENGE_TOKEN` is set, the challenge route returns 404.
