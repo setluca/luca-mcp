@@ -2,7 +2,8 @@
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 
 import { setEventSink, stderrEventSink } from "./observability.ts";
-import { createLucaServer, parseToolset } from "./server.ts";
+import { createLucaServer } from "./server.ts";
+import { parseToolset } from "./toolsets.ts";
 
 // stdout carries the protocol, so event lines go to stderr.
 setEventSink(stderrEventSink);

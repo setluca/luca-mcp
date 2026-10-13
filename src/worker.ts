@@ -54,7 +54,7 @@ type WorkerEnv = {
   readonly LUCA_REQUEST_TIMEOUT_MS?: string;
   /** Public origin of this Worker, e.g. https://mcp.setluca.com. */
   readonly MCP_PUBLIC_ORIGIN?: string;
-  /** Default tool surface (full | tasks); a ?toolset= query param overrides. */
+  /** Default tool surface (full | tasks | claude); a ?toolset= query param overrides. */
   readonly LUCA_TOOLSET?: string;
   /** `production` makes all three rate-limit bindings required. */
   readonly NODE_ENV?: string;

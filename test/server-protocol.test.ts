@@ -41,7 +41,9 @@ function bookingPage(
   return pages[cursor];
 }
 
+import { optionalField } from "../src/optional-field.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
+import { CLAUDE_TOOL_NAMES } from "../src/toolsets.ts";
 
 describe("MCP protocol", () => {
   it("lists Luca tools, resources, and prompts", async () => {
@@ -1490,4 +1492,144 @@ describe("task tools", () => {
 
     expect(result.isError).toBe(true);
   });
+});
+
+describe("claude toolset", () => {
+  const CLAUDE_TOOLS = [
+    "luca_analytics_deep_dive",
+    "luca_analytics_funnel",
+    "luca_analytics_ghosted_leads",
+    "luca_analytics_insights",
+    "luca_analytics_magic_monday",
+    "luca_analytics_objections",
+    "luca_analytics_rollup",
+    "luca_bookings_availability",
+    "luca_bookings_brief",
+    "luca_bookings_get",
+    "luca_bookings_list",
+    "luca_bookings_needs_outcome",
+    "luca_broadcasts_get",
+    "luca_broadcasts_list",
+    "luca_call_events_get",
+    "luca_call_events_needing_feedback",
+    "luca_campaigns_analytics",
+    "luca_campaigns_get",
+    "luca_campaigns_list",
+    "luca_capabilities_get",
+    "luca_channels_catalog",
+    "luca_channels_list",
+    "luca_conversations_get",
+    "luca_conversations_list",
+    "luca_conversations_messages",
+    "luca_draft_reply",
+    "luca_find_leads",
+    "luca_flag_for_human",
+    "luca_leads_explain",
+    "luca_leads_get",
+    "luca_leads_list",
+    "luca_leads_notes_add",
+    "luca_leads_update",
+    "luca_memory_list",
+    "luca_morning_report",
+    "luca_post_call_queue",
+    "luca_reports_morning",
+    "luca_reports_scorecard",
+    "luca_review_queue_explain",
+    "luca_review_queue_list",
+    "luca_review_queue_sla",
+    "luca_triage_inbox",
+    "luca_voice_profile",
+  ];
+
+  const listNames = async (options: Parameters<typeof connect>[1]) => {
+    const { client, close } = await connect(() => Effect.succeed({}), options);
+
+    onTestFinished(close);
+
+    return {
+      client,
+      tools: (await client.listTools()).tools,
+    };
+  };
+
+  it("pins the exact tool names, and every one is directory-ready", async () => {
+    expect(sorted(CLAUDE_TOOL_NAMES)).toEqual(CLAUDE_TOOLS);
+    expect(CLAUDE_TOOLS).toHaveLength(43);
+
+    const { tools } = await listNames({ toolset: "claude" });
+
+    expect(sorted(tools.map((tool) => tool.name))).toEqual(CLAUDE_TOOLS);
+
+    for (const tool of tools) {
+      expect(tool.title?.trim().length, `${tool.name} title`).toBeGreaterThan(
+        0
+      );
+
+      for (const hint of [
+        "readOnlyHint",
+        "destructiveHint",
+        "idempotentHint",
+        "openWorldHint",
+      ] as const) {
+        expect([true, false], `${tool.name} ${hint}`).toContain(
+          tool.annotations?.[hint]
+        );
+      }
+    }
+
+    for (const tool of tools.filter(
+      (candidate) => candidate.annotations?.readOnlyHint === true
+    )) {
+      expect(tool.annotations?.destructiveHint, tool.name).toBe(false);
+    }
+  }, 15_000);
+
+  it("filters by the OAuth grant, and leaves a developer key unfiltered", async () => {
+    const count = async (grant?: "luca:read" | "luca:draft" | "luca:full") =>
+      (await listNames({ toolset: "claude", ...optionalField("grant", grant) }))
+        .tools.length;
+
+    expect(await count("luca:read")).toBe(39);
+    expect(await count("luca:draft")).toBe(43);
+    expect(await count("luca:full")).toBe(43);
+    expect(await count()).toBe(43);
+
+    const { tools } = await listNames({
+      toolset: "claude",
+      grant: "luca:read",
+    });
+
+    expect(
+      CLAUDE_TOOLS.filter((name) => !tools.some((tool) => tool.name === name))
+    ).toEqual([
+      "luca_draft_reply",
+      "luca_flag_for_human",
+      "luca_leads_notes_add",
+      "luca_leads_update",
+    ]);
+  }, 15_000);
+
+  it("leaves the full and tasks toolsets alone, whatever the grant", async () => {
+    const full = await listNames({ grant: "luca:read" });
+    const tasks = await listNames({ toolset: "tasks", grant: "luca:read" });
+
+    expect(full.tools).toHaveLength(
+      LUCA_OPERATIONS.length + LUCA_TASK_TOOLS.length
+    );
+    expect(tasks.tools).toHaveLength(1 + LUCA_TASK_TOOLS.length);
+  }, 15_000);
+
+  it("lists only the prompts whose tools the claude toolset has", async () => {
+    const promptNames = async (toolset: "full" | "tasks" | "claude") => {
+      const { client } = await listNames({ toolset });
+
+      return (await client.listPrompts()).prompts.map((prompt) => prompt.name);
+    };
+
+    expect((await promptNames("claude")).toSorted()).toEqual([
+      "luca-api-planner",
+      "luca-morning-report",
+    ]);
+    expect(await promptNames("tasks")).toEqual(await promptNames("full"));
+  }, 15_000);
 });

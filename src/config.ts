@@ -10,6 +10,7 @@ import * as Schema from "effect/Schema";
 
 import { LucaConfigError } from "./errors.ts";
 import { optionalField } from "./optional-field.ts";
+import type { LucaCapabilityScope } from "./scopes.ts";
 
 export type AuthHeader = "x-api-key" | "authorization";
 
@@ -26,6 +27,11 @@ export type LucaConfig = {
   readonly workspaceId?: string;
   readonly workspaceSlug?: string;
   readonly requestTimeoutMs?: number;
+  /**
+   * The capability tier of the OAuth grant this config was resolved from.
+   * Absent for a developer key, which carries no grant.
+   */
+  readonly grant?: LucaCapabilityScope;
 };
 
 export const LucaConfig = Context.Service<LucaConfig>("@luca/mcp/LucaConfig");

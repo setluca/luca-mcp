@@ -6,6 +6,7 @@ import * as Schema from "effect/Schema";
 import type { LucaConfig, RemoteSettings } from "./config.ts";
 import { TokenVerificationUnavailable } from "./errors.ts";
 import { NonEmptyString } from "./fields.ts";
+import { highestCapabilityScope } from "./scopes.ts";
 import {
   callApi,
   type TokenResolver,
@@ -14,12 +15,14 @@ import {
 
 /**
  * The body POST /oauth/resolve answers with for a token it accepted. The API
- * also sends the grant's scopes; the Luca API enforces them on every call, so
- * this resolver does not read them. An empty key is an API fault, not a key,
+ * enforces the grant's scopes on every call. This resolver reads them only to
+ * learn the capability tier, which the `claude` toolset uses to hide tools the
+ * grant cannot call. An empty key is an API fault, not a key,
  * so it fails as unavailable instead of reaching the API as a blank header.
  */
 const ResolvePayload = Schema.Struct({
   apiKey: Schema.optionalKey(NonEmptyString),
+  scopes: Schema.optionalKey(Schema.Array(Schema.String)),
 });
 
 type ResolvePayload = typeof ResolvePayload.Type;
@@ -85,12 +88,15 @@ function requestConfig(
     },
     resolvePayload
   ).pipe(
-    Effect.map((payload) =>
-      Option.flatMapNullishOr(payload, (body) => body.apiKey).pipe(
-        Option.map((apiKey): LucaConfig => ({
-          ...settings,
-          apiKey: Redacted.make(apiKey),
-        }))
+    Effect.map(
+      Option.flatMapNullishOr((body): LucaConfig | undefined =>
+        body.apiKey === undefined
+          ? undefined
+          : {
+              ...settings,
+              apiKey: Redacted.make(body.apiKey),
+              grant: highestCapabilityScope(body.scopes ?? []),
+            }
       )
     )
   );

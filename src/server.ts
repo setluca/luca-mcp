@@ -51,7 +51,11 @@ import {
   LUCA_RESOURCES,
   type LucaResourceDef,
 } from "./resources.ts";
-import { oauthScopeForOperation } from "./scopes.ts";
+import {
+  capabilityRank,
+  type LucaCapabilityScope,
+  oauthScopeForOperation,
+} from "./scopes.ts";
 import { type JsonValue, toJsonText } from "./serialization.ts";
 import { toolSchema } from "./standard-schema.ts";
 import { LUCA_TASK_TOOLS } from "./task-tools.ts";
@@ -60,8 +64,10 @@ import {
   fromOperation,
   fromTaskTool,
   operationProgram,
+  type RegisterableTool,
   registerTool,
 } from "./tool.ts";
+import { type LucaToolset, TOOLSETS } from "./toolsets.ts";
 import { LUCA_MCP_VERSION } from "./version.ts";
 
 const LucaLive = LucaApiLive.pipe(Layer.provide(LucaConfigLive));
@@ -141,23 +147,15 @@ const LUCA_CACHE_HINTS = {
   "server/discover": { ttlMs: STATIC_LIST_TTL_MS, cacheScope: "private" },
 } as const;
 
-/**
- * Which tool surface a server session exposes. `full` (default) registers
- * every 1:1 operation tool plus the task tools. `tasks` trims to the
- * task-shaped tools plus capability discovery, a smaller intent-level set for
- * coach-facing assistants that don't need raw API coverage.
- */
-export type LucaToolset = "full" | "tasks";
-
-// Only "tasks" selects the trimmed surface; every other value, including an
-// unset query param, takes the full-surface branch.
-export function parseToolset(value: string | undefined): LucaToolset {
-  return value === "tasks" ? "tasks" : "full";
-}
-
 export type CreateLucaServerOptions = {
   readonly lucaLayer?: Layer.Layer<LucaApi, LucaError, never>;
   readonly toolset?: LucaToolset;
+  /**
+   * The capability tier the connection's OAuth grant holds. Absent for a
+   * developer key, which has no grant to read. The `claude` toolset hides
+   * tools above it.
+   */
+  readonly grant?: LucaCapabilityScope;
   /**
    * The remote Worker's protected-resource metadata URL. With it, a tool call
    * that fails for lack of a valid token or scope asks the client to
@@ -495,16 +493,14 @@ function registerPrompt(
  * Build the Luca MCP server: registers the operation tools, the task tools, the
  * `luca://…` resources, and the planner prompt against a shared `LucaApi` layer.
  * `options.lucaLayer` swaps the HTTP client (tests inject an in-memory handler);
- * `options.toolset` picks the tool set. `"tasks"` exposes only the task tools
- * plus capability discovery, and `"full"`, the default, exposes everything.
+ * `options.toolset` picks the tool set from `TOOLSETS`; `"full"`, the default,
+ * exposes everything. `options.grant` trims the `claude` set to the tools the
+ * connection's OAuth grant can call.
  */
 export function createLucaServer(options: CreateLucaServerOptions = {}) {
   const lucaLayer = options.lucaLayer ?? LucaLive;
-  // The default value is only ever compared against `"tasks"` below; any other
-  // string (including `""`) takes the full-surface branch, so the literal here
-  // cannot change behavior.
-  // Stryker disable next-line StringLiteral: only `"tasks"` is compared downstream, so any non-tasks default behaves as full
   const toolset = options.toolset ?? "full";
+  const definition = TOOLSETS[toolset];
 
   const surface = {
     toolset,
@@ -516,17 +512,23 @@ export function createLucaServer(options: CreateLucaServerOptions = {}) {
     instructions: LUCA_SERVER_INSTRUCTIONS,
   });
 
-  // The tasks set carries one operation, capability discovery, so a client can
-  // still learn what the workspace supports without the full tool list.
-  const operations =
-    toolset === "tasks" ? [operationById("capabilities.get")] : LUCA_OPERATIONS;
+  const listed = (tool: RegisterableTool) =>
+    !definition.grantFiltered ||
+    options.grant === undefined ||
+    capabilityRank(tool.oauthScope) <= capabilityRank(options.grant);
 
-  Arr.forEach(operations, (operation) => {
-    registerTool(server, fromOperation(operation), lucaLayer, surface);
-  });
+  const inToolset = (name: string) =>
+    definition.tools === undefined || Arr.contains(definition.tools, name);
 
-  Arr.forEach(LUCA_TASK_TOOLS, (tool) => {
-    registerTool(server, fromTaskTool(tool), lucaLayer, surface);
+  const tools = [
+    ...LUCA_OPERATIONS.filter((operation) => inToolset(operation.toolName)).map(
+      fromOperation
+    ),
+    ...LUCA_TASK_TOOLS.filter((tool) => inToolset(tool.name)).map(fromTaskTool),
+  ].filter(listed);
+
+  Arr.forEach(tools, (tool) => {
+    registerTool(server, tool, lucaLayer, surface);
   });
 
   registerOperationManifestResource(server);
@@ -537,7 +539,13 @@ export function createLucaServer(options: CreateLucaServerOptions = {}) {
     completions,
     options.resourceMetadataUrl
   );
-  registerPrompts(server, LUCA_PROMPTS, completions);
+  registerPrompts(
+    server,
+    LUCA_PROMPTS.filter(
+      (prompt) => !Arr.contains(definition.hiddenPrompts, prompt.name)
+    ),
+    completions
+  );
 
   return server;
 }
