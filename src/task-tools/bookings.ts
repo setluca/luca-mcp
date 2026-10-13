@@ -208,7 +208,7 @@ const bookCall = taskTool({
   name: "luca_book_call",
   title: "Book a call with a lead",
   description:
-    'Book a lead into a slot the provider confirms is open. Checks availability first, against the schedule of the booking type when bookingTypeId is given, and returns the open slots instead of booking when the requested one is taken. A call with an idempotencyKey skips that check so a retry gets the original result back. Booking moves the lead to booked and notifies the coach\'s webhook subscribers, so pass confirm: true only after the coach approves this exact slot. Example: call with { leadId, slotAt: "2026-07-14T15:00:00Z", confirm: true } after the lead agreed to a time.',
+    "Record a booked call for a lead in Luca. This does not create an event on the coach's calendar or send the lead an invite: book the call with the provider too, or have the lead book through the coach's booking link. Checks availability first, against the schedule of the booking type when bookingTypeId is given, and returns the open slots instead of booking when the requested one is taken. A call with an idempotencyKey skips that check so a retry gets the original result back. Booking moves the lead to booked and notifies the coach's webhook subscribers, so pass confirm: true only after the coach approves this exact slot. Example: call with { leadId, slotAt: \"2026-07-14T15:00:00Z\", confirm: true } after the lead agreed to a time.",
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     leadId: NonEmptyString.annotate({ description: "The lead to book." }),
@@ -285,7 +285,7 @@ const rescheduleCall = taskTool({
   name: "luca_reschedule_call",
   title: "Move a call to a new time",
   description:
-    'Move a booked call to a new time and hand back a fresh reschedule link for the lead. Checks the new slot is open first, against the schedule of its booking type when it has one, and returns the open slots instead of moving the call when it is taken. A call with an idempotencyKey skips that check so a retry gets the original result back. Moving the call updates the connected calendar and re-arms the lead\'s reminder for the new time, so pass confirm: true only after the coach approves the move. Example: call with { bookingId, slotAt: "2026-07-16T15:00:00Z", confirm: true } after the lead asked to push the call. No message about the move is sent: send the lead the link yourself, or draft the message through the review queue.',
+    'Move a booked call to a new time and hand back a fresh reschedule link for the lead. Checks the new slot is open first, against the schedule of its booking type when it has one, and returns the open slots instead of moving the call when it is taken. A call with an idempotencyKey skips that check so a retry gets the original result back. A manual booking moves in Luca only. A Cal.com or Google Calendar booking moves on that calendar too. A Calendly, GoHighLevel or iClosed booking is refused so the coach can move it with the provider, and so is a provider booking with no calendar event, such as one from luca_book_call. Moving the call re-arms the lead\'s reminder for the new time, so pass confirm: true only after the coach approves the move. Example: call with { bookingId, slotAt: "2026-07-16T15:00:00Z", confirm: true } after the lead asked to push the call. No message about the move is sent: send the lead the link yourself, or draft the message through the review queue.',
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     bookingId: NonEmptyString.annotate({ description: "The booking to move." }),
