@@ -69,7 +69,7 @@
           "description": "Which tool surface to register. Defaults to full.",
           "isRequired": false,
           "isSecret": false,
-          "choices": ["full", "tasks"],
+          "choices": ["full", "tasks", "claude"],
           "default": "full"
         }
       ]

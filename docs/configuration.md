@@ -11,7 +11,7 @@
 | `LUCA_WORKSPACE_ID`       |       no | none                      | Default workspace id header.                                             |
 | `LUCA_WORKSPACE_SLUG`     |       no | none                      | Default workspace slug header.                                           |
 | `LUCA_REQUEST_TIMEOUT_MS` |       no | `30000`                   | Milliseconds one API attempt may run before it is cancelled and retried. |
-| `LUCA_TOOLSET`            |       no | `full`                    | Use `full` or `tasks`. See Toolset selection below.                      |
+| `LUCA_TOOLSET`            |       no | `full`                    | Use `full`, `tasks`, or `claude`. See Toolset selection below.           |
 
 ## Authentication
 
@@ -58,13 +58,26 @@ retrying the same user intent, so a replay cannot double-file the write.
 task tools, 203 in all. `LUCA_TOOLSET=tasks` registers only the task tools and
 capability discovery, 16 in all. Use it for a coach-facing assistant that works
 through intents like "book this lead a call" rather than raw API calls.
-`tools.md` lists both sets. Any value other than `tasks` means `full`.
+`LUCA_TOOLSET=claude` registers a fixed set of 43 tools, the one submitted to
+the Claude connector directory: the read tools, the task tools that read, and
+four small writes (`luca_draft_reply`, `luca_flag_for_human`,
+`luca_leads_notes_add`, `luca_leads_update`). The list is `CLAUDE_TOOL_NAMES`
+in `src/toolsets.ts`. It lists only two prompts, `luca-api-planner` and
+`luca-morning-report`. The others plan campaigns and broadcasts or name tools
+the set leaves out.
+
+Only the `claude` set also follows the OAuth grant. A connection granted
+`luca:read` sees 39 of the 43, because the four writes need `luca:draft`. A
+developer key has no grant, so it sees all 43. The `full` and `tasks` sets list
+the same tools for every caller and leave refusal to the API.
+`tools.md` lists the full and tasks sets. Any other value means `full`.
 
 On the remote Worker, a `?toolset=` query parameter on the MCP URL wins over
-`LUCA_TOOLSET`, so one deployment serves both sets:
+`LUCA_TOOLSET`, so one deployment serves every set:
 
 ```text
 https://mcp.setluca.com/mcp?toolset=tasks
+https://mcp.setluca.com/mcp?toolset=claude
 ```
 
 ## Remote Worker settings

@@ -14,6 +14,7 @@ import { assert, describe, expect, it, onTestFinished, vi } from "vitest";
 import type { LucaConfig } from "../src/config.ts";
 import { TokenVerificationUnavailable } from "../src/errors.ts";
 import { setEventSink, stdoutEventSink } from "../src/observability.ts";
+import { optionalField } from "../src/optional-field.ts";
 import {
   apiKeyResolver,
   createRemoteHandler,
@@ -504,6 +505,45 @@ describe("remote transport", () => {
     expect(names).toContain("luca_capabilities_get");
     expect(names).toHaveLength(1 + LUCA_TASK_TOOLS.length);
   }, 15_000);
+
+  it.each([
+    ["luca:read", 39],
+    ["luca:draft", 43],
+    [undefined, 43],
+  ] as const)(
+    "lists the claude toolset for a %s grant as %d tools",
+    async (grant, count) => {
+      const handler = createRemoteHandler({
+        resolveToken: (token) =>
+          Effect.succeed(
+            Option.some<LucaConfig>({
+              ...DEFAULT_SETTINGS,
+              apiKey: Redacted.make(token),
+              ...optionalField("grant", grant),
+            })
+          ),
+        toolset: "claude",
+      });
+
+      const client = new Client({
+        name: "remote-test-claude",
+        version: "0.1.0",
+      });
+
+      const transport = new StreamableHTTPClientTransport(MCP_URL, {
+        fetch: bridgedFetch(handler, {
+          authorization: "Bearer grant.test.token",
+        }),
+      });
+
+      await client.connect(asTransport(transport));
+
+      onTestFinished(() => transport.close());
+
+      expect((await client.listTools()).tools).toHaveLength(count);
+    },
+    15_000
+  );
 
   it("tells the client to re-authorize when the API rejects the token mid-call", async () => {
     const resourceMetadataUrl =

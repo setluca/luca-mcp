@@ -10,6 +10,15 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Added
+
+- Add a `claude` toolset, selected with `?toolset=claude` or
+  `LUCA_TOOLSET=claude`. It lists a fixed set of 43 tools for the Claude
+  connector directory and lists only the `luca-api-planner` and
+  `luca-morning-report` prompts. For an OAuth connection
+  it also hides tools above the grant's capability tier, so a `luca:read` grant
+  sees 39. The `full` and `tasks` toolsets are unchanged.
+
 ## [0.3.7] - 2026-10-13
 
 ### Fixed

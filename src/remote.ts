@@ -22,8 +22,9 @@ import {
 } from "./rate-limit.ts";
 import { OAUTH_DEFAULT_SCOPE } from "./scopes.ts";
 import { toJsonPayload } from "./serialization.ts";
-import { createLucaServer, type LucaToolset, parseToolset } from "./server.ts";
+import { createLucaServer } from "./server.ts";
 import { sha256Hex, type TokenResolver } from "./token-verification.ts";
+import { type LucaToolset, parseToolset } from "./toolsets.ts";
 
 export type { RemoteSettings } from "./config.ts";
 
@@ -332,6 +333,7 @@ export function createRemoteResponder(options: RemoteHandlerOptions) {
               createLucaApi(config.value, options.apiFetch)
             ),
             ...optionalField("toolset", options.toolset),
+            ...optionalField("grant", config.value.grant),
             ...optionalField(
               "resourceMetadataUrl",
               options.resourceMetadataUrl

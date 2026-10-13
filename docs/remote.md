@@ -72,7 +72,8 @@ Properties worth knowing:
   OAuth token that is not three base64url segments, gets 401 `invalid_token`
   without a call to the API.
 - **It picks the tool set per request.** `?toolset=tasks` on the URL serves the
-  15 task tools plus capability discovery, and anything else serves the full 203. The query parameter wins over `LUCA_TOOLSET`.
+  15 task tools plus capability discovery, `?toolset=claude` serves the 43-tool
+  Claude set (39 for a `luca:read` grant), and anything else serves the full 203. The query parameter wins over `LUCA_TOOLSET`.
 - **stdio did not change.** `dist/index.js` still runs the same catalog.
 
 ## Bearer token clients

@@ -1,4 +1,5 @@
 import * as Arr from "effect/Array";
+import * as Option from "effect/Option";
 import * as Order from "effect/Order";
 
 import type { CapabilityTier } from "./operations/registry.ts";
@@ -177,6 +178,19 @@ export function tierGrants(
 /** A capability scope's position on the ladder, `0` for `luca:read`. */
 export function capabilityRank(scope: LucaCapabilityScope): number {
   return CAPABILITY_LADDER.indexOf(scope);
+}
+
+/**
+ * The highest capability scope in a grant's scope list. A list naming none
+ * (only `offline_access`, say, or an empty list) resolves to `luca:read`, the
+ * lowest, so an unreadable grant never lists more than a read grant would.
+ */
+export function highestCapabilityScope(
+  scopes: readonly string[]
+): LucaCapabilityScope {
+  return Arr.findLast(CAPABILITY_LADDER, (scope) =>
+    Arr.contains(scopes, scope)
+  ).pipe(Option.getOrElse((): LucaCapabilityScope => "luca:read"));
 }
 
 /**

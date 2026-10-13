@@ -49,6 +49,19 @@ None of these exist yet. Don't describe them as shipped in a submission.
 - **Client ID metadata documents (CIMD).** `packages/auth` doesn't accept a URL
   as a client ID yet. Clients register through dynamic client registration.
 
+### Claude directory URL
+
+Submit the Claude set, not the full catalog:
+
+```text
+https://mcp.setluca.com/mcp?toolset=claude
+```
+
+It lists 43 tools, or 39 when the connection holds only the `luca:read` grant.
+It lists two prompts, `luca-api-planner` and `luca-morning-report`. The others
+plan campaigns and broadcasts or name tools the set leaves out. The list lives in `src/toolsets.ts` and a
+protocol test pins it.
+
 ### Work outside the code
 
 - **OpenAI reviewer connection.** The dedicated

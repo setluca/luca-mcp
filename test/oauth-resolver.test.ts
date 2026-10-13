@@ -60,7 +60,30 @@ describe("oauthResolver", () => {
       apiBaseUrl: "https://api.example.com",
       apiKey: "luca_abc",
       authHeader: "x-api-key",
+      grant: "luca:read",
     });
+  });
+
+  it.each([
+    [["luca:read", "luca:draft", "offline_access"], "luca:draft"],
+    [["luca:full_content", "luca:full", "luca:read"], "luca:full"],
+    [["offline_access"], "luca:read"],
+    [[], "luca:read"],
+  ])(
+    "reads the capability tier from the grant's scopes %j",
+    async (scopes, grant) => {
+      const resolve = oauthResolver(settings, (async () =>
+        Response.json({ apiKey: "luca_abc", scopes })) as typeof fetch);
+
+      expect((await run(resolve, "some.jwt.token"))?.grant).toBe(grant);
+    }
+  );
+
+  it("falls back to the lowest tier when the response has no scopes", async () => {
+    const resolve = oauthResolver(settings, (async () =>
+      Response.json({ apiKey: "luca_abc" })) as typeof fetch);
+
+    expect((await run(resolve, "some.jwt.token"))?.grant).toBe("luca:read");
   });
 
   it("gives the vended key the same auth header and timeout as the settings", async () => {
@@ -77,6 +100,7 @@ describe("oauthResolver", () => {
       apiBaseUrl: "https://api.example.com",
       apiKey: "luca_abc",
       authHeader: "authorization",
+      grant: "luca:read",
       requestTimeoutMs: 5000,
     });
   });

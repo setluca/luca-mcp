@@ -355,6 +355,8 @@ describe("worker fetch handler", () => {
     expect(await toolCount("/mcp?toolset=tasks")).toBe(
       1 + LUCA_TASK_TOOLS.length
     );
+    // A developer key has no grant, so the claude set is unfiltered.
+    expect(await toolCount("/mcp?toolset=claude")).toBe(43);
     expect(await toolCount("/mcp")).toBe(
       LUCA_OPERATIONS.length + LUCA_TASK_TOOLS.length
     );
@@ -575,6 +577,14 @@ describe("resolveToolset", () => {
     expect(
       resolveToolset(new URL("https://mcp.setluca.com/mcp?toolset=tasks"), {})
     ).toBe("tasks");
+    expect(
+      resolveToolset(new URL("https://mcp.setluca.com/mcp?toolset=claude"), {})
+    ).toBe("claude");
+    expect(
+      resolveToolset(new URL("https://mcp.setluca.com/mcp"), {
+        LUCA_TOOLSET: "claude",
+      })
+    ).toBe("claude");
     expect(
       resolveToolset(new URL("https://mcp.setluca.com/mcp"), {
         LUCA_TOOLSET: "tasks",
