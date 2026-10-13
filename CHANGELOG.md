@@ -10,6 +10,18 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.3.7] - 2026-10-13
+
+### Fixed
+
+- Describe what `luca_book_call` does: it records a booked call in Luca, but it
+  doesn't create a calendar event or send the lead an invite. Its description
+  said it booked a slot the provider confirmed.
+- Describe which bookings `luca_reschedule_call` can move. Manual bookings move
+  in Luca. Cal.com and Google Calendar bookings also move on that calendar.
+  Calendly, GoHighLevel and iClosed bookings are refused, and so is a provider
+  booking with no calendar event.
+
 ## [0.3.6] - 2026-10-13
 
 ### Fixed
