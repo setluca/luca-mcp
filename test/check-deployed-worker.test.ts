@@ -16,6 +16,12 @@ function response(
   return Response.json(body, { status });
 }
 
+const challenge = () =>
+  response({}, 401, {
+    "www-authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
+  });
+
+/** Responses keyed by URL, or by `<url> from <origin>` for a browser origin. */
 function fetcher(
   overrides: Partial<Record<string, Response>> = {}
 ): typeof fetch {
@@ -34,22 +40,20 @@ function fetcher(
         authorization_servers: ["https://api.setluca.com/api/auth"],
       }),
     ],
-    [
-      `${origin}/mcp`,
-      response({}, 401, {
-        "www-authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
-      }),
-    ],
+    [`${origin}/mcp`, challenge()],
+    [`${origin}/mcp from https://claude.ai`, challenge()],
     ...Object.entries(overrides).filter(
       (entry): entry is [string, Response] => entry[1] !== undefined
     ),
   ]);
 
-  return vi.fn(async (url: string | URL | Request) => {
-    const result = responses.get(String(url));
+  return vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
+    const caller = new Headers(init?.headers).get("origin");
+    const key = caller === null ? String(url) : `${String(url)} from ${caller}`;
+    const result = responses.get(key);
 
     if (!result) {
-      throw new Error(`Unexpected request: ${String(url)}`);
+      throw new Error(`Unexpected request: ${key}`);
     }
 
     return result;
@@ -60,7 +64,23 @@ describe("deployed Worker check", () => {
   it("accepts a matching server card, OAuth metadata, and 401 challenge", async () => {
     const request = fetcher();
     await expect(checkDeployment("1.2.3", request)).resolves.toBeUndefined();
-    expect(request).toHaveBeenCalledTimes(3);
+    expect(request).toHaveBeenCalledTimes(4);
+  });
+
+  it("names the origin when production refuses Claude's connector", async () => {
+    const refused = Response.json(
+      { error: { message: "Invalid Origin: claude.ai" } },
+      { status: 403 }
+    );
+
+    await expect(
+      checkDeployment(
+        "1.2.3",
+        fetcher({ [`${origin}/mcp from https://claude.ai`]: refused })
+      )
+    ).rejects.toThrow(
+      "Unauthenticated MCP request from https://claude.ai returned 403"
+    );
   });
 
   it.each([
@@ -88,6 +108,11 @@ describe("deployed Worker check", () => {
       }),
     ],
     ["missing challenge", `${origin}/mcp`, response({}, 401)],
+    [
+      "missing challenge for claude.ai",
+      `${origin}/mcp from https://claude.ai`,
+      response({}, 401),
+    ],
   ])("rejects %s", async (_name, url, badResponse) => {
     await expect(
       checkDeployment("1.2.3", fetcher({ [url]: badResponse }))

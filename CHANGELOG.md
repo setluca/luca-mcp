@@ -10,6 +10,14 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.3.6] - 2026-10-13
+
+### Fixed
+
+- Accept requests from Claude's custom connector at `mcp.setluca.com`. Its
+  `https://claude.ai` origin got a 403 before sign-in instead of the 401 OAuth
+  challenge, so connecting from Claude failed.
+
 ## [0.3.5] - 2026-10-06
 
 ### Fixed

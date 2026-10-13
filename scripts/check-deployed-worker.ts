@@ -30,6 +30,11 @@ export async function checkDeployment(
   await checkServerCard(expectedVersion, fetcher, options);
   await checkOAuthMetadata(fetcher, options);
   await checkChallenge(fetcher, options);
+  // Claude's custom connector sends this Origin. A 403 here blocks its sign-in.
+  await checkChallenge(fetcher, {
+    ...options,
+    headers: { origin: "https://claude.ai" },
+  });
 }
 
 async function checkServerCard(
@@ -93,8 +98,10 @@ async function checkChallenge(
     unauthenticated.status !== 401 ||
     !challenge?.includes(`resource_metadata="${metadataUrl}"`)
   ) {
+    const caller = new Headers(options.headers).get("origin") ?? "no origin";
+
     throw new Error(
-      `Unauthenticated MCP request returned ${unauthenticated.status} without the expected challenge`
+      `Unauthenticated MCP request from ${caller} returned ${unauthenticated.status} without the expected challenge`
     );
   }
 }
