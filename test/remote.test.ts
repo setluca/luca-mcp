@@ -767,4 +767,134 @@ describe("remote transport", () => {
     expect(body.error).toBeUndefined();
     expect(body.result?.protocolVersion).toBe("2025-06-18");
   }, 15_000);
+
+  describe("LUC-452: HTML landing pages for browser requests", () => {
+    it("returns 200 HTML for browser GET /mcp with no Authorization", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "GET",
+          headers: {
+            accept: "text/html,application/xhtml+xml,application/xml;q=0.9",
+          },
+        })
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe(
+        "text/html; charset=utf-8"
+      );
+
+      const html = await response.text();
+      expect(html).toContain("Luca MCP Server");
+      expect(html).toContain("Model Context Protocol");
+      expect(html).toContain("setluca/luca-mcp");
+    });
+
+    it("returns 401 with WWW-Authenticate for GET /mcp with Authorization header, even with HTML Accept", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "GET",
+          headers: {
+            accept: "text/html,application/xhtml+xml",
+            authorization: "Bearer some-token",
+          },
+        })
+      );
+
+      expect(response.status).toBe(401);
+      expect(response.headers.get("www-authenticate")).toContain("Bearer");
+      expect(response.headers.get("content-type")).toBe("application/json");
+    });
+
+    it("returns 401 with WWW-Authenticate for GET /mcp with text/event-stream Accept", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "GET",
+          headers: {
+            accept: "text/html,text/event-stream,application/json",
+          },
+        })
+      );
+
+      expect(response.status).toBe(401);
+      expect(response.headers.get("www-authenticate")).toContain("Bearer");
+    });
+
+    it("returns 401 for POST /mcp even with HTML Accept (MCP flow unchanged)", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "POST",
+          headers: {
+            accept: "text/html",
+            "content-type": "application/json",
+          },
+          body: "{}",
+        })
+      );
+
+      expect(response.status).toBe(401);
+      expect(response.headers.get("www-authenticate")).toContain("Bearer");
+    });
+
+    it("returns 200 HTML for browser GET / with HTML Accept", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const rootUrl = new URL(MCP_URL);
+      rootUrl.pathname = "/";
+
+      const response = await handler(
+        new Request(rootUrl, {
+          method: "GET",
+          headers: {
+            accept: "text/html,application/xhtml+xml",
+          },
+        })
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe(
+        "text/html; charset=utf-8"
+      );
+
+      const html = await response.text();
+      expect(html).toContain("Luca MCP Server");
+      expect(html).toContain("setluca/luca-mcp");
+    });
+
+    it("does not return HTML for GET /mcp without HTML in Accept", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "GET",
+          headers: {
+            accept: "application/json",
+          },
+        })
+      );
+
+      expect(response.status).toBe(401);
+      expect(response.headers.get("content-type")).toBe("application/json");
+    });
+  });
 });
