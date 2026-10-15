@@ -214,6 +214,116 @@ const invalidToken = (resourceMetadataUrl: string | undefined) =>
 const notFound = () => jsonResponse(404, { error: "not_found" });
 
 /**
+ * Checks if a request is a browser GET request looking for HTML documentation.
+ * Returns true when Accept includes text/html, does NOT include text/event-stream,
+ * and has no Authorization header (LUC-452).
+ */
+function isBrowserHtmlRequest(request: Request): boolean {
+  if (request.method !== "GET") {
+    return false;
+  }
+
+  const accept = request.headers.get("accept");
+  const authorization = request.headers.get("authorization");
+
+  return (
+    authorization === null &&
+    accept !== null &&
+    accept.includes("text/html") &&
+    !accept.includes("text/event-stream")
+  );
+}
+
+/**
+ * Returns a small HTML landing page for the MCP endpoint, explaining that
+ * this is the MCP server endpoint and linking to documentation (LUC-452).
+ */
+function mcpLandingPage(origin: string): Response {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luca MCP Server</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1 { color: #2563eb; }
+    a { color: #2563eb; }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Luca MCP Server</h1>
+  <p>This is the <strong>Model Context Protocol (MCP)</strong> endpoint for Luca.</p>
+  <p>This endpoint is designed for MCP clients and AI assistants, not web browsers.</p>
+  <h2>For Developers</h2>
+  <ul>
+    <li><a href="https://setluca.com">Luca Website</a></li>
+    <li><a href="https://github.com/setluca/luca-mcp">GitHub: setluca/luca-mcp</a></li>
+    <li><a href="${origin}/.well-known/mcp/server-card.json">MCP Server Card</a></li>
+  </ul>
+  <p>To connect an MCP client, use the endpoint: <code>${origin}/mcp</code></p>
+</body>
+</html>`;
+
+  return new Response(html, {
+    headers: { "content-type": "text/html; charset=utf-8" },
+  });
+}
+
+/**
+ * Returns a small HTML landing page for the root path (LUC-452).
+ */
+function rootLandingPage(origin: string): Response {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luca MCP Server</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+      color: #333;
+    }
+    h1 { color: #2563eb; }
+    a { color: #2563eb; }
+  </style>
+</head>
+<body>
+  <h1>Luca MCP Server</h1>
+  <p>Welcome to the Luca Model Context Protocol server.</p>
+  <h2>Resources</h2>
+  <ul>
+    <li><a href="https://setluca.com">Luca Website</a></li>
+    <li><a href="https://github.com/setluca/luca-mcp">GitHub: setluca/luca-mcp</a></li>
+    <li><a href="${origin}/.well-known/mcp/server-card.json">MCP Server Card</a></li>
+  </ul>
+</body>
+</html>`;
+
+  return new Response(html, {
+    headers: { "content-type": "text/html; charset=utf-8" },
+  });
+}
+
+/**
  * Hands the response back with the handler still open, and closes it once the
  * body has been read to the end or cancelled. `handler.close()` aborts every
  * exchange in flight, so closing it as soon as `fetch` resolves would cut off
@@ -275,6 +385,18 @@ export function createRemoteResponder(options: RemoteHandlerOptions) {
   return (request: Request): Effect.Effect<Response> =>
     Effect.gen(function* () {
       const url = new URL(request.url);
+
+      // LUC-452: Browser GET to / returns an HTML landing page
+      if (url.pathname === "/" && isBrowserHtmlRequest(request)) {
+        return yield* Effect.succeed(rootLandingPage(url.origin));
+      }
+
+      // LUC-452: Browser GET to /mcp returns an HTML landing page explaining
+      // this is the MCP endpoint. MCP traffic (POST, or GET with Authorization
+      // or text/event-stream Accept) continues to the OAuth flow below.
+      if (url.pathname === mcpPath && isBrowserHtmlRequest(request)) {
+        return yield* Effect.succeed(mcpLandingPage(url.origin));
+      }
 
       if (url.pathname !== mcpPath) {
         return yield* Effect.fail(notFound());
