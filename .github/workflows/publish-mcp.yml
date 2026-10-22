@@ -149,6 +149,6 @@ jobs:
           RANGE="${PREVIOUS:+${PREVIOUS}..}${RELEASE_TAG}"
           git log --no-merges --pretty='- %s' "$RANGE" > notes.md
           gh release create "$RELEASE_TAG" \
-            --title "Luca MCP v${RELEASE_TAG#mcp-v}" \
+            --title "SetLuca MCP v${RELEASE_TAG#mcp-v}" \
             --notes-file notes.md \
             --verify-tag
