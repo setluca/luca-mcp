@@ -10,6 +10,27 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-22
+
+### Fixed
+
+- `luca_conversations_media_retry` and `luca_review_queue_media_retry` set
+  `openWorldHint: true`. A retried transcription sends the voice note to
+  OpenRouter's speech-to-text. Neither reaches a lead, so neither needs
+  `confirm: true`.
+- `luca_analytics_rollup` returns per-campaign analytics. It looked for
+  campaigns under `items`, but the API lists them under `campaigns`, so its
+  `campaigns` section had always come back empty.
+
+### Changed
+
+- Built on Effect 4.0.6, up from 4.0.0. Its JSON Schema output flattens a
+  nested `anyOf`, which reshapes `luca_close_call_loop`'s output schema without
+  changing what it accepts. No other tool's schema changed.
+- `typecheck` and `build` run the Effect language service
+  ([`@effect/tsgo`](https://github.com/Effect-TS/tsgo)) and fail on any of its
+  errors, warnings, or suggestions.
+
 ## [0.5.1] - 2026-10-22
 
 ### Fixed

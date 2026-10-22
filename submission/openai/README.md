@@ -25,7 +25,7 @@ resubmission. Beyond the version, it:
 - declares that the plugin does not sell anything (`commerce: false`);
 - accepts an empty morning report, because the reviewer fixtures are older
   than the report's 24-hour window;
-- expects the per-campaign analytics that `0.5.2` returns again.
+- expects the per-campaign analytics that `0.5.2` now returns.
 
 OpenAI verified `mcp.setluca.com` on October 6, 2026. The business publisher is
 `SetLuca, LLC`, status Approved.
