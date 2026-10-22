@@ -66,6 +66,11 @@ export type OpenApiInputSpec = {
   readonly path?: JsonSchema;
   readonly query?: JsonSchema;
   readonly body?: JsonSchema;
+  /**
+   * The route's `requestBody.required`. Absent or false means a call may leave
+   * the body out, which OpenAPI makes the default.
+   */
+  readonly bodyRequired?: boolean;
 };
 
 /**

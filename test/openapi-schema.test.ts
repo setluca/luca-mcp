@@ -45,8 +45,23 @@ function accepts(schema: Schema.Struct<ToolFields>, value: unknown) {
 }
 
 describe("openApiInputFields", () => {
+  it("requires the body only when the route marks it required", () => {
+    const body: JsonSchema = {
+      type: "object",
+      properties: { note: { type: "string" } },
+    };
+
+    expect(accepts(schema({ body }), {})).toBe(true);
+    expect(accepts(schema({ body }), { body: { note: "hi" } })).toBe(true);
+    expect(accepts(schema({ body, bodyRequired: true }), {})).toBe(false);
+    expect(
+      accepts(schema({ body, bodyRequired: true }), { body: { note: "hi" } })
+    ).toBe(true);
+  });
+
   it("maps enum, const, and required object fields", () => {
     const input = schema({
+      bodyRequired: true,
       body: {
         type: "object",
         required: ["channel", "kind"],

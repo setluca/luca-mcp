@@ -87,6 +87,7 @@ const PARAM_SEGMENTS: Readonly<Record<string, string>> = {
   // to provide their own stable ids). The replay route has an extra literal
   // `/replay` segment, so this cannot grant the sibling bulk-replay route.
   eventId: EVENT_ID_SEGMENT,
+  failureId: UUID_SEGMENT,
   id: UUID_SEGMENT,
   leadId: UUID_SEGMENT,
   mediaId: UUID_SEGMENT,
@@ -94,6 +95,7 @@ const PARAM_SEGMENTS: Readonly<Record<string, string>> = {
   noteId: UUID_SEGMENT,
   simulationId: UUID_SEGMENT,
   threadId: UUID_SEGMENT,
+  turnId: UUID_SEGMENT,
   // Both booking and CRM routes name their parameter `provider`, so the
   // segment accepts either vocabulary. Every name in it is a literal the
   // handler recognises, which is what keeps it from matching a sibling route.
@@ -272,6 +274,7 @@ const QUEUE_OPS_TIER_SCOPES: readonly string[] = [
 
 const FULL_TIER_SCOPES: readonly string[] = [
   ...QUEUE_OPS_TIER_SCOPES,
+  "channels:write",
   "integrations:write",
   "webhooks:write",
 ];
@@ -355,6 +358,11 @@ export function samplePublicApiPath(template: string): string {
   );
 }
 
+/** Every allowlist entry, for the registries derived from it. */
+export function publicApiAccessPolicies(): readonly PublicApiAccessPolicy[] {
+  return apiKeyPolicies;
+}
+
 export function findPublicApiAccessPolicy(method: string, path: string) {
   return compiledPolicies.find(
     (entry) => entry.policy.method === method && entry.pattern.test(path)
@@ -391,7 +399,7 @@ export const PUBLIC_API_SCOPES = Arr.sort(
 );
 
 export type PublicApiAccessPolicyEntry = {
-  /** Stable operation id. The key apps/mcp declares its tools against. */
+  /** Stable operation id. The key setluca/luca-mcp declares its tools against. */
   id: string;
   method: string;
   path: string;
@@ -401,10 +409,10 @@ export type PublicApiAccessPolicyEntry = {
 
 /**
  * Serializable view of the API-key allowlist for cross-workspace drift
- * checks (see apps/mcp scripts/check-openapi.ts). The route is emitted as its
+ * checks (see setluca/luca-mcp scripts/check-openapi.ts). The route is emitted as its
  * OpenAPI path template, which is the same key the snapshot and the MCP
  * catalog use, so a consumer compares templates instead of reconstructing a
- * regex. The operation id travels with it: apps/mcp generates its route
+ * regex. The operation id travels with it: setluca/luca-mcp generates its route
  * catalog from this file, so every tool's method, path, scopes, and
  * idempotency rule are read from here rather than written out a second time.
  * Kept in sync via apps/api scripts/api-key-policies.ts, which fails CI on

@@ -12,6 +12,24 @@ export const ChannelSchema = z.enum(CHANNELS);
 
 export type Channel = z.infer<typeof ChannelSchema>;
 
+/** Disconnect removes these channels' owned lead and conversation history. */
+export const HISTORY_PURGED_ON_DISCONNECT_CHANNELS = [
+  "telegram",
+  "instagram",
+  "messenger",
+] as const satisfies readonly Channel[];
+
+export type HistoryPurgedChannel =
+  (typeof HISTORY_PURGED_ON_DISCONNECT_CHANNELS)[number];
+
+export function purgesHistoryOnDisconnect(
+  channel: Channel
+): channel is HistoryPurgedChannel {
+  return HISTORY_PURGED_ON_DISCONNECT_CHANNELS.some(
+    (purged) => purged === channel
+  );
+}
+
 /** Recorded by the OAuth callback after state consumption and token exchange. */
 export const ChannelOAuthEvidenceSchema = z.object({
   version: z.literal(1),

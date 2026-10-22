@@ -102,12 +102,15 @@ const QUEUE_OPS_TIER_SCOPES = [
 ] as const;
 
 /**
- * Account plumbing with external egress. Webhook subscriptions and CRM
- * connections send workspace data to a third-party host, so they sit alone at
- * the top rather than riding along with the lead-visible writes.
+ * Account plumbing with external egress or standing effect. Webhook
+ * subscriptions and CRM connections send workspace data to a third-party host,
+ * and a channel's auto-send switch decides whether every later reply reaches a
+ * lead without review, so they sit alone at the top rather than riding along
+ * with the one-off lead-visible writes.
  */
 const FULL_TIER_SCOPES = [
   ...QUEUE_OPS_TIER_SCOPES,
+  "channels:write",
   "integrations:write",
   "webhooks:write",
 ] as const;

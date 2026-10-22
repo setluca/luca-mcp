@@ -22,6 +22,6 @@ export function logAgentSurfaceEvent(
   fields: Record<string, string | number | boolean | null | undefined>
 ): void {
   Effect.runSync(
-    Console.log(encodeJson({ msg: "mcp.agent_surface", event, ...fields }))
+    Console.log(encodeJson({ ...fields, msg: "mcp.agent_surface", event }))
   );
 }

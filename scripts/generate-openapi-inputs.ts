@@ -55,6 +55,9 @@ function operationInput(operation: OpenApiOperation): OpenApiInputSpec {
     ...optionalField("path", objectSchemaFromParameters(parameters, "path")),
     ...optionalField("query", objectSchemaFromParameters(parameters, "query")),
     ...optionalField("body", jsonBody(operation.requestBody)),
+    ...fieldsWhen(operation.requestBody?.required === true, {
+      bodyRequired: true,
+    }),
   };
 }
 

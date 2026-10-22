@@ -437,6 +437,16 @@ describe("operation manifest", () => {
       })
     ).toBe(false);
     expect(accepts(schema, { body: { channel: "telegram" } })).toBe(false);
+    expect(accepts(schema, {})).toBe(false);
+  });
+
+  it("lets a call leave out a body the API marks optional", () => {
+    // Approving or rejecting a draft as it stands sends no body at all. The
+    // API documents both bodies as optional, so the tool must not demand one.
+    const id = "00000000-0000-0000-0000-000000000000";
+
+    expect(accepts(toolSchema("reviewQueue.reject"), { id })).toBe(true);
+    expect(accepts(toolSchema("reviewQueue.approve"), { id })).toBe(true);
   });
 
   it("derives precise query and path schemas from Luca OpenAPI", () => {

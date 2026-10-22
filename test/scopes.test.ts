@@ -176,8 +176,9 @@ describe("the capability tier ladder", () => {
     });
   });
 
-  it("puts the two egress scopes alone at the top", () => {
+  it("puts the egress and auto-send scopes alone at the top", () => {
     expect(addedBy("luca:full")).toEqual([
+      "channels:write",
       "integrations:write",
       "webhooks:write",
     ]);
