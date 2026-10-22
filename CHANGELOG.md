@@ -21,8 +21,17 @@ input schema, or changing what a tool does to a workspace.
 - `luca_analytics_rollup` returns per-campaign analytics. It looked for
   campaigns under `items`, but the API lists them under `campaigns`, so its
   `campaigns` section had always come back empty.
+- `luca_conversations_send_status`, `luca_bookings_managed_availability`, and
+  `luca_webhooks_events_list` require `query`. Each route has a required query
+  parameter, so a call without `query` already failed with the API's 400; the
+  tool schema now says so. No call that worked before is rejected.
 
 ### Changed
+
+- The 401 challenge asks for every scope instead of `luca:read luca:draft`.
+  Claude requests what the challenge names, and the consent screen offers only
+  what was requested, so a coach could not let Claude send or book. The consent
+  screen still starts at read and draft, with every higher scope unticked.
 
 - Built on Effect 4.0.6, up from 4.0.0. Its JSON Schema output flattens a
   nested `anyOf`, which reshapes `luca_close_call_loop`'s output schema without

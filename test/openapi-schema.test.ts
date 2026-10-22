@@ -59,6 +59,21 @@ describe("openApiInputFields", () => {
     ).toBe(true);
   });
 
+  it("requires the query when it has a required parameter", () => {
+    const query: JsonSchema = {
+      type: "object",
+      properties: { idempotencyKey: { type: "string" } },
+    };
+
+    const required: JsonSchema = { ...query, required: ["idempotencyKey"] };
+
+    expect(accepts(schema({ query }), {})).toBe(true);
+    expect(accepts(schema({ query: required }), {})).toBe(false);
+    expect(
+      accepts(schema({ query: required }), { query: { idempotencyKey: "k" } })
+    ).toBe(true);
+  });
+
   it("maps enum, const, and required object fields", () => {
     const input = schema({
       bodyRequired: true,
