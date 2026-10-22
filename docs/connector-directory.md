@@ -77,33 +77,37 @@ in `src/toolsets.ts` and a protocol test pins it.
   `0.1.3` that day because tool annotations need explicit values with matching
   justifications. Package `0.1.4` and `annotation-justifications.json` are the
   resubmission. See `submission/openai/README.md`.
-- **Claude reviewer access.** Confirm the dedicated account and its fixtures
-  meet Claude's review requirements before using it there. See item 2 below.
+- **Claude reviewer connection.** The dedicated
+  `claude-reviewer@setluca.com` account owns **Claude Review Workspace**,
+  seeded on October 22, 2026 with the same synthetic fixtures as the OpenAI
+  workspace (lead Sam Demo). Its credentials are in Infisical production at
+  `/operations/claude-review`. A claude.ai-style and a Claude Code sign-in both
+  passed that day. See `submission/claude/README.md` for the portal fields.
 - **Final icon.** The current icons point at the site favicon and app icon
   with a `wordmark-1` version tag. The listing icon isn't final.
 - **OpenAI domain verification.** Completed October 6, 2026. The production
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.
 - **Portal submissions.** The OpenAI plugin is to be resubmitted as package
-  `0.1.4` once MCP `0.5.2` is deployed. No Claude submission has been filed.
+  `0.1.4` once MCP `0.5.2` is deployed. No Claude submission has been filed;
+  it waits on the Luca API lifting its Claude cap and a real claude.ai test.
 
 ## What a human has to do in the Claude portal
 
-None of this can be done from the repo. Each one is a rejection risk on its
-own, and an incomplete test account is the one Anthropic calls out by name.
+None of this can be done from the repo. `submission/claude/README.md` has the
+text for each field.
 
-1. **A Team or Enterprise organization**, and an account in it with Owner or
-   Directory permission. The submission form is not visible otherwise.
-2. **Test credentials that actually work.** A Luca workspace with leads,
-   conversations, bookings, and campaign data in it, plus a key or an OAuth
-   login the reviewer can use. A reviewer who lands in an empty workspace
-   cannot exercise a single tool and will not guess why.
-3. **Listing copy.** An icon, a tagline of at most 55 characters, a description
-   of at most 2,000 characters, one to five categories, a support contact, and
-   the permanent URL slug. The slug does not change later.
+1. **A paid Claude plan** (Pro, Max, Team, or Enterprise). On Team or
+   Enterprise the account needs Owner or Directory permission. The submitting
+   organization owns the listing.
+2. **Test credentials that actually work.** The Claude reviewer account above,
+   entered only in the portal's Test & launch field.
+3. **Listing copy.** Server name (100 characters), one-liner (200),
+   description (2,000), one to five categories, documentation and privacy
+   URLs, a support contact, an icon, and the URL slug, which can never change
+   after publishing.
 4. **Seven compliance acknowledgments** at the end of the form.
-5. **Screenshots**, only if this is submitted as an MCP App: three to five
-   PNGs, each at least 1,000px wide.
+5. **Screenshots** only for an MCP App with UI. This server has none.
 
 ## Things worth re-checking before each submission
 
