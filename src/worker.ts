@@ -159,7 +159,7 @@ function loadPublicOrigin(
   const value = env.MCP_PUBLIC_ORIGIN;
 
   if (value === undefined) {
-    return Effect.succeed(undefined);
+    return Effect.undefined;
   }
 
   const origin = withoutTrailingSlashes(value.trim());

@@ -194,7 +194,7 @@ function walkPages(walk: Walk, ref: Ref.Ref<CollectedPages>) {
       // list would read as "page 3 is down", and only a failed tool result
       // carries the challenge that sends the client back through sign-in.
       if (Result.isFailure(page) && isAuthorizationFailure(page.failure)) {
-        return yield* Effect.fail(page.failure);
+        return yield* page.failure;
       }
 
       yield* Ref.set(

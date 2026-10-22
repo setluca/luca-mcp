@@ -429,7 +429,7 @@ const rescheduleCall = taskTool({
                   ...window,
                   bookingTypeId,
                   timezone: "UTC",
-                }).pipe(Effect.map(Option.some)),
+                }).pipe(Effect.asSome),
             }
           )
         )

@@ -324,9 +324,7 @@ function readJsonFile<S extends Schema.Top>(relativePath: string, schema: S) {
     const fs = yield* FileSystem.FileSystem;
     const text = yield* fs.readFileString(yield* packagePath(relativePath));
 
-    return yield* Schema.decodeUnknownEffect(Schema.fromJsonString(schema))(
-      text
-    );
+    return yield* Schema.decodeEffect(Schema.fromJsonString(schema))(text);
   });
 }
 

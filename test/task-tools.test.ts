@@ -35,8 +35,7 @@ type JsonRecord = Readonly<Record<string, JsonValue>>;
 
 function accepts(field: ToolField | undefined, value: JsonValueInput) {
   return (
-    field !== undefined &&
-    Option.isSome(Schema.decodeUnknownOption(field)(value))
+    field !== undefined && Option.isSome(Schema.decodeOption(field)(value))
   );
 }
 
@@ -218,7 +217,7 @@ async function runTool(
 
   if (validateOutput) {
     // Throws with the decode issue when the result breaks the declared shape.
-    Schema.decodeUnknownSync(Schema.Struct(registered.outputSchema))({
+    Schema.decodeSync(Schema.Struct(registered.outputSchema))({
       result,
     });
 

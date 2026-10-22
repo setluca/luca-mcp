@@ -14,10 +14,10 @@ import {
  * The OpenAPI document holds a reference that cannot be inlined: malformed,
  * missing, cyclic, or carrying a sibling key the generator would drop.
  */
-class OpenApiReferenceError extends Schema.TaggedError<OpenApiReferenceError>()(
-  "OpenApiReferenceError",
-  { message: Schema.String }
-) {}
+class OpenApiReferenceError extends Schema.TaggedError<
+  OpenApiReferenceError,
+  { readonly brand: unique symbol }
+>()("OpenApiReferenceError", { message: Schema.String }) {}
 
 function referenceError(message: string) {
   return new OpenApiReferenceError({ message });

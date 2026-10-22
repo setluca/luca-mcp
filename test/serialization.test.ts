@@ -56,7 +56,7 @@ describe("parseJson", () => {
 describe("JsonValue", () => {
   it("accepts every JSON shape, nested", () => {
     const value = { a: [1, "two", true, null, { b: {} }] };
-    expect(Schema.decodeUnknownSync(JsonValue)(value)).toEqual(value);
+    expect(Schema.decodeSync(JsonValue)(value)).toEqual(value);
   });
 
   it("rejects a value JSON cannot carry", () => {

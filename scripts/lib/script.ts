@@ -16,8 +16,11 @@ export type ScriptServices = BunServices.BunServices;
  * `exitCode`. `runMain` reads the code off the error and skips its own log,
  * because the report already said what went wrong.
  */
-export class ScriptExit extends Schema.TaggedError<ScriptExit>()("ScriptExit", {
-  exitCode: Schema.Number,
+export class ScriptExit extends Schema.TaggedError<
+  ScriptExit,
+  { readonly brand: unique symbol }
+>()("ScriptExit", {
+  exitCode: Schema.Int,
 }) {
   override readonly [Runtime.errorReported] = false;
 

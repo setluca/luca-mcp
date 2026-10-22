@@ -39,10 +39,10 @@ import {
 import { exitWith, runScript, scriptMode } from "./lib/script.ts";
 
 /** The catalog cannot be documented as it stands: the message says why. */
-class DocsInputError extends Schema.TaggedError<DocsInputError>()(
-  "DocsInputError",
-  { message: Schema.String }
-) {}
+class DocsInputError extends Schema.TaggedError<
+  DocsInputError,
+  { readonly brand: unique symbol }
+>()("DocsInputError", { message: Schema.String }) {}
 
 /** One generated file: where it lands and the lines that make it up. */
 type GeneratedDoc = {

@@ -215,7 +215,7 @@ describe("paginatedProgram", () => {
 
         return yield* Fiber.join(fiber);
       }).pipe(
-        Effect.provide(Layer.succeed(LucaApi, api)),
+        Effect.provideService(LucaApi, api),
         Effect.provide(TestClock.layer())
       )
     );
@@ -265,7 +265,7 @@ describe("paginatedProgram", () => {
 
     const result = await Effect.runPromise(
       paginatedProgram(OPERATION, pageContractOf(OPERATION), {}, 5).pipe(
-        Effect.provide(Layer.succeed(LucaApi, api))
+        Effect.provideService(LucaApi, api)
       )
     );
 
@@ -309,7 +309,7 @@ describe("paginatedProgram", () => {
 
       const exit = await Effect.runPromiseExit(
         paginatedProgram(OPERATION, pageContractOf(OPERATION), {}, 5).pipe(
-          Effect.provide(Layer.succeed(LucaApi, api))
+          Effect.provideService(LucaApi, api)
         )
       );
 

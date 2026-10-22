@@ -1,4 +1,5 @@
 {
+  "$schema": "./node_modules/@effect/tsgo/schema.json",
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2024",
@@ -15,7 +16,38 @@
     "exactOptionalPropertyTypes": true,
     "incremental": false,
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    // The Effect language service (@effect/tsgo, patched into `tsc` by the
+    // `prepare` script) reports Effect diagnostics during `typecheck`.
+    // Suggestions fail it as well, so a new one is fixed when it appears.
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "ignoreEffectSuggestionsInTscExitCode": false,
+        "overrides": [
+          {
+            "include": ["src/**/*.ts"],
+            "options": { "diagnosticSeverity": { "floatingEffect": "error" } }
+          },
+          {
+            // Scripts and tests run on Effect's file system, path, HTTP
+            // client, Bun runtime, and @effect/vitest, which Effect marks
+            // unstable. src/ ships to users and keeps the default, so it
+            // cannot come to depend on an unstable API unnoticed.
+            "include": ["scripts/**/*.ts", "test/**/*.ts"],
+            "options": {
+              "allowedUnstableApis": [
+                "effect/FileSystem",
+                "effect/Path",
+                "effect/http",
+                "@effect/platform-bun",
+                "@effect/vitest"
+              ]
+            }
+          }
+        ]
+      }
+    ]
   },
   "include": ["src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts", "*.config.ts"]
 }

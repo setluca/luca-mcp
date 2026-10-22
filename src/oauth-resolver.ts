@@ -61,7 +61,7 @@ function resolvePayload(response: Response) {
         )
       )
     ),
-    Effect.map(Option.some)
+    Effect.asSome
   );
 }
 

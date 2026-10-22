@@ -293,15 +293,13 @@ function sendOnce(
       const waitMs = retryAfterMs(response, now);
       const text = yield* readText.pipe(Effect.orElseSucceed(() => ""));
 
-      return yield* Effect.fail(
-        new LucaHttpError({
-          status: response.status,
-          statusText: response.statusText,
-          body: yield* errorBody(text),
-          ...optionalField("requestId", response.headers.get("x-request-id")),
-          ...optionalField("retryAfterMs", waitMs),
-        })
-      );
+      return yield* new LucaHttpError({
+        status: response.status,
+        statusText: response.statusText,
+        body: yield* errorBody(text),
+        ...optionalField("requestId", response.headers.get("x-request-id")),
+        ...optionalField("retryAfterMs", waitMs),
+      });
     }
 
     const text = yield* readText;

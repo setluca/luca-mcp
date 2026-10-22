@@ -84,7 +84,18 @@ function fieldsSource(route: string, spec: OpenApiInputSpec) {
     ? exitWith([
         `${route}: Effect printed an input schema with references or imports, which src/generated/openapi-inputs.ts cannot hold.`,
       ])
-    : Effect.succeed(root.runtime);
+    : Effect.succeed(finiteNumbers(root.runtime));
+}
+
+/**
+ * Tool arguments arrive as JSON, which cannot carry `NaN` or `Infinity`, so
+ * every number an OpenAPI input declares is a finite one. Effect's printer
+ * spells each of them `Schema.Number`, which admits both, so the generated
+ * module names the finite domain instead. The JSON Schema a client sees is the
+ * same `number` or `integer` either way.
+ */
+function finiteNumbers(source: string): string {
+  return source.replaceAll(/\bSchema\.Number\b/gu, "Schema.Finite");
 }
 
 function hasUnsupportedReferences(

@@ -6,7 +6,6 @@ import { McpServer } from "@modelcontextprotocol/server";
 import type { Transport } from "@modelcontextprotocol/server";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
-import * as Option from "effect/Option";
 import * as R from "effect/Record";
 import * as Redacted from "effect/Redacted";
 import { assert, describe, expect, it, onTestFinished, vi } from "vitest";
@@ -37,7 +36,7 @@ function recordingResolver(seen: string[]): TokenResolver {
   return (token) => {
     seen.push(token);
 
-    return Effect.succeed(Option.none());
+    return Effect.succeedNone;
   };
 }
 
@@ -501,13 +500,11 @@ describe("remote transport", () => {
       resolveToken: (token) => {
         seen.push(token);
 
-        return Effect.succeed(
-          Option.some<LucaConfig>({
-            apiBaseUrl: "https://api.example.com",
-            apiKey: Redacted.make(token),
-            authHeader: "x-api-key",
-          })
-        );
+        return Effect.succeedSome<LucaConfig>({
+          apiBaseUrl: "https://api.example.com",
+          apiKey: Redacted.make(token),
+          authHeader: "x-api-key",
+        });
       },
     });
 
@@ -561,13 +558,11 @@ describe("remote transport", () => {
     async (grant, count) => {
       const handler = createRemoteHandler({
         resolveToken: (token) =>
-          Effect.succeed(
-            Option.some<LucaConfig>({
-              ...DEFAULT_SETTINGS,
-              apiKey: Redacted.make(token),
-              ...optionalField("grant", grant),
-            })
-          ),
+          Effect.succeedSome<LucaConfig>({
+            ...DEFAULT_SETTINGS,
+            apiKey: Redacted.make(token),
+            ...optionalField("grant", grant),
+          }),
         toolset: "claude",
       });
 
@@ -609,13 +604,11 @@ describe("remote transport", () => {
 
     const handler = createRemoteHandler({
       resolveToken: () =>
-        Effect.succeed(
-          Option.some<LucaConfig>({
-            apiBaseUrl: "https://api.example.com",
-            apiKey: Redacted.make("luca_coach_a"),
-            authHeader: "x-api-key",
-          })
-        ),
+        Effect.succeedSome<LucaConfig>({
+          apiBaseUrl: "https://api.example.com",
+          apiKey: Redacted.make("luca_coach_a"),
+          authHeader: "x-api-key",
+        }),
       resourceMetadataUrl,
     });
 
