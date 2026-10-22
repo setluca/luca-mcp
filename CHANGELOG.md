@@ -78,12 +78,16 @@ input schema, or changing what a tool does to a workspace.
   domain, and `/favicon.ico` answered 404.
 - The browser page at `/` and `/mcp` now names SetLuca, links to the connection
   guide at `https://setluca.com/connect`, and asks search engines not to index
-  it. MCP clients still get the 401 OAuth challenge.
+  it. It also answers a link checker's `HEAD`. MCP clients still get the 401
+  OAuth challenge.
+- `luca_call_events_summary_replace` and `luca_call_events_push_to_crm` now ask
+  for `luca:full`, the tier Luca's API requires for them. They said
+  `luca:queue_ops`, so a queue_ops grant listed them and then got a 403.
 - Mark `luca_insights_settings_get` read-only. Luca's API now returns the
   default alert settings without creating a row, so the read no longer counts
   as a write.
 - Let a call leave out a request body the API marks optional. Every body was
-  required, so `luca_review_queue_approve` without edits, and 35 other tools,
+  required, so `luca_review_queue_approve` without edits, and 15 other tools,
   demanded a `body` argument the API does not need.
 
 ## [0.4.0] - 2026-10-13

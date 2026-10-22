@@ -44,9 +44,9 @@ export const conversationsOperations: readonly LucaOperation[] = [
     id: "conversations.send_status",
     // Answers with a status and an id only; no lead-authored text.
     untrustedContent: false,
-    title: "Check whether a reply was sent",
+    title: "Check whether a reply was accepted",
     description:
-      "Look up a manual reply by the idempotency key it was sent with, to learn whether the API accepted it before sending it again. not_found means it never landed.",
+      "Look up a manual reply by the idempotency key it was sent with, to learn whether the API accepted it for sending before you send it again. accepted means it is queued to go out, not that it was delivered; not_found means no accepted send exists under that key.",
   }),
   op({
     id: "conversations.reply_failure_retry",

@@ -111,8 +111,11 @@ export const leadsOperations: readonly LucaOperation[] = [
     untrustedContent: false,
     title: "Pause Luca for a lead",
     mutatesExisting: true,
+    // The API asks queue_ops of a key for this route although its
+    // leads:write scope sits at the draft tier.
+    capability: "queue_ops",
     description:
-      "Stop Luca drafting replies, running follow-up cadences, and sending campaign messages to one lead, for 1h, 24h, 7d, 30d, or until resumed. A draft in flight stops at its next step. Opt-outs and crisis messages are still handled. Pausing again replaces the earlier pause.",
+      "Stop Luca drafting replies, running follow-up cadences, and sending campaign messages to one lead, for 1h, 24h, 7d, 30d, or until resumed. A draft in flight stops at its next step. Opt-outs and crisis messages are still handled. Pausing again replaces the earlier pause. A timed pause resumes the lead by itself when it ends.",
   }),
   op({
     id: "leads.drafting.resume",

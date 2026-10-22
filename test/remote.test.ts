@@ -944,6 +944,25 @@ describe("remote transport", () => {
       expect(response.status).toBe(404);
     });
 
+    it("answers a link checker's HEAD for /mcp with the page headers and no body", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "HEAD",
+          headers: { accept: "text/html" },
+        })
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe(
+        "text/html; charset=utf-8"
+      );
+      expect(await response.text()).toBe("");
+    });
+
     it("still challenges a browser that sends no Accept header", async () => {
       const handler = createRemoteHandler({
         resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),

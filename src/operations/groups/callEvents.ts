@@ -63,6 +63,9 @@ export const callEventsOperations: readonly LucaOperation[] = [
     title: "Replace a call summary",
     openWorld: true,
     confirm: "always",
+    // The API asks full of a key for this route, since the summary is pushed
+    // to the connected CRM.
+    capability: "full",
     mutatesExisting: true,
     untrustedContent: true,
     description:
@@ -73,6 +76,8 @@ export const callEventsOperations: readonly LucaOperation[] = [
     title: "Push a call to the CRM",
     openWorld: true,
     confirm: "always",
+    // The API asks full of a key for a write into the connected CRM.
+    capability: "full",
     mutatesExisting: true,
     untrustedContent: true,
     description:

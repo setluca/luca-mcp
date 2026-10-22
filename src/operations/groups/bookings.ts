@@ -274,7 +274,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
     title: "Stop a no-show recovery",
     mutatesExisting: true,
     description:
-      "Stop a booking's no-show recovery so no further follow-up reaches the lead. Send the recoveryCaseId and outcomeVersion from luca_bookings_recovery_get, so the stop applies to the recovery you read.",
+      "Stop a booking's no-show recovery so no further follow-up is scheduled. A follow-up already being sent may still arrive. Send recovery.id as recoveryCaseId and recovery.outcomeVersion from luca_bookings_recovery_get; a recovery that changed since that read returns 409 booking_recovery_changed.",
   }),
   op({
     id: "bookings.providerRequests.create",
@@ -283,7 +283,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
     openWorld: true,
     confirm: "always",
     description:
-      "Book one exact slot from luca_bookings_managed_availability on the coach's calendar provider, which sends the invite to the lead's email. Pass the slot's id, startsAt, endsAt, and timezone as returned. The answer can be pending while the provider confirms; read it again with luca_bookings_provider_requests_get. A slot taken in the meantime returns 409 slot_unavailable.",
+      "Book one exact slot from luca_bookings_managed_availability on the coach's Calendly, Cal.com, or Google Calendar, which sends the invite to the lead's email; the lead also gets Luca's booking confirmation. Pass the slot's id, startsAt, endsAt, and timezone as returned by a read of exactly that slot's window, since a slot id is tied to the window it was read in. The answer is usually pending while the provider confirms; read it again with luca_bookings_provider_requests_get. A slot taken in the meantime returns 409 slot_unavailable.",
   }),
   op({
     id: "bookings.providerRequests.get",

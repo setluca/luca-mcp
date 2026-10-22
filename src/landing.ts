@@ -11,12 +11,15 @@
 const CONNECT_GUIDE_URL = "https://setluca.com/connect";
 
 /**
- * A browser asking for a page: a GET that accepts HTML, does not ask for an
- * event stream, and carries no credentials. The branch is kept this narrow
- * because handing an HTML 200 to an MCP client would break its connection.
+ * A browser or link checker asking for a page: a GET or HEAD that accepts
+ * HTML, does not ask for an event stream, and carries no credentials. The
+ * branch is kept this narrow because handing an HTML 200 to an MCP client
+ * would break its connection. No MCP client sends HEAD.
  */
 function isBrowserPageRequest(request: Request): boolean {
-  if (request.method !== "GET" || request.headers.has("authorization")) {
+  const pageMethod = request.method === "GET" || request.method === "HEAD";
+
+  if (!pageMethod || request.headers.has("authorization")) {
     return false;
   }
 
@@ -100,7 +103,10 @@ export function browserLandingPage(
     return undefined;
   }
 
-  return new Response(page(url.origin, mcpPath, intro), {
+  const body =
+    request.method === "HEAD" ? null : page(url.origin, mcpPath, intro);
+
+  return new Response(body, {
     headers: {
       "content-type": "text/html; charset=utf-8",
       // The same URL answers MCP clients with a 401, so a cache must not hand

@@ -89,6 +89,6 @@ export const integrationsOperations: readonly LucaOperation[] = [
     // Stops every sync with that CRM until the coach signs in to it again.
     confirm: "always",
     description:
-      "Disable a CRM connection and clear its credentials, which stops every sync with that CRM until the coach connects it again. Saved field mappings and event history stay.",
+      "Disable a CRM connection and clear the credentials Luca holds, which stops every sync with that CRM until the coach connects it again. Saved mappings and event history stay. It does not revoke access on the CRM's side.",
   }),
 ];

@@ -25,7 +25,7 @@ import {
 } from "../openapi-schema.ts";
 import { fieldsWhen, optionalField } from "../optional-field.ts";
 import { type PageContract, pageContractFor } from "../page-contract.ts";
-import { effectiveCapability } from "../scopes.ts";
+import { capabilityRank, effectiveCapability } from "../scopes.ts";
 import type {
   JsonInputObject,
   JsonObject,
@@ -268,9 +268,7 @@ function requiredScopeFor(input: {
 }): RequiredScope {
   let capability: CapabilityTier = "draft";
 
-  if (input.capability !== undefined) {
-    capability = input.capability;
-  } else if (input.method === "GET") {
+  if (input.method === "GET") {
     capability = "read";
   } else if (input.confirm === "always") {
     // Real-world side effect (sends, enrollments, replays) = operating the
@@ -278,6 +276,16 @@ function requiredScopeFor(input: {
     // the gate guards the risky inputs, and the others stay open to a
     // connection below queue_ops.
     capability = "queue_ops";
+  }
+
+  // A stated tier is a floor: it can raise the tier the effect asks for, never
+  // lower it.
+  if (
+    input.capability !== undefined &&
+    capabilityRank(`luca:${input.capability}`) >
+      capabilityRank(`luca:${capability}`)
+  ) {
+    capability = input.capability;
   }
 
   return {

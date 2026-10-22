@@ -24,6 +24,7 @@ import {
   operationManifest,
   outputSchemaFor,
 } from "../src/operations.ts";
+import { op } from "../src/operations/registry.ts";
 import { oauthScopeForOperation } from "../src/scopes.ts";
 import { JsonObject } from "../src/serialization.ts";
 import { toStandardSchema } from "../src/standard-schema.ts";
@@ -578,6 +579,28 @@ describe("operation manifest", () => {
     expect(operation.requiredScope.capability).toBe("queue_ops");
     expect(oauthScopeForOperation(operation)).toBe("luca:queue_ops");
     expect(operationAnnotations(operation).openWorldHint).toBe(true);
+  });
+
+  it("treats a stated capability as a floor that never lowers the tier", () => {
+    // A send stays at queue_ops however low the stated tier.
+    const send = op({
+      id: "conversations.send",
+      title: "Floor check",
+      description: "Floor check.",
+      confirm: "always",
+      capability: "read",
+    });
+
+    // A draft-tier write rises to the stated tier.
+    const note = op({
+      id: "leads.notes.add",
+      title: "Floor check",
+      description: "Floor check.",
+      capability: "queue_ops",
+    });
+
+    expect(send.requiredScope.capability).toBe("queue_ops");
+    expect(note.requiredScope.capability).toBe("queue_ops");
   });
 
   it("gates only booking outcomes that can change a connected CRM deal", () => {
