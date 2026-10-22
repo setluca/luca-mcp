@@ -229,6 +229,9 @@ describe("MCP protocol", () => {
       luca_broadcasts_pause: hint(false, true, true, true),
       luca_integrations_crm_connections_schema: hint(false, false, true, true),
       luca_integrations_crm_sync_runs_create: hint(false, false, false, false),
+      // A retried transcription sends the voice note to OpenRouter.
+      luca_conversations_media_retry: hint(false, true, false, true),
+      luca_review_queue_media_retry: hint(false, true, false, true),
     };
 
     expect(R.map(expected, (_, name) => hints(name))).toEqual(expected);
@@ -1368,7 +1371,7 @@ describe("task tools", () => {
       requests.push(request);
 
       if (request.operation.id === "campaigns.list") {
-        return Effect.succeed({ items: [{ id: "c-1" }] });
+        return Effect.succeed({ campaigns: [{ id: "c-1" }] });
       }
 
       return Effect.succeed({ ok: true });
@@ -1398,7 +1401,7 @@ describe("task tools", () => {
   it("analytics_rollup keeps going when one campaign's analytics fails", async () => {
     const { client, close } = await connect((request) => {
       if (request.operation.id === "campaigns.list") {
-        return Effect.succeed({ items: [{ id: "c-1" }] });
+        return Effect.succeed({ campaigns: [{ id: "c-1" }] });
       }
 
       if (request.operation.id === "campaigns.analytics") {

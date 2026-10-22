@@ -119,6 +119,7 @@ const triageInbox = taskTool({
       });
 
       const ids = listingIds(
+        "reviewQueue.list",
         queue,
         numberInput(input.explainTop, DEFAULT_EXPLAIN_TOP)
       );

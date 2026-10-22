@@ -206,7 +206,7 @@ function campaignAnalytics(
   limit: number
 ): Effect.Effect<JsonValue, LucaError, LucaApi> {
   return Effect.forEach(
-    listingIds(page, limit),
+    listingIds("campaigns.list", page, limit),
     (id) =>
       failureAsField(
         "analyticsError",
