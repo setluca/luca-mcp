@@ -40,27 +40,31 @@ These hold for both directories unless a row says otherwise.
 
 ## Remaining work
 
-### Auth work in the code
+### Auth in the authorization server
 
-None of these exist yet. Don't describe them as shipped in a submission.
-
-- **Audience check.** `/oauth/resolve` doesn't yet check that a token was issued
-  for the `https://mcp.setluca.com/mcp` resource.
-- **Client ID metadata documents (CIMD).** `packages/auth` doesn't accept a URL
-  as a client ID yet. Clients register through dynamic client registration.
+Both items this page once listed as missing are live in `apps/api` at Luca
+production `69bda66`: `/oauth/resolve` checks that a token was issued for the
+`https://mcp.setluca.com/mcp` audience, and the authorization server accepts a
+client ID metadata document (CIMD) URL as a client ID, with dynamic client
+registration as the fallback.
 
 ### Claude directory URL
 
-Submit the Claude set, not the full catalog:
+Claude gets the same server as ChatGPT, every tool included:
 
 ```text
-https://mcp.setluca.com/mcp?toolset=claude
+https://mcp.setluca.com/mcp
 ```
 
-It lists 43 tools, or 39 when the connection holds only the `luca:read` grant.
-It lists two prompts, `luca-api-planner` and `luca-morning-report`. The others
-plan campaigns and broadcasts or name tools the set leaves out. The list lives in `src/toolsets.ts` and a
-protocol test pins it.
+The 401 challenge asks for every scope, so Claude's consent screen can offer
+each tier, and the coach ticks anything past read and draft. Until the Luca API
+lifts its Claude-only cap (LUC-401), a Claude connection still holds read and
+draft at most, and the tools past that answer 403.
+
+`https://mcp.setluca.com/mcp?toolset=claude` stays available as a smaller,
+read and draft set of 43 tools for coaches who want Claude limited to that. It
+lists two prompts, `luca-api-planner` and `luca-morning-report`. The list lives
+in `src/toolsets.ts` and a protocol test pins it.
 
 ### Work outside the code
 

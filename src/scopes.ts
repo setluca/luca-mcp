@@ -49,6 +49,16 @@ export const LUCA_RESOURCE_SCOPES = Arr.filter(
 /** Least-privilege default for a new OAuth connection. */
 export const OAUTH_DEFAULT_SCOPE = "luca:read luca:draft";
 
+/**
+ * The scope a 401 challenge asks for: every scope this resource accepts.
+ * Claude requests exactly what the challenge names, and the consent screen
+ * offers only what was requested, so naming less would leave a coach no way to
+ * let Claude send or book. The screen still starts at
+ * {@link OAUTH_DEFAULT_SCOPE}: read is locked on, draft starts on, and every
+ * higher scope starts unchecked for the coach to tick.
+ */
+export const OAUTH_CHALLENGE_SCOPE = LUCA_RESOURCE_SCOPES.join(" ");
+
 const READ_TIER_SCOPES = [
   "analytics:read",
   "bookings:read",

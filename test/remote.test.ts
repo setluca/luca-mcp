@@ -19,7 +19,7 @@ import {
   createRemoteHandler,
   type TokenResolver,
 } from "../src/remote.ts";
-import { OAUTH_DEFAULT_SCOPE } from "../src/scopes.ts";
+import { OAUTH_CHALLENGE_SCOPE } from "../src/scopes.ts";
 import { type JsonValue, parseJson } from "../src/serialization.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
 import { jsonText } from "./helpers.ts";
@@ -171,7 +171,7 @@ describe("remote transport", () => {
 
     const response = await handler(new Request(MCP_URL, { method: "POST" }));
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="luca-mcp", scope="${OAUTH_DEFAULT_SCOPE}"`
+      `Bearer realm="luca-mcp", scope="${OAUTH_CHALLENGE_SCOPE}"`
     );
   });
 
@@ -278,7 +278,7 @@ describe("remote transport", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="luca-mcp", resource_metadata="https://mcp.test/.well-known/oauth-protected-resource/mcp", scope="${OAUTH_DEFAULT_SCOPE}"`
+      `Bearer realm="luca-mcp", resource_metadata="https://mcp.test/.well-known/oauth-protected-resource/mcp", scope="${OAUTH_CHALLENGE_SCOPE}"`
     );
   });
 

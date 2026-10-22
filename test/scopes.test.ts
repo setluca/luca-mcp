@@ -12,8 +12,10 @@ import {
   type LucaCapabilityScope,
   lowestCapabilityScopeFor,
   LUCA_OAUTH_SCOPES,
+  LUCA_RESOURCE_SCOPES,
   NON_TIER_OAUTH_SCOPES,
   OAUTH_CAPABILITY_SCOPES,
+  OAUTH_CHALLENGE_SCOPE,
   OAUTH_DEFAULT_SCOPE,
   oauthScopeForOperation,
   oauthScopeForTool,
@@ -96,6 +98,15 @@ describe("OAUTH_DEFAULT_SCOPE", () => {
   it("is space-separated with no stray whitespace, the shape an OAuth scope param takes", () => {
     expect(OAUTH_DEFAULT_SCOPE).toBe(OAUTH_DEFAULT_SCOPE.trim());
     expect(OAUTH_DEFAULT_SCOPE).not.toMatch(/\s{2,}/);
+  });
+});
+
+describe("OAUTH_CHALLENGE_SCOPE", () => {
+  it("asks for every scope the resource accepts, so the coach can grant any of them", () => {
+    // Claude requests exactly what the challenge names, and the consent screen
+    // offers only what was requested.
+    expect(OAUTH_CHALLENGE_SCOPE.split(" ")).toEqual([...LUCA_RESOURCE_SCOPES]);
+    expect(OAUTH_CHALLENGE_SCOPE).not.toContain("offline_access");
   });
 });
 

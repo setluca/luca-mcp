@@ -21,7 +21,7 @@ import {
   type RateLimits,
   createLocalRateLimits,
 } from "./rate-limit.ts";
-import { OAUTH_DEFAULT_SCOPE } from "./scopes.ts";
+import { OAUTH_CHALLENGE_SCOPE } from "./scopes.ts";
 import { toJsonPayload } from "./serialization.ts";
 import { createLucaServer } from "./server.ts";
 import { sha256Hex, type TokenResolver } from "./token-verification.ts";
@@ -185,7 +185,8 @@ const throttleAnonymous = (request: Request, rateLimits: RateLimits) =>
 /**
  * A 401 with the RFC 6750 challenge. `resource_metadata` points OAuth clients
  * at the RFC 9728 document that names the authorization server. Only a request
- * with no token also gets the `scope` hint: a client whose token was refused
+ * with no token also gets the `scope` hint, which names every scope so the
+ * coach can choose on the consent screen: a client whose token was refused
  * must refresh it, not ask for a different scope.
  */
 function unauthorized(
@@ -195,7 +196,7 @@ function unauthorized(
 ): Response {
   const challenge = bearerChallenge({
     resourceMetadataUrl,
-    ...(error === undefined ? { scope: OAUTH_DEFAULT_SCOPE } : { error }),
+    ...(error === undefined ? { scope: OAUTH_CHALLENGE_SCOPE } : { error }),
   });
 
   return jsonResponse(
