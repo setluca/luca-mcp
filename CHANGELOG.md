@@ -10,6 +10,88 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-22
+
+### Breaking
+
+- `luca_book_call` now books the call on the coach's calendar provider, which
+  sends the lead an invite, instead of only recording a booking in Luca. It
+  takes `bookingTypeId` and `inviteeEmail`, both required, plus an optional
+  `inviteeName` and `timezone`, and no longer takes `provider`. It books the
+  call type's open slot that starts at `slotAt`, and answers
+  `slot_not_available` with the open slots when that slot is taken, including
+  when it goes between the read and the booking. A slot list it cannot read
+  fails the call rather than reading as a full calendar. A call that used the
+  old arguments is refused by the input schema. To record a call that is already on
+  a calendar, use `luca_bookings_create`.
+
+### Added
+
+- Add 21 tools for API routes Luca shipped since 0.4.0, bringing the full
+  toolset to 224:
+  - Leads: `luca_leads_drafting_pause` and `luca_leads_drafting_resume`.
+  - Conversations: `luca_conversations_send_status`,
+    `luca_conversations_reply_failure_retry`,
+    `luca_conversations_reply_failure_dismiss`, and
+    `luca_conversations_media_retry`.
+  - Review queue: `luca_review_queue_summary`, `luca_review_queue_changes`,
+    `luca_review_queue_drafting`, `luca_review_queue_drafting_cancel`,
+    `luca_review_queue_drafting_retry`, `luca_review_queue_drafting_dismiss`,
+    `luca_review_queue_regenerate`, `luca_review_queue_bulk_approve`, and
+    `luca_review_queue_bulk_reject`.
+  - Bookings: `luca_bookings_recovery_get`, `luca_bookings_recovery_stop`,
+    `luca_bookings_provider_requests_create`, and
+    `luca_bookings_provider_requests_get`.
+  - `luca_integrations_crm_connections_disconnect` and
+    `luca_channels_set_ai_dm_auto_send`.
+
+  Tools that can send to a lead, book on a calendar, disconnect a CRM, or turn
+  auto-send on need `confirm: true`. Resuming a lead, retrying a draft, and
+  regenerating a draft are gated too: with auto-send on, the new draft can reach
+  the lead without review.
+
+### Changed
+
+- Name the product SetLuca in the README, the npm description, the MCP
+  registry description, and the review-queue resource title, and drop wording
+  directories flagged. The npm package
+  now links to https://setluca.com, and the registry entry links the public
+  GitHub repository.
+- The `LICENSE` file now holds the Apache License 2.0 that `package.json`
+  already named. It held the MIT text, so npm and GitHub disagreed.
+- The server introduces itself as SetLuca and names the channels that are live
+  today, Telegram, Instagram, and Messenger, with WhatsApp coming soon. It used
+  to list all four as if they were live.
+- No tool in the Claude toolset names another tool in its description.
+  `luca_draft_reply` no longer tells the model to approve with
+  `luca_approve_and_send`, which the Claude set leaves out. It now says the
+  draft waits in the review queue for the coach and never sends, whatever the
+  channel's auto-send setting. `luca_triage_inbox`, `luca_post_call_queue`,
+  and `luca_analytics_deep_dive` lost their pointers to other tools too.
+- `luca_call_events_feedback` now asks for `luca:queue_ops` instead of
+  `luca:draft`. A `no_show` report can start recovery messages to the lead, and
+  Luca's API refuses one from a key below `queue_ops`, so a draft-only grant no
+  longer lists the tool as one it can call.
+
+### Fixed
+
+- Serve a favicon and the SetLuca icons on `mcp.setluca.com`. Claude shows a
+  connector without its own icon with the favicon Google indexed for its
+  domain, and `/favicon.ico` answered 404.
+- The browser page at `/` and `/mcp` now names SetLuca, links to the connection
+  guide at `https://setluca.com/connect`, and asks search engines not to index
+  it. It also answers a link checker's `HEAD`. MCP clients still get the 401
+  OAuth challenge.
+- `luca_call_events_summary_replace` and `luca_call_events_push_to_crm` now ask
+  for `luca:full`, the tier Luca's API requires for them. They said
+  `luca:queue_ops`, so a queue_ops grant listed them and then got a 403.
+- Mark `luca_insights_settings_get` read-only. Luca's API now returns the
+  default alert settings without creating a row, so the read no longer counts
+  as a write.
+- Let a call leave out a request body the API marks optional. Every body was
+  required, so `luca_review_queue_approve` without edits, and 15 other tools,
+  demanded a `body` argument the API does not need.
+
 ## [0.4.0] - 2026-10-13
 
 ### Added

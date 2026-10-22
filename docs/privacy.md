@@ -18,4 +18,4 @@ service of its own.
 You can disconnect a hosted assistant in **Luca → Settings → Connected agents**
 or revoke a developer API key in **Luca → Settings → Developer API keys**.
 Revoking a key stops clients that use it. For privacy questions, contact
-[hello@setluca.com](mailto:hello@setluca.com).
+[support@setluca.com](mailto:support@setluca.com).

@@ -102,12 +102,15 @@ const QUEUE_OPS_TIER_SCOPES = [
 ] as const;
 
 /**
- * Account plumbing with external egress. Webhook subscriptions and CRM
- * connections send workspace data to a third-party host, so they sit alone at
- * the top rather than riding along with the lead-visible writes.
+ * Account plumbing with external egress or standing effect. Webhook
+ * subscriptions and CRM connections send workspace data to a third-party host,
+ * and a channel's auto-send switch decides whether every later reply reaches a
+ * lead without review, so they sit alone at the top rather than riding along
+ * with the one-off lead-visible writes.
  */
 const FULL_TIER_SCOPES = [
   ...QUEUE_OPS_TIER_SCOPES,
+  "channels:write",
   "integrations:write",
   "webhooks:write",
 ] as const;
@@ -204,12 +207,14 @@ export function lowestCapabilityScopeFor(
   return CAPABILITY_LADDER.find((scope) => tierGrants(scope, apiScope));
 }
 
-/** The higher of two capability scopes. */
-function higherCapabilityScope(
-  left: LucaCapabilityScope,
-  right: LucaCapabilityScope
-): LucaCapabilityScope {
-  return capabilityRank(left) >= capabilityRank(right) ? left : right;
+/** The higher of two capability tiers. */
+export function higherTier(
+  left: CapabilityTier,
+  right: CapabilityTier
+): CapabilityTier {
+  return CAPABILITY_TIERS.indexOf(left) >= CAPABILITY_TIERS.indexOf(right)
+    ? left
+    : right;
 }
 
 /** The operation fields that decide which OAuth scope can call it. */
@@ -242,10 +247,7 @@ export function effectiveCapability(
       )
     ) ?? "full";
 
-  return CAPABILITY_TIERS.indexOf(routeTier) >=
-    CAPABILITY_TIERS.indexOf(operation.requiredScope.capability)
-    ? routeTier
-    : operation.requiredScope.capability;
+  return higherTier(routeTier, operation.requiredScope.capability);
 }
 
 /** The OAuth scope that requests {@link effectiveCapability}. */
@@ -262,9 +264,7 @@ export function oauthScopeForOperation(
 export function oauthScopeForTool(
   operations: readonly ScopedOperation[]
 ): LucaCapabilityScope {
-  return Arr.reduce(operations, scopeForTier("read"), (scope, operation) =>
-    higherCapabilityScope(scope, oauthScopeForOperation(operation))
-  );
+  return highestCapabilityScope(Arr.map(operations, oauthScopeForOperation));
 }
 
 /**

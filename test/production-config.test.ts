@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
@@ -61,6 +62,38 @@ async function send(method: string, origin?: string) {
 
   return response;
 }
+
+describe("production static assets", () => {
+  // Wrangler reads the directory relative to wrangler.toml.
+  const directory = join(
+    import.meta.dirname,
+    "..",
+    config.assets?.directory ?? "missing"
+  );
+
+  it("serves public/ ahead of the Worker", () => {
+    expect(directory).toBe(join(import.meta.dirname, "..", "public"));
+  });
+
+  // Claude falls back to the favicon Google indexed for the connector's
+  // domain, and the landing pages link the rest.
+  it.each([
+    ["favicon.ico", [0x00, 0x00, 0x01, 0x00]],
+    ["favicon-32x32.png", [0x89, 0x50, 0x4e, 0x47]],
+    ["apple-touch-icon.png", [0x89, 0x50, 0x4e, 0x47]],
+    ["android-chrome-512x512.png", [0x89, 0x50, 0x4e, 0x47]],
+  ])("ships %s as a real image", (file, magic) => {
+    const bytes = readFileSync(join(directory, file));
+
+    expect([...bytes.subarray(0, magic.length)]).toEqual(magic);
+  });
+
+  it("ships favicon.svg as an SVG", () => {
+    expect(readFileSync(join(directory, "favicon.svg"), "utf-8")).toMatch(
+      /^<svg /
+    );
+  });
+});
 
 describe("production Worker origin check", () => {
   it.each([

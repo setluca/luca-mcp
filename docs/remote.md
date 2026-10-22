@@ -73,7 +73,7 @@ Properties worth knowing:
   without a call to the API.
 - **It picks the tool set per request.** `?toolset=tasks` on the URL serves the
   15 task tools plus capability discovery, `?toolset=claude` serves the 43-tool
-  Claude set (39 for a `luca:read` grant), and anything else serves the full 203. The query parameter wins over `LUCA_TOOLSET`.
+  Claude set (39 for a `luca:read` grant), and anything else serves the full 224. The query parameter wins over `LUCA_TOOLSET`.
 - **stdio did not change.** `dist/index.js` still runs the same catalog.
 
 ## Bearer token clients
@@ -182,3 +182,20 @@ A client that supports OAuth needs only the URL:
 | ------------------------------------ | --------------------------------------------------------------------------------------- |
 | `/.well-known/mcp/server-card.json`  | The server card: name, version, description, icons, and tool count. Open to any origin. |
 | `/.well-known/openai-apps-challenge` | The OpenAI apps domain-verification token as plain text, or 404 when none is set        |
+| `/` and `/mcp` in a browser          | A small `noindex` page linking to the connection guide at `https://setluca.com/connect` |
+| `/favicon.ico` and the icons         | Static assets from `public/`, the same art as setluca.com, served ahead of the Worker   |
+
+The landing page goes only to a `GET` or `HEAD` that accepts `text/html`, does
+not ask for `text/event-stream`, and carries no `Authorization` header. A
+`HEAD` gets the page's headers with no body, which is what link checkers send. Every other
+request to `/mcp`, including a client's first unauthenticated `POST`, still
+gets the 401 OAuth challenge, which is what starts sign-in in Claude and other
+clients.
+
+The unauthenticated `initialize` and `tools/list` that directory health checks
+such as Glama's try also get the 401. Opening those two methods would let a
+directory list the tools, but Claude and Claude Code start OAuth on that first
+401, so a server that answered `initialize` without a token could connect them
+without ever asking the coach to sign in. Until a real Claude connection has
+been tested against such a change, point the directory's test profile at a
+read-only key for a dedicated test workspace instead.

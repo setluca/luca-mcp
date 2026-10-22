@@ -97,7 +97,7 @@ method on `/mcp` behind bearer auth. Different audiences, so both stay.
 
 `LUCA_CACHE_HINTS` (also `src/server.ts`) tells a client how long it may reuse
 the static lists: one hour on `tools/list`, `prompts/list`, `resources/list`,
-`resources/templates/list`, and `server/discover`. The tool list is 203
+`resources/templates/list`, and `server/discover`. The tool list is 224
 descriptions that change only on redeploy, so re-sending it per connection is
 waste. An hour bounds how long a redeploy stays invisible, and a client calling
 a tool the list no longer names gets an ordinary error rather than a wrong

@@ -14,6 +14,13 @@ compatibility_flags = ["nodejs_compat"]
 [observability]
 enabled = true
 
+# The favicon and icons under public/ are served as static assets ahead of the
+# Worker, so /mcp and the OAuth routes never see those paths. Claude falls back
+# to the Google-indexed favicon of the connector's domain, which 404ed without
+# them. Environments inherit this block.
+[assets]
+directory = "./public"
+
 # Bound the bearer/OAuth resolution path before it can build a per-request
 # MCP server. MCP_AUTH_RATE_LIMIT is charged per bearer token,
 # MCP_TOKEN_ADDRESS_RATE_LIMIT per client address for requests with one (so

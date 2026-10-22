@@ -95,7 +95,7 @@ export const leadsOperations: readonly LucaOperation[] = [
     title: "Draft a reply to a lead",
     untrustedContent: true,
     description:
-      "Draft a voice-matched reply for a lead on demand and queue it for review. Optional guidance steers tone or content.",
+      "Draft a reply for a lead, written the way the coach writes, and put it in the review queue for the coach to approve. It never sends, whatever the channel's auto-send setting. Optional guidance steers tone or content.",
   }),
   op({
     id: "leads.notes.delete",
@@ -104,5 +104,30 @@ export const leadsOperations: readonly LucaOperation[] = [
     title: "Delete a lead note",
     description:
       "Remove one coach note from a lead and leave the rest of the timeline alone. This is how a note filed by mistake gets taken back.",
+  }),
+  op({
+    id: "leads.drafting.pause",
+    // Answers with the pause's end time only; no lead-authored text.
+    untrustedContent: false,
+    title: "Pause Luca for a lead",
+    mutatesExisting: true,
+    // The API asks queue_ops of a key for this route although its
+    // leads:write scope sits at the draft tier.
+    capability: "queue_ops",
+    description:
+      "Stop Luca drafting replies, running follow-up cadences, and sending campaign messages to one lead, for 1h, 24h, 7d, 30d, or until resumed. A draft in flight stops at its next step. Opt-outs and crisis messages are still handled. Pausing again replaces the earlier pause. A timed pause resumes the lead by itself when it ends.",
+  }),
+  op({
+    id: "leads.drafting.resume",
+    // Answers with turn ids and a skip reason only; no lead-authored text.
+    untrustedContent: false,
+    title: "Resume Luca for a lead",
+    mutatesExisting: true,
+    // A restarted turn goes back through the channel's auto-send policy, so
+    // with auto-send on its reply can reach the lead without review.
+    openWorld: true,
+    confirm: "always",
+    description:
+      "Clear a lead's pause and have Luca draft one reply over each conversation's unanswered messages. With auto-send on for the channel, that reply can send without review. A conversation is skipped when the coach already replied or the messaging window closed, and skippedReason says why nothing restarted. Resuming a lead that isn't paused succeeds.",
   }),
 ];

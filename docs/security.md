@@ -183,12 +183,24 @@ so one key is safe across the writes of a task tool that hit different routes.
 and `luca_reschedule_call` moves the booking and mints a guest link under one.
 
 `luca_book_call` and `luca_reschedule_call` check availability before they write.
-`luca_book_call` sends its `provider` to the booking. `luca_reschedule_call` uses
-`provider` only for the check, so the booking keeps its stored provider.
-A call that carries an `idempotencyKey` skips that check. A retry may follow a
-booking that landed while its response was lost, so the slot reads as taken by
-that same booking. With the key, the retry goes straight to the API, which
-replays the first result.
+`luca_book_call` books on the coach's calendar provider through
+`POST /api/bookings/provider-requests`, which takes only a slot Luca's scheduler
+offers, so it reads the call type's slots for a day from `slotAt`, then reads
+the matching slot's own window again and sends that read's slot id, start, end,
+and time zone. A slot id carries a version of everything its read saw, and the
+route checks it against a read of the slot's own window, so an id from the day
+read would never match. The API checks the slot again and answers
+409 `slot_unavailable` when it went in between; the tool turns that into its
+`slot_not_available` answer. A retry under the same `idempotencyKey` reads the
+slots again, so a retry after a lost response can find its own booking holding
+the slot and answer `slot_not_available`; the description tells the agent to
+check the lead's bookings before trying again.
+
+`luca_reschedule_call` uses `provider` only for the check, so the booking keeps
+its stored provider. A reschedule that carries an `idempotencyKey` skips that
+check. A retry may follow a move that landed while its response was lost, so
+the slot reads as taken by that same booking. With the key, the retry goes
+straight to the API, which replays the first result.
 
 ### Confirmation gate for destructive tools
 
@@ -208,17 +220,24 @@ Its `structuredContent.error` is
 `{ "code": "confirmation_required", "toolName": "<toolName>", "requiredArgument": "confirm" }`,
 and the server logs `mcp.write_gate.rejected`.
 
-These 28 operations carry the gate:
+These 37 operations carry the gate:
 
 - `luca_leads_import_apply`
 - `luca_leads_consents_grant`
+- `luca_leads_drafting_resume`
 - `luca_conversations_send`
 - `luca_conversations_partial_send_retry`
+- `luca_conversations_reply_failure_retry`
 - `luca_review_queue_approve`
+- `luca_review_queue_bulk_approve`
+- `luca_review_queue_drafting_retry`
+- `luca_review_queue_regenerate`
 - `luca_bookings_create`
+- `luca_bookings_provider_requests_create`
 - `luca_bookings_update`
 - `luca_bookings_cancel`
 - `luca_bookings_lifecycle_resolution`
+- `luca_bookings_outcome_record`, only when `status` is `won` or `lost`
 - `luca_bookings_provider_sync_retry`
 - `luca_call_events_feedback`, only when `outcome` is `no_show`
 - `luca_call_events_summary_replace`
@@ -236,13 +255,19 @@ These 28 operations carry the gate:
 - `luca_webhooks_events_bulk_replay`
 - `luca_integrations_crm_connections_webhooks_setup`
 - `luca_integrations_crm_sync_runs_create`
+- `luca_integrations_crm_connections_disconnect`
+- `luca_channels_set_ai_dm_auto_send`, only when `enabled` is `true`
 - `luca_knowledge_approve_suggestion`
 - `luca_cadences_rescue_start`
 
-`luca_campaigns_set_status` and `luca_call_events_feedback` are the conditional
-gates. Setting `published` resumes a paused campaign, which restarts automatic
-sends to real leads. Pausing or archiving only stops work, so those calls run
-without `confirm`. Reporting a `no_show` outcome can start recovery messaging to
+`luca_campaigns_set_status`, `luca_call_events_feedback`,
+`luca_bookings_outcome_record`, and `luca_channels_set_ai_dm_auto_send` are
+the conditional gates. Setting
+`published` resumes a paused campaign, which restarts automatic sends to real
+leads. Pausing or archiving only stops work, so those calls run without
+`confirm`. Turning a channel's auto-send on lets Luca's replies reach leads
+without review, and turns on the workspace switch for every other channel whose
+own switch is on; turning it off only sends drafts to review. Reporting a `no_show` outcome can start recovery messaging to
 the lead, so that report needs `confirm`; the other outcomes run without it. The
 tool's description says when the gate applies.
 

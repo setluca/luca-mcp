@@ -131,13 +131,13 @@ describe("server identity", () => {
   it("announces every identity field a client renders, with exact values", () => {
     expect(LUCA_SERVER_INFO).toEqual({
       name: "luca-mcp",
-      title: "Luca",
+      title: "SetLuca",
       // Compared against the constant, not a literal: the point is that the
       // server card reads the shared version rather than re-hardcoding one,
       // which is how server.ts and http.ts drifted apart before.
       version: LUCA_MCP_VERSION,
       description:
-        "Luca is the DM sales platform for coaches, creators, and experts who sell through DMs. Manage leads, conversations, drafts, campaigns, broadcasts, and bookings across Instagram, Messenger, WhatsApp, and Telegram.",
+        "SetLuca runs DM sales for coaches, creators, and experts. Work with leads, conversations, drafted replies, campaigns, broadcasts, and booked calls on Telegram, Instagram, and Messenger. WhatsApp is coming soon.",
       websiteUrl: "https://setluca.com",
       icons: [
         {
@@ -649,7 +649,7 @@ describe("resource registration metadata", () => {
     expect(queue).toEqual(
       expect.objectContaining({
         name: "luca-queue-today",
-        title: "Luca review queue (today)",
+        title: "SetLuca review queue (today)",
         description:
           "The current pending review queue: drafts awaiting the coach's approval. Reuses the pipeline's persisted triage; does not re-run it.",
         mimeType: "application/json",

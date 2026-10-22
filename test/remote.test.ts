@@ -119,6 +119,52 @@ describe("remote transport", () => {
     });
   });
 
+  // Directory health checks send these without a token. They stay behind the
+  // challenge, because Claude starts sign-in on the first 401 (docs/remote.md).
+  it.each([
+    [
+      "initialize",
+      {
+        protocolVersion: "2025-06-18",
+        capabilities: {},
+        clientInfo: { name: "probe", version: "1" },
+      },
+    ],
+    ["tools/list", {}],
+    ["tools/call", { name: "luca_leads_list", arguments: {} }],
+    ["tools/call", { name: "luca_conversations_list", arguments: {} }],
+  ])(
+    "challenges an unauthenticated %s without touching the API",
+    async (method, params) => {
+      const apiFetch = vi.fn<typeof fetch>();
+
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, apiFetch),
+        apiFetch,
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            accept: "application/json, text/event-stream",
+          },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+        })
+      );
+
+      expect(response.status).toBe(401);
+      expect(response.headers.get("www-authenticate")).toContain("Bearer");
+      // The body names the failure and nothing about any workspace.
+      expect(await response.json()).toEqual({
+        error: "unauthorized",
+        detail: "Missing bearer token",
+      });
+      expect(apiFetch).not.toHaveBeenCalled();
+    }
+  );
+
   it("names the realm and default scope when no resource metadata url is configured", async () => {
     const handler = createRemoteHandler({
       resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
@@ -789,9 +835,12 @@ describe("remote transport", () => {
       );
 
       const html = await response.text();
-      expect(html).toContain("Luca MCP Server");
+      expect(html).toContain("SetLuca MCP server");
       expect(html).toContain("Model Context Protocol");
-      expect(html).toContain("setluca/luca-mcp");
+      expect(html).toContain("https://setluca.com/connect");
+      expect(html).toContain('<meta name="robots" content="noindex">');
+      expect(html).toContain('<link rel="icon" href="/favicon.ico"');
+      expect(response.headers.get("vary")).toBe("Accept, Authorization");
     });
 
     it("returns 401 with WWW-Authenticate for GET /mcp with Authorization header, even with HTML Accept", async () => {
@@ -875,8 +924,53 @@ describe("remote transport", () => {
       );
 
       const html = await response.text();
-      expect(html).toContain("Luca MCP Server");
+      expect(html).toContain("SetLuca MCP server");
+      expect(html).toContain("https://setluca.com/connect");
       expect(html).toContain("setluca/luca-mcp");
+    });
+
+    it("404s a browser opening any other path", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const other = new URL(MCP_URL);
+      other.pathname = "/docs";
+
+      const response = await handler(
+        new Request(other, { headers: { accept: "text/html" } })
+      );
+
+      expect(response.status).toBe(404);
+    });
+
+    it("answers a link checker's HEAD for /mcp with the page headers and no body", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "HEAD",
+          headers: { accept: "text/html" },
+        })
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe(
+        "text/html; charset=utf-8"
+      );
+      expect(await response.text()).toBe("");
+    });
+
+    it("still challenges a browser that sends no Accept header", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(new Request(MCP_URL));
+
+      expect(response.status).toBe(401);
     });
 
     it("does not return HTML for GET /mcp without HTML in Accept", async () => {

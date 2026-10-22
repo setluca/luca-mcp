@@ -887,29 +887,82 @@ describe("luca_flag_for_human", () => {
 describe("luca_book_call", () => {
   const tool = () => getTool("luca_book_call");
 
+  const BOOKING_TYPE_ID = "11111111-1111-4111-8111-111111111111";
+
+  const slot = (startsAt: string, endsAt: string, id = `slot-${startsAt}`) => ({
+    id,
+    bookingTypeId: BOOKING_TYPE_ID,
+    provider: "cal_com",
+    startsAt,
+    endsAt,
+    timezone: "UTC",
+  });
+
+  const booking = {
+    leadId: "lead-1",
+    bookingTypeId: BOOKING_TYPE_ID,
+    slotAt: "2026-07-14T15:00:00Z",
+    inviteeEmail: "sam@example.com",
+  };
+
+  const receipt = { id: "action-1", state: "confirmed" as const };
+
+  const slotTaken: Handler = () =>
+    Effect.fail(
+      new LucaHttpError({
+        status: 409,
+        statusText: "Conflict",
+        body: {
+          error: {
+            code: "slot_unavailable",
+            message: "the call could not be booked",
+            requestId: "req-1",
+          },
+        },
+      })
+    );
+
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Book a call with a lead");
     expect(fromTaskTool(tool()).readOnly).toBe(false);
-    // The created booking carries a cancellation reason field.
-    expect(fromTaskTool(tool()).untrustedContent).toBe(true);
     expect(fromTaskTool(tool()).confirm).toBe("always");
+    // It writes to the coach's calendar provider and invites the lead.
+    expect(fromTaskTool(tool()).openWorld).toBe(true);
+    // The receipt and the open slots carry no lead-authored text.
+    expect(fromTaskTool(tool()).untrustedContent).toBe(false);
+    expect(fromTaskTool(tool()).oauthScope).toBe("luca:queue_ops");
     expect(tool().composes).toEqual([
-      "bookings.availability",
       "bookings.managedAvailability",
-      "bookings.create",
+      "bookings.providerRequests.create",
     ]);
     expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
       sorted([
         "bookingTypeId",
         "confirm",
         "idempotencyKey",
+        "inviteeEmail",
+        "inviteeName",
         "leadId",
-        "provider",
         "slotAt",
+        "timezone",
         "workspaceId",
         "workspaceSlug",
       ])
     );
+  });
+
+  it("says it books on the calendar provider and invites the lead", () => {
+    expect(tool().description).toContain(
+      "Book a call on the coach's calendar provider and have the provider invite the lead's email"
+    );
+    expect(tool().description).toContain(
+      "Works for call types on Calendly, Cal.com, or Google Calendar."
+    );
+    // The provider route creates a held booking; it does not move the lead.
+    expect(tool().description).not.toContain("moves the lead to booked");
+    // The old wording promised a provider-confirmed slot while writing only a
+    // Luca row. The tool must point a record-only booking elsewhere.
+    expect(tool().description).toContain("use luca_bookings_create instead");
   });
 
   it("pins the exact field descriptions", () => {
@@ -917,17 +970,27 @@ describe("luca_book_call", () => {
 
     expect(schema.leadId?.description).toBe("The lead to book.");
     expect(schema.bookingTypeId?.description).toBe(
-      "The booking type to book under, from luca_bookings_types_list. Required when provider is google_calendar, and it must be an active google_calendar type."
+      "The call type to book, from luca_bookings_types_list. Its provider is the calendar the call lands on."
     );
     expect(schema.slotAt?.description).toBe(
-      "ISO-8601 start time for the call, with an offset."
+      "ISO-8601 start time for the call, with an offset. It must be an open slot of the call type, as luca_bookings_managed_availability lists them."
+    );
+    expect(schema.inviteeEmail?.description).toBe(
+      "The lead's email. The provider sends the invite there."
     );
     expect(schema.idempotencyKey?.description).toBe(
-      "Reuse the same key when retrying this exact booking. A keyed call skips the availability check and lets the API replay the first result."
+      "Reuse the same key when retrying this exact booking, so a repeat of a request that already reached the API cannot book the call twice."
     );
-    expect(schema.provider?.description).toBe(
-      "The coach's booking provider. Sent with the booking and used for the availability check. Pass it when the coach is not on Calendly, or the availability check reads the wrong calendar. Left off, the check reads Calendly and the API records the booking as manual."
-    );
+  });
+
+  it("requires the call type and the lead's email", () => {
+    const { inputSchema } = tool();
+
+    expect(accepts(inputSchema.bookingTypeId, "")).toBe(false);
+    expect(accepts(inputSchema.inviteeEmail, "")).toBe(false);
+    expect(accepts(inputSchema.leadId, "")).toBe(false);
+    expect(accepts(inputSchema.timezone, "Europe/Madrid")).toBe(true);
+    expect(accepts(inputSchema.timezone, "Mars/Base")).toBe(false);
   });
 
   it("rejects a slot on a day the calendar does not have", () => {
@@ -938,324 +1001,135 @@ describe("luca_book_call", () => {
     expect(accepts(slotAt, "2026-02-31T15:00:00Z")).toBe(false);
   });
 
-  it("accepts each API provider and rejects any other", () => {
-    const provider = tool().inputSchema.provider;
-
-    Arr.forEach(
-      [
-        "manual",
-        "calendly",
-        "cal_com",
-        "google_calendar",
-        "iclosed",
-        "gohighlevel",
-      ],
-      (name) => {
-        expect(accepts(provider, name)).toBe(true);
-      }
-    );
-
-    expect(accepts(provider, "outlook")).toBe(false);
-    expect(accepts(provider, "")).toBe(false);
-  });
-
-  it("sends the provider with the booking", async () => {
+  it("reads the call type's slots for a day from the requested start", async () => {
     const { api, calls } = stubApi({
-      "bookings.availability": ok({
-        source: "live_provider",
-        slots: [{ startsAt: "2026-07-14T15:00:00Z" }],
-      }),
-      "bookings.create": ok({ id: "booking-1" }),
-    });
-
-    await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-      provider: "cal_com",
-    });
-
-    expect(
-      calls.find((call) => call.operation.id === "bookings.create")?.body
-    ).toEqual({
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-      provider: "cal_com",
-    });
-  });
-
-  it("sends the booking type with the booking, and leaves it off when not given", async () => {
-    const { api, calls } = stubApi({
-      "bookings.availability": ok({
-        source: "live_provider",
-        slots: [{ startsAt: "2026-07-14T15:00:00Z" }],
-      }),
       "bookings.managedAvailability": ok({
-        slots: [{ startsAt: "2026-07-14T15:00:00Z" }],
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
       }),
-      "bookings.create": ok({ id: "booking-1" }),
+      "bookings.providerRequests.create": ok(receipt),
     });
 
-    await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-      provider: "google_calendar",
-      bookingTypeId: "type-1",
-    });
-    await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-    });
+    await runTool(tool(), api, { ...booking, timezone: "Europe/Madrid" });
 
-    expect(
-      calls
-        .filter((call) => call.operation.id === "bookings.create")
-        .map((call) => call.body)
-    ).toEqual([
-      {
-        leadId: "lead-1",
-        slotAt: "2026-07-14T15:00:00Z",
-        provider: "google_calendar",
-        bookingTypeId: "type-1",
-      },
-      { leadId: "lead-1", slotAt: "2026-07-14T15:00:00Z" },
-    ]);
-  });
-
-  it("checks a named booking type against its own schedule", async () => {
-    const { api, calls } = stubApi({
-      "bookings.availability": ok({ source: "live_provider", slots: [] }),
-      "bookings.managedAvailability": ok({
-        slots: [{ startsAt: "2026-07-14T15:00:00.000Z" }],
-      }),
-      "bookings.create": ok({ id: "booking-1" }),
-    });
-
-    const result = await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-      provider: "google_calendar",
-      bookingTypeId: "type-1",
-    });
-
-    expect(result).toEqual({ id: "booking-1" });
-    expect(calls.map((call) => call.operation.id)).toEqual([
-      "bookings.managedAvailability",
-      "bookings.create",
-    ]);
     expect(nth(calls, 0).query).toEqual({
-      bookingTypeId: "type-1",
-      timezone: "UTC",
+      bookingTypeId: BOOKING_TYPE_ID,
+      timezone: "Europe/Madrid",
       start: "2026-07-14T15:00:00.000Z",
       end: "2026-07-15T15:00:00.000Z",
     });
   });
 
-  it("refuses a slot the booking type does not offer and returns the open ones", async () => {
+  it("reads the slots in UTC when no time zone is given", async () => {
     const { api, calls } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [{ startsAt: "2026-07-14T16:00:00Z" }],
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
       }),
-      "bookings.create": ok({ id: "booking-1" }),
+      "bookings.providerRequests.create": ok(receipt),
     });
 
-    const result = await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-      bookingTypeId: "type-1",
-    });
+    await runTool(tool(), api, booking);
 
-    expect(result).toEqual({
-      booked: false,
-      reason: "slot_not_available",
-      requestedSlotAt: "2026-07-14T15:00:00Z",
-      openSlots: ["2026-07-14T16:00:00Z"],
-    });
-    expect(calls.map((call) => call.operation.id)).toEqual([
-      "bookings.managedAvailability",
-    ]);
+    expect(nth(calls, 0).query?.timezone).toBe("UTC");
   });
 
-  it("books when the booking type's availability cannot be read", async () => {
-    const { api } = stubApi({
-      "bookings.managedAvailability": bad("not a managed booking type"),
-      "bookings.create": ok({ id: "booking-1" }),
-    });
-
-    const result = await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-      bookingTypeId: "type-1",
-    });
-
-    expect(result).toEqual({ id: "booking-1" });
-  });
-
-  it("fails instead of booking when the availability read is refused", async () => {
+  it("books the matching slot exactly as the scheduler returned it", async () => {
     const { api, calls } = stubApi({
-      "bookings.managedAvailability": () =>
-        Effect.fail(
-          new LucaHttpError({
-            status: 401,
-            statusText: "Unauthorized",
-            body: { error: { code: "unauthorized" } },
-          })
-        ),
-      "bookings.create": ok({ id: "booking-1" }),
-    });
-
-    await expect(
-      runTool(tool(), api, {
-        leadId: "lead-1",
-        slotAt: "2026-07-14T15:00:00Z",
-        bookingTypeId: "type-1",
-      })
-    ).rejects.toBeInstanceOf(LucaHttpError);
-    expect(calls.map((call) => call.operation.id)).toEqual([
-      "bookings.managedAvailability",
-    ]);
-  });
-
-  it("rejects an empty bookingTypeId", () => {
-    const bookingTypeId = tool().inputSchema.bookingTypeId;
-
-    expect(accepts(bookingTypeId, "")).toBe(false);
-    expect(accepts(bookingTypeId, "type-1")).toBe(true);
-  });
-
-  it("skips the availability check on a keyed retry and books", async () => {
-    const { api, calls } = stubApi({
-      // The first attempt took the slot, so a live check would now refuse it.
-      "bookings.availability": ok({ source: "live_provider", slots: [] }),
-      "bookings.create": ok({ id: "booking-1" }),
-    });
-
-    const result = await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-      idempotencyKey: "retry-1",
-    });
-
-    expect(calls.map((call) => call.operation.id)).toEqual(["bookings.create"]);
-    expect(result).toEqual({ id: "booking-1" });
-  });
-
-  it("rejects an empty leadId", () => {
-    const leadId = tool().inputSchema.leadId;
-
-    expect(accepts(leadId, "")).toBe(false);
-    expect(accepts(leadId, "lead-1")).toBe(true);
-  });
-
-  it("books when the requested slot is one of several open ones", async () => {
-    const { api, calls } = stubApi({
-      "bookings.availability": ok({
-        source: "live_provider",
+      "bookings.managedAvailability": ok({
         slots: [
-          { startsAt: "2026-07-14T14:00:00Z" },
-          { startsAt: "2026-07-14T15:00:00Z" },
+          slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z", "slot-later"),
+          slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z", "slot-asked"),
         ],
       }),
-      "bookings.create": ok({ id: "booking-1" }),
+      "bookings.providerRequests.create": ok(receipt),
     });
 
-    await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-    });
-
-    expect(calls.some((call) => call.operation.id === "bookings.create")).toBe(
-      true
-    );
-  });
-
-  it("books without asking the provider when the slot is not a date", async () => {
-    const { api, calls } = stubApi({
-      "bookings.create": ok({ id: "booking-1" }),
-    });
-
-    // The availability window is built from the slot, so an unparseable one has
-    // no window to ask about. The API is left to reject the value.
-    await runTool(tool(), api, { leadId: "lead-1", slotAt: "next tuesday" });
-
-    expect(calls.map((call) => call.operation.id)).toEqual(["bookings.create"]);
-  });
-
-  it("books anyway when the availability read fails outright", async () => {
-    const { api, calls } = stubApi({
-      "bookings.availability": bad("availability service down"),
-      "bookings.create": ok({ id: "booking-1" }),
-    });
-
-    await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-    });
-
-    expect(calls.some((call) => call.operation.id === "bookings.create")).toBe(
-      true
-    );
-  });
-
-  it("sends leadId and slotAt as the booking body with no path params", async () => {
-    const { api, calls } = stubApi({
-      "bookings.availability": ok({
-        source: "live_provider",
-        slots: [{ startsAt: "2026-07-14T15:00:00Z" }],
-      }),
-      "bookings.create": ok({ id: "booking-1" }),
-    });
-
-    await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
+    const result = await runTool(tool(), api, {
+      ...booking,
+      inviteeName: "Sam",
     });
 
     const create = calls.find(
-      (call) => call.operation.id === "bookings.create"
+      (call) => call.operation.id === "bookings.providerRequests.create"
     );
 
     expect(create?.body).toEqual({
       leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
+      bookingTypeId: BOOKING_TYPE_ID,
+      slotId: "slot-asked",
+      startsAt: "2026-07-14T15:00:00Z",
+      endsAt: "2026-07-14T15:30:00Z",
+      timezone: "UTC",
+      inviteeEmail: "sam@example.com",
+      inviteeName: "Sam",
     });
     expect(create?.pathParams).toBeUndefined();
+    expect(result).toEqual(receipt);
   });
 
-  it("asks the provider about a window starting at the requested slot", async () => {
+  it("books with the id from a read of the slot's own window", async () => {
+    // A slot id carries a version of everything its read saw, and the
+    // provider route re-reads only the slot's window. The day read's id would
+    // never match, so the booking must carry the narrow read's id.
     const { api, calls } = stubApi({
-      "bookings.availability": ok({
-        source: "live_provider",
-        slots: [{ startsAt: "2026-07-14T15:00:00Z" }],
-      }),
-      "bookings.create": ok({ id: "booking-1" }),
+      "bookings.managedAvailability": (request) =>
+        Effect.succeed(
+          request.query?.end === "2026-07-15T15:00:00.000Z"
+            ? {
+                slots: [
+                  slot(
+                    "2026-07-14T15:00:00Z",
+                    "2026-07-14T15:30:00Z",
+                    "day-read-id"
+                  ),
+                  slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z"),
+                ],
+              }
+            : {
+                slots: [
+                  slot(
+                    "2026-07-14T15:00:00Z",
+                    "2026-07-14T15:30:00Z",
+                    "slot-read-id"
+                  ),
+                ],
+              }
+        ),
+      "bookings.providerRequests.create": ok(receipt),
     });
 
-    await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-      provider: "cal_com",
-    });
+    await runTool(tool(), api, { ...booking, timezone: "Europe/Madrid" });
 
-    expect(nth(calls, 0).query).toEqual({
-      start: "2026-07-14T15:00:00.000Z",
-      end: "2026-07-15T15:00:00.000Z",
-      provider: "cal_com",
+    expect(calls.map((call) => call.operation.id)).toEqual([
+      "bookings.managedAvailability",
+      "bookings.managedAvailability",
+      "bookings.providerRequests.create",
+    ]);
+    expect(nth(calls, 1).query).toEqual({
+      bookingTypeId: BOOKING_TYPE_ID,
+      timezone: "Europe/Madrid",
+      start: "2026-07-14T15:00:00Z",
+      end: "2026-07-14T15:30:00Z",
     });
+    expect(nth(calls, 2).body).toMatchObject({ slotId: "slot-read-id" });
   });
 
-  it("refuses to book a slot the provider says is taken, and returns the open ones", async () => {
+  it("books nothing when the slot's own window no longer offers it", async () => {
     const { api, calls } = stubApi({
-      "bookings.availability": ok({
-        source: "live_provider",
-        slots: [{ startsAt: "2026-07-14T16:00:00Z" }],
-      }),
-      "bookings.create": ok({ id: "booking-1" }),
+      "bookings.managedAvailability": (request) =>
+        Effect.succeed(
+          request.query?.end === "2026-07-15T15:00:00.000Z"
+            ? {
+                slots: [
+                  slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z"),
+                  slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z"),
+                ],
+              }
+            : { slots: [] }
+        ),
+      "bookings.providerRequests.create": ok(receipt),
     });
 
-    const result = await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-    });
+    const result = await runTool(tool(), api, booking);
 
     expect(result).toEqual({
       booked: false,
@@ -1263,50 +1137,209 @@ describe("luca_book_call", () => {
       requestedSlotAt: "2026-07-14T15:00:00Z",
       openSlots: ["2026-07-14T16:00:00Z"],
     });
-    expect(calls.some((call) => call.operation.id === "bookings.create")).toBe(
-      false
-    );
+    expect(
+      calls.some(
+        (call) => call.operation.id === "bookings.providerRequests.create"
+      )
+    ).toBe(false);
+  });
+
+  it("leaves the invitee name off when none is given", async () => {
+    const { api, calls } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
+      }),
+      "bookings.providerRequests.create": ok(receipt),
+    });
+
+    await runTool(tool(), api, booking);
+
+    const body = calls.find(
+      (call) => call.operation.id === "bookings.providerRequests.create"
+    )?.body;
+
+    expect(body).not.toHaveProperty("inviteeName");
   });
 
   it("treats a slot in another offset as the same moment", async () => {
     const { api, calls } = stubApi({
-      "bookings.availability": ok({
-        source: "live_provider",
-        slots: [{ startsAt: "2026-07-14T17:00:00+02:00" }],
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T17:00:00+02:00", "2026-07-14T17:30:00+02:00")],
       }),
-      "bookings.create": ok({ id: "booking-1" }),
+      "bookings.providerRequests.create": ok(receipt),
     });
 
-    await runTool(tool(), api, {
-      leadId: "lead-1",
-      slotAt: "2026-07-14T15:00:00Z",
-    });
+    await runTool(tool(), api, booking);
 
-    expect(calls.some((call) => call.operation.id === "bookings.create")).toBe(
-      true
-    );
+    expect(
+      calls.some(
+        (call) => call.operation.id === "bookings.providerRequests.create"
+      )
+    ).toBe(true);
   });
 
-  it.each(["fallback", "provider_error"])(
-    "books anyway when availability came back as %s rather than a live read",
-    async (source) => {
-      const { api, calls } = stubApi({
-        "bookings.availability": ok({ source, slots: [] }),
-        "bookings.create": ok({ id: "booking-1" }),
-      });
+  it("books nothing when the slot is not open, and returns the open ones", async () => {
+    const { api, calls } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z")],
+      }),
+      "bookings.providerRequests.create": ok(receipt),
+    });
 
-      await runTool(tool(), api, {
-        leadId: "lead-1",
-        slotAt: "2026-07-14T15:00:00Z",
-      });
+    const result = await runTool(tool(), api, booking);
 
-      // An unreachable provider is not evidence the slot is taken. Blocking
-      // here would make every coach without a live connection unbookable.
-      expect(
-        calls.some((call) => call.operation.id === "bookings.create")
-      ).toBe(true);
-    }
-  );
+    expect(result).toEqual({
+      booked: false,
+      reason: "slot_not_available",
+      requestedSlotAt: "2026-07-14T15:00:00Z",
+      openSlots: ["2026-07-14T16:00:00Z"],
+    });
+    expect(
+      calls.some(
+        (call) => call.operation.id === "bookings.providerRequests.create"
+      )
+    ).toBe(false);
+  });
+
+  it("answers slot_not_available when the slot goes between the read and the booking", async () => {
+    const { api } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [
+          slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z"),
+          slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z"),
+        ],
+      }),
+      "bookings.providerRequests.create": slotTaken,
+    });
+
+    const result = await runTool(tool(), api, booking);
+
+    expect(result).toEqual({
+      booked: false,
+      reason: "slot_not_available",
+      requestedSlotAt: "2026-07-14T15:00:00Z",
+      openSlots: ["2026-07-14T16:00:00Z"],
+    });
+  });
+
+  it("passes any other refusal through as a failure", async () => {
+    const typeGone: Handler = () =>
+      Effect.fail(
+        new LucaHttpError({
+          status: 409,
+          statusText: "Conflict",
+          body: {
+            error: {
+              code: "booking_type_unavailable",
+              message: "the call could not be booked",
+              requestId: "req-1",
+            },
+          },
+        })
+      );
+
+    const { api } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
+      }),
+      "bookings.providerRequests.create": typeGone,
+    });
+
+    await expect(runTool(tool(), api, booking)).rejects.toThrow();
+  });
+
+  it("fails instead of booking when the slots cannot be read", async () => {
+    const { api, calls } = stubApi({
+      "bookings.managedAvailability": bad("scheduler down"),
+      "bookings.providerRequests.create": ok(receipt),
+    });
+
+    await expect(runTool(tool(), api, booking)).rejects.toThrow();
+    expect(
+      calls.some(
+        (call) => call.operation.id === "bookings.providerRequests.create"
+      )
+    ).toBe(false);
+  });
+
+  it("fails instead of answering slot_not_available when the slot list cannot be read", async () => {
+    // A changed response is not evidence the calendar is full. Answering
+    // slot_not_available with no open slots would tell the agent something
+    // false about the coach's week.
+    const { api, calls } = stubApi({
+      "bookings.managedAvailability": ok({ unexpected: true }),
+      "bookings.providerRequests.create": ok(receipt),
+    });
+
+    await expect(runTool(tool(), api, booking)).rejects.toThrow(
+      "managed availability in a shape this server cannot read"
+    );
+    expect(
+      calls.some(
+        (call) => call.operation.id === "bookings.providerRequests.create"
+      )
+    ).toBe(false);
+  });
+
+  it("sends a retry's idempotency key with the booking when the slot is still open", async () => {
+    const { api, calls } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
+      }),
+      "bookings.providerRequests.create": ok(receipt),
+    });
+
+    await runTool(tool(), api, { ...booking, idempotencyKey: "retry-1" });
+
+    // Both reads still run: the key protects the booking, not the reads.
+    expect(calls.map((call) => call.operation.id)).toEqual([
+      "bookings.managedAvailability",
+      "bookings.managedAvailability",
+      "bookings.providerRequests.create",
+    ]);
+    expect(nth(calls, 2).idempotencyKey).toBe("retry-1");
+  });
+
+  it("answers a retry whose slot is gone with slot_not_available and books nothing", async () => {
+    // The first attempt may have booked the slot and lost its response. The
+    // retry cannot rebuild that booking's request without the slot, so it
+    // reports the slot gone and the description tells the agent to check the
+    // lead's bookings instead of booking again.
+    const { api, calls } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z")],
+      }),
+      "bookings.providerRequests.create": ok(receipt),
+    });
+
+    const result = await runTool(tool(), api, {
+      ...booking,
+      idempotencyKey: "retry-1",
+    });
+
+    expect(result).toMatchObject({
+      booked: false,
+      reason: "slot_not_available",
+    });
+    expect(
+      calls.some(
+        (call) => call.operation.id === "bookings.providerRequests.create"
+      )
+    ).toBe(false);
+  });
+
+  it("returns a pending answer while the provider confirms", async () => {
+    const pending = { id: "action-1", state: "pending_provider" as const };
+
+    const { api } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
+      }),
+      "bookings.providerRequests.create": ok(pending),
+    });
+
+    expect(await runTool(tool(), api, booking)).toEqual(pending);
+  });
 });
 
 describe("luca_reschedule_call", () => {
@@ -1570,7 +1603,14 @@ describe("luca_reschedule_call", () => {
       const { api, calls } = stubApi({
         "bookings.get": BOOKING,
         "bookings.managedAvailability": ok({
-          slots: [{ startsAt: "2026-07-16T15:00:00.000Z" }],
+          slots: [
+            {
+              id: "slot-1",
+              startsAt: "2026-07-16T15:00:00.000Z",
+              endsAt: "2026-07-16T15:30:00.000Z",
+              timezone: "UTC",
+            },
+          ],
         }),
         "bookings.update": ok({ booking: { id: "booking-1" } }),
         "bookings.guestLinks.create": ok({ rescheduleUrl: "https://x/y" }),
@@ -1598,7 +1638,14 @@ describe("luca_reschedule_call", () => {
       const { api, calls } = stubApi({
         "bookings.get": BOOKING,
         "bookings.managedAvailability": ok({
-          slots: [{ startsAt: "2026-07-16T16:00:00Z" }],
+          slots: [
+            {
+              id: "slot-2",
+              startsAt: "2026-07-16T16:00:00Z",
+              endsAt: "2026-07-16T16:30:00Z",
+              timezone: "UTC",
+            },
+          ],
         }),
         "bookings.update": ok({ booking: { id: "booking-1" } }),
       });
@@ -1614,6 +1661,21 @@ describe("luca_reschedule_call", () => {
       expect(
         calls.some((call) => call.operation.id === "bookings.update")
       ).toBe(false);
+    });
+
+    it("moves the call when the booking type's availability comes back unreadable", async () => {
+      // An unreadable slot list is "could not tell" for a reschedule, which
+      // never blocks the move, the same as a failed read.
+      const { api } = stubApi({
+        "bookings.get": BOOKING,
+        "bookings.managedAvailability": ok({ unexpected: true }),
+        "bookings.update": ok({ booking: { id: "booking-1" } }),
+        "bookings.guestLinks.create": ok({ rescheduleUrl: "https://x/y" }),
+      });
+
+      expect(await runTool(tool(), api, move)).toMatchObject({
+        rescheduled: true,
+      });
     });
 
     it("moves the call when the booking type's availability cannot be read", async () => {
@@ -2629,7 +2691,7 @@ describe("luca_post_call_queue", () => {
   it("pins the exact metadata", () => {
     expect(tool().name).toBe("luca_post_call_queue");
     expect(tool().description).toBe(
-      "Return everything waiting on the coach after a call: calls that still need a report on how they went, and attended calls with no revenue outcome recorded. The two halves are tracked separately by the API, so a call can sit on one list and not the other. Close an item with luca_close_call_loop. Example: call with {} after a day of calls."
+      "Return everything waiting on the coach after a call: calls that still need a report on how they went, and attended calls with no revenue outcome recorded. The two halves are tracked separately by the API, so a call can sit on one list and not the other. An item leaves the list once the coach reports how the call went and what it was worth. Example: call with {} after a day of calls."
     );
     expect(tool().title).toBe("List the post-call work");
     expect(fromTaskTool(tool()).readOnly).toBe(true);

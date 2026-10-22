@@ -144,6 +144,32 @@
     "requireIdempotency": true
   },
   {
+    "id": "leads.drafting.pause",
+    "method": "POST",
+    "path": "/api/leads/{id}/drafting/pause",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "leads.drafting.resume",
+    "method": "POST",
+    "path": "/api/leads/{id}/drafting/resume",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "conversations.send_status",
+    "method": "GET",
+    "path": "/api/conversations/{id}/send-status",
+    "scopes": [
+      "conversations:read"
+    ]
+  },
+  {
     "id": "conversations.summary",
     "method": "GET",
     "path": "/api/conversations/summary",
@@ -203,6 +229,31 @@
     "requireIdempotency": true
   },
   {
+    "id": "conversations.reply_failure_retry",
+    "method": "POST",
+    "path": "/api/conversations/{id}/reply-failures/{failureId}/retry",
+    "scopes": [
+      "conversations:write"
+    ]
+  },
+  {
+    "id": "conversations.reply_failure_dismiss",
+    "method": "POST",
+    "path": "/api/conversations/{id}/reply-failures/{failureId}/dismiss",
+    "scopes": [
+      "conversations:write"
+    ]
+  },
+  {
+    "id": "conversations.media_retry",
+    "method": "POST",
+    "path": "/api/conversations/{id}/messages/{messageId}/media/{mediaId}/retry",
+    "scopes": [
+      "conversations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
     "id": "reviewQueue.composer",
     "method": "GET",
     "path": "/api/review-queue/{id}/composer",
@@ -230,6 +281,24 @@
     "id": "reviewQueue.approve",
     "method": "POST",
     "path": "/api/review-queue/{id}/approve",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.bulkApprove",
+    "method": "POST",
+    "path": "/api/review-queue/bulk-approve",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.bulkReject",
+    "method": "POST",
+    "path": "/api/review-queue/bulk-reject",
     "scopes": [
       "review_queue:write"
     ],
@@ -271,9 +340,69 @@
     ]
   },
   {
+    "id": "reviewQueue.summary",
+    "method": "GET",
+    "path": "/api/review-queue/summary",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
+    "id": "reviewQueue.changes",
+    "method": "GET",
+    "path": "/api/review-queue/changes",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
+    "id": "reviewQueue.drafting",
+    "method": "GET",
+    "path": "/api/review-queue/drafting",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
     "id": "reviewQueue.objectionVariant",
     "method": "POST",
     "path": "/api/review-queue/{id}/objection-variant",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.drafting.cancel",
+    "method": "POST",
+    "path": "/api/review-queue/drafting/{turnId}/cancel",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.drafting.retry",
+    "method": "POST",
+    "path": "/api/review-queue/drafting/{turnId}/retry",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.drafting.dismiss",
+    "method": "POST",
+    "path": "/api/review-queue/drafting/{turnId}/dismiss",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "reviewQueue.regenerate",
+    "method": "POST",
+    "path": "/api/review-queue/{id}/regenerate",
     "scopes": [
       "review_queue:write"
     ],
@@ -392,6 +521,23 @@
     ]
   },
   {
+    "id": "bookings.recovery.get",
+    "method": "GET",
+    "path": "/api/bookings/{id}/recovery",
+    "scopes": [
+      "bookings:read"
+    ]
+  },
+  {
+    "id": "bookings.recovery.stop",
+    "method": "POST",
+    "path": "/api/bookings/{id}/recovery/stop",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
     "id": "bookings.outcome.get",
     "method": "GET",
     "path": "/api/bookings/{id}/outcome",
@@ -433,6 +579,23 @@
       "bookings:write"
     ],
     "requireIdempotency": true
+  },
+  {
+    "id": "bookings.providerRequests.create",
+    "method": "POST",
+    "path": "/api/bookings/provider-requests",
+    "scopes": [
+      "bookings:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "bookings.providerRequests.get",
+    "method": "GET",
+    "path": "/api/bookings/provider-requests/{id}",
+    "scopes": [
+      "bookings:read"
+    ]
   },
   {
     "id": "bookings.outcome.record",
@@ -1039,6 +1202,15 @@
     ]
   },
   {
+    "id": "integrations.crm.connections.disconnect",
+    "method": "POST",
+    "path": "/api/integrations/crm/connections/{id}/disconnect",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
     "id": "integrations.crm.connections.health",
     "method": "POST",
     "path": "/api/integrations/crm/connections/{id}/health",
@@ -1243,6 +1415,15 @@
     "scopes": [
       "channels:read"
     ]
+  },
+  {
+    "id": "channels.set_ai_dm_auto_send",
+    "method": "PATCH",
+    "path": "/api/channels/{id}/auto-send",
+    "scopes": [
+      "channels:write"
+    ],
+    "requireIdempotency": true
   },
   {
     "id": "reports.morning",

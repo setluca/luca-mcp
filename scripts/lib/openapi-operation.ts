@@ -12,6 +12,8 @@ import { resolveOpenApiReferences } from "./openapi-refs.ts";
 
 /** A request or response body. Only the JSON media type matters to MCP. */
 const OpenApiBody = Schema.Struct({
+  /** OpenAPI's default is false: a request body is optional unless it says so. */
+  required: Schema.optional(Schema.Boolean),
   content: Schema.optional(
     Schema.Struct({
       "application/json": Schema.optional(

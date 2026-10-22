@@ -308,7 +308,7 @@ const analyticsDeepDive = taskTool({
   name: "luca_analytics_deep_dive",
   title: "Run a deep-dive analytics investigation",
   description:
-    'Answer a specific business question by composing all seven analytics reads in one call: pipeline funnel, revenue and ROI, response-speed impact, a point-in-time revenue forecast, call intelligence (show/close rates), ghosted-lead recovery, and coach trust/auto-send status. Broader than luca_analytics_magic_monday (which is the fixed weekly report); use this when the coach asks a specific question that needs cross-referencing several of these numbers together. Example: call with {question: "why did close rate drop this month?", period: "this_month"}.',
+    'Answer a specific business question by composing all seven analytics reads in one call: pipeline funnel, revenue and ROI, response-speed impact, a point-in-time revenue forecast, call intelligence (show/close rates), ghosted-lead recovery, and coach trust/auto-send status. Use it when the coach asks a specific question that needs several of these numbers side by side, rather than the fixed weekly report. Example: call with {question: "why did close rate drop this month?", period: "this_month"}.',
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     question: Schema.optionalKey(

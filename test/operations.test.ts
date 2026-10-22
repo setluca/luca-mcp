@@ -24,6 +24,8 @@ import {
   operationManifest,
   outputSchemaFor,
 } from "../src/operations.ts";
+import { op } from "../src/operations/registry.ts";
+import { oauthScopeForOperation } from "../src/scopes.ts";
 import { JsonObject } from "../src/serialization.ts";
 import { toStandardSchema } from "../src/standard-schema.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
@@ -279,6 +281,15 @@ describe("operation manifest", () => {
       "luca_review_queue_media_retry",
       "luca_review_queue_sla",
       "luca_review_queue_objection_variant",
+      "luca_review_queue_summary",
+      "luca_review_queue_changes",
+      "luca_review_queue_drafting",
+      "luca_review_queue_drafting_cancel",
+      "luca_review_queue_drafting_retry",
+      "luca_review_queue_drafting_dismiss",
+      "luca_review_queue_regenerate",
+      "luca_review_queue_bulk_approve",
+      "luca_review_queue_bulk_reject",
     ]);
   });
 
@@ -437,6 +448,16 @@ describe("operation manifest", () => {
       })
     ).toBe(false);
     expect(accepts(schema, { body: { channel: "telegram" } })).toBe(false);
+    expect(accepts(schema, {})).toBe(false);
+  });
+
+  it("lets a call leave out a body the API marks optional", () => {
+    // Approving or rejecting a draft as it stands sends no body at all. The
+    // API documents both bodies as optional, so the tool must not demand one.
+    const id = "00000000-0000-0000-0000-000000000000";
+
+    expect(accepts(toolSchema("reviewQueue.reject"), { id })).toBe(true);
+    expect(accepts(toolSchema("reviewQueue.approve"), { id })).toBe(true);
   });
 
   it("derives precise query and path schemas from Luca OpenAPI", () => {
@@ -487,14 +508,27 @@ describe("operation manifest", () => {
         "callEvents.pushToCrm",
         "integrations.crm.connections.webhooksSetup",
         "integrations.crm.syncRuns.create",
+        "integrations.crm.connections.disconnect",
+        "leads.drafting.resume",
+        "conversations.reply_failure_retry",
+        "reviewQueue.bulkApprove",
+        "reviewQueue.drafting.retry",
+        "reviewQueue.regenerate",
+        "bookings.providerRequests.create",
+        "channels.set_ai_dm_auto_send",
       ])
     );
   });
 
   it("only gates state-changing operations a retry cannot repeat", () => {
-    // An active subscription with the same target URL is updated in place, so
-    // a retried create cannot add a second one and the route takes no key.
-    const naturallyIdempotent = "webhooks.subscriptions.create";
+    const naturallyIdempotent = [
+      // An active subscription with the same target URL is updated in place,
+      // so a retried create cannot add a second one and the route takes no key.
+      "webhooks.subscriptions.create",
+      // The resend goes out under the key the failed reply first used, so a
+      // repeat never reaches the lead twice.
+      "conversations.reply_failure_retry",
+    ];
 
     const gated = LUCA_OPERATIONS.filter(
       (operation) => operation.confirm !== undefined
@@ -503,7 +537,8 @@ describe("operation manifest", () => {
     Arr.forEach(gated, (operation) => {
       expect(operation.method).not.toBe("GET");
       expect(
-        operation.idempotencyRequired || operation.id === naturallyIdempotent
+        operation.idempotencyRequired ||
+          Arr.contains(naturallyIdempotent, operation.id)
       ).toBe(true);
     });
   });
@@ -533,6 +568,39 @@ describe("operation manifest", () => {
     expect("confirm" in getOperation("callEvents.feedback").inputSchema).toBe(
       true
     );
+  });
+
+  it("tiers a call-event report at queue_ops because a no_show can message the lead", () => {
+    const operation = getOperation("callEvents.feedback");
+
+    // The route's call_events:write is a draft-tier scope, but the API refuses
+    // a no_show from a key below queue_ops. A draft grant must not see a tool
+    // that can start recovery messages as one it is allowed to call.
+    expect(operation.requiredScope.capability).toBe("queue_ops");
+    expect(oauthScopeForOperation(operation)).toBe("luca:queue_ops");
+    expect(operationAnnotations(operation).openWorldHint).toBe(true);
+  });
+
+  it("treats a stated capability as a floor that never lowers the tier", () => {
+    // A send stays at queue_ops however low the stated tier.
+    const send = op({
+      id: "conversations.send",
+      title: "Floor check",
+      description: "Floor check.",
+      confirm: "always",
+      capability: "read",
+    });
+
+    // A draft-tier write rises to the stated tier.
+    const note = op({
+      id: "leads.notes.add",
+      title: "Floor check",
+      description: "Floor check.",
+      capability: "queue_ops",
+    });
+
+    expect(send.requiredScope.capability).toBe("queue_ops");
+    expect(note.requiredScope.capability).toBe("queue_ops");
   });
 
   it("gates only booking outcomes that can change a connected CRM deal", () => {
@@ -626,13 +694,13 @@ describe("operation manifest", () => {
       openWorldHint: false,
     });
 
-    // This GET inserts the default settings row on first use.
+    // Returns the defaults without writing a row before the first change.
     expect(
       operationAnnotations(getOperation("insights.settings.get"))
     ).toMatchObject({
-      readOnlyHint: false,
+      readOnlyHint: true,
       destructiveHint: false,
-      idempotentHint: false,
+      idempotentHint: true,
     });
 
     // This GET stores a fresh OAuth state record for the callback.
@@ -663,6 +731,14 @@ describe("operation manifest", () => {
         "broadcasts.launch",
         "broadcasts.retry",
         "cadences.rescueStart",
+        "conversations.reply_failure_retry",
+        "reviewQueue.bulkApprove",
+        // A restarted draft goes back through the channel's auto-send policy,
+        // and the switch decides whether Luca's replies skip review at all.
+        "leads.drafting.resume",
+        "reviewQueue.drafting.retry",
+        "reviewQueue.regenerate",
+        "channels.set_ai_dm_auto_send",
         // An outside URL.
         "webhooks.subscriptions.create",
         "webhooks.subscriptions.update",
@@ -681,6 +757,7 @@ describe("operation manifest", () => {
         "bookings.providerSync.retry",
         "bookings.lifecycleResolution",
         "bookings.outcome.record",
+        "bookings.providerRequests.create",
         "callEvents.feedback",
         "callEvents.summary.replace",
         "callEvents.pushToCrm",
@@ -871,6 +948,20 @@ describe("operation manifest", () => {
       "reviewQueue.objectionVariant",
       "learning.proposals.dismiss",
       "memory.setArchived",
+      "leads.drafting.pause",
+      "leads.drafting.resume",
+      "conversations.reply_failure_retry",
+      "conversations.reply_failure_dismiss",
+      "conversations.media_retry",
+      "reviewQueue.drafting.cancel",
+      "reviewQueue.drafting.retry",
+      "reviewQueue.drafting.dismiss",
+      "reviewQueue.regenerate",
+      "reviewQueue.bulkApprove",
+      "reviewQueue.bulkReject",
+      // Reads that answer with ids, counts, and states only.
+      "conversations.send_status",
+      "reviewQueue.changes",
       // The coach's own writing echoed back.
       "leads.fieldDefinitions.upsert",
       "leads.consents.grant",

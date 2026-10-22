@@ -263,4 +263,32 @@ export const bookingsOperations: readonly LucaOperation[] = [
     description:
       "Stop using a calendar for conflict checks or as the booking destination. The calendar itself is left alone in Google; only Luca's selection changes.",
   }),
+  op({
+    id: "bookings.recovery.get",
+    title: "Read a no-show recovery",
+    description:
+      "Read a booking's no-show recovery: whether it is active, paused for review, stopped, or done, which follow-up is next, and when the last one went out.",
+  }),
+  op({
+    id: "bookings.recovery.stop",
+    title: "Stop a no-show recovery",
+    mutatesExisting: true,
+    description:
+      "Stop a booking's no-show recovery so no further follow-up is scheduled. A follow-up already being sent may still arrive. Send recovery.id as recoveryCaseId and recovery.outcomeVersion from luca_bookings_recovery_get; a recovery that changed since that read returns 409 booking_recovery_changed.",
+  }),
+  op({
+    id: "bookings.providerRequests.create",
+    title: "Book a call on the coach's calendar",
+    // Creates the event on the coach's calendar provider and invites the lead.
+    openWorld: true,
+    confirm: "always",
+    description:
+      "Book one exact slot from luca_bookings_managed_availability on the coach's Calendly, Cal.com, or Google Calendar, which sends the invite to the lead's email; the lead also gets Luca's booking confirmation. Pass the slot's id, startsAt, endsAt, and timezone as returned by a read of exactly that slot's window, since a slot id is tied to the window it was read in. The answer is usually pending while the provider confirms; read it again with luca_bookings_provider_requests_get. A slot taken in the meantime returns 409 slot_unavailable.",
+  }),
+  op({
+    id: "bookings.providerRequests.get",
+    title: "Check a calendar booking",
+    description:
+      "Read where a calendar booking request stands. pending_provider turns into confirmed, handoff_required, or failed once the provider answers, and a confirmed request carries the booking id and meeting link.",
+  }),
 ];

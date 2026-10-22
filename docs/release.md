@@ -51,6 +51,8 @@ access; local checks cannot read the GitHub environment secrets.
    Move the `Unreleased` entries in
    `CHANGELOG.md` under the new version and date. Use a patch bump for a fix,
    minor for additive tools or fields, and major for a breaking tool contract.
+   While the version is 0.x, a breaking tool contract takes a minor bump
+   instead, as 0.3.0 and 0.5.0 did, and the changelog lists it under Breaking.
 2. Refresh `contracts/` from the Luca commit currently deployed. Run
    `bun run contracts:sync --repo /path/to/luca --deployed --write`,
    then `bun run openapi:generate` and `bun run docs:generate`. Review the

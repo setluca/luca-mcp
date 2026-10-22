@@ -164,7 +164,7 @@ describe("MCP protocol", () => {
     expect(
       tools.find((tool) => tool.name === "luca_insights_settings_get")
         ?.annotations?.readOnlyHint
-    ).toBe(false);
+    ).toBe(true);
     expect(
       tools.find((tool) => tool.name === "luca_integrations_crm_oauth_url")
         ?.annotations?.readOnlyHint
@@ -1238,13 +1238,27 @@ describe("task tools", () => {
     });
   });
 
-  it("book_call checks availability, then posts leadId and slotAt to bookings.create", async () => {
+  it("book_call reads the call type's slots, then books the matching one on the provider", async () => {
     const requests: LucaRequest[] = [];
+    const bookingTypeId = "11111111-1111-4111-8111-111111111111";
 
     const { client, close } = await connect((request) => {
       requests.push(request);
 
-      return Effect.succeed({ bookingId: "b-1" });
+      return Effect.succeed(
+        request.operation.id === "bookings.managedAvailability"
+          ? {
+              slots: [
+                {
+                  id: "slot-1",
+                  startsAt: "2026-07-14T15:00:00Z",
+                  endsAt: "2026-07-14T15:30:00Z",
+                  timezone: "UTC",
+                },
+              ],
+            }
+          : { id: "action-1", state: "confirmed" }
+      );
     });
 
     onTestFinished(close);
@@ -1253,22 +1267,27 @@ describe("task tools", () => {
       name: "luca_book_call",
       arguments: {
         leadId: "00000000-0000-0000-0000-000000000000",
+        bookingTypeId,
         slotAt: "2026-07-14T15:00:00Z",
+        inviteeEmail: "sam@example.com",
         confirm: true,
       },
     });
 
     expect(result.isError).toBeUndefined();
-    // The availability read comes first. This stub answers it with a shape
-    // the tool cannot read as slots, which is the "we could not tell" path:
-    // the booking still goes through.
     expect(requests.map((request) => request.operation.id)).toEqual([
-      "bookings.availability",
-      "bookings.create",
+      "bookings.managedAvailability",
+      "bookings.managedAvailability",
+      "bookings.providerRequests.create",
     ]);
-    expect(requests[1]?.body).toEqual({
+    expect(requests[2]?.body).toEqual({
       leadId: "00000000-0000-0000-0000-000000000000",
-      slotAt: "2026-07-14T15:00:00Z",
+      bookingTypeId,
+      slotId: "slot-1",
+      startsAt: "2026-07-14T15:00:00Z",
+      endsAt: "2026-07-14T15:30:00Z",
+      timezone: "UTC",
+      inviteeEmail: "sam@example.com",
     });
   });
 
@@ -1287,7 +1306,9 @@ describe("task tools", () => {
       name: "luca_book_call",
       arguments: {
         leadId: "00000000-0000-0000-0000-000000000000",
+        bookingTypeId: "11111111-1111-4111-8111-111111111111",
         slotAt: "2026-07-14T15:00:00Z",
+        inviteeEmail: "sam@example.com",
       },
     });
 
@@ -1581,6 +1602,27 @@ describe("claude toolset", () => {
       (candidate) => candidate.annotations?.readOnlyHint === true
     )) {
       expect(tool.annotations?.destructiveHint, tool.name).toBe(false);
+    }
+  }, 15_000);
+
+  it("describes every tool without steering the model to another tool", async () => {
+    // Directory policy: a description says what its tool does. Naming another
+    // tool, above all one the Claude set leaves out, such as
+    // luca_approve_and_send, tells the model to reach past the connection.
+    const { tools } = await listNames({ toolset: "claude" });
+
+    for (const tool of tools) {
+      const text = JSON.stringify([
+        tool.description,
+        tool.inputSchema,
+        tool.outputSchema,
+      ]);
+
+      const named = (text.match(/luca_[a-z_]+/g) ?? []).filter(
+        (name) => name !== tool.name
+      );
+
+      expect(named, tool.name).toEqual([]);
     }
   }, 15_000);
 

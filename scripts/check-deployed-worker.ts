@@ -35,6 +35,7 @@ export async function checkDeployment(
     ...options,
     headers: { origin: "https://claude.ai" },
   });
+  await checkFavicon(fetcher, options);
 }
 
 async function checkServerCard(
@@ -102,6 +103,24 @@ async function checkChallenge(
 
     throw new Error(
       `Unauthenticated MCP request from ${caller} returned ${unauthenticated.status} without the expected challenge`
+    );
+  }
+}
+
+/**
+ * Claude shows a connector without its own icon with the favicon Google has
+ * indexed for the connector's domain, and that comes from this file.
+ */
+async function checkFavicon(
+  fetcher: typeof fetch,
+  options: RequestInit
+): Promise<void> {
+  const favicon = await fetcher(`${origin}/favicon.ico`, options);
+  const contentType = favicon.headers.get("content-type") ?? "";
+
+  if (!favicon.ok || !contentType.startsWith("image/")) {
+    throw new Error(
+      `Favicon returned ${favicon.status} with content type ${contentType || "none"}`
     );
   }
 }

@@ -1,15 +1,18 @@
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
+import * as P from "effect/Predicate";
 import * as Schema from "effect/Schema";
 
-import type { LucaError } from "../errors.ts";
+import { LucaDecodeError, type LucaError } from "../errors.ts";
 import {
+  IanaTimeZone,
   IsoDateTime,
   NonEmptyString,
   WORKSPACE_INPUT_FIELDS,
 } from "../fields.ts";
 import type { LucaApi } from "../http.ts";
 import { optionalField } from "../optional-field.ts";
+import { type JsonValue, toJsonPayload } from "../serialization.ts";
 import {
   failureAsField,
   idempotencyKeyInput,
@@ -56,13 +59,19 @@ const AvailabilityPage = Schema.Struct({
 
 const decodeAvailabilityPage = Schema.decodeUnknownOption(AvailabilityPage);
 
-const ManagedAvailabilityPage = Schema.Struct({
-  slots: Schema.Array(Schema.Struct({ startsAt: Schema.String })),
+/** A slot from Luca's own scheduler, as the provider booking route takes it. */
+const ManagedSlotPage = Schema.Struct({
+  slots: Schema.Array(
+    Schema.Struct({
+      id: Schema.String,
+      startsAt: Schema.String,
+      endsAt: Schema.String,
+      timezone: Schema.String,
+    })
+  ),
 });
 
-const decodeManagedAvailabilityPage = Schema.decodeUnknownOption(
-  ManagedAvailabilityPage
-);
+const decodeManagedSlotPage = Schema.decodeUnknownOption(ManagedSlotPage);
 
 const BookingBookingType = Schema.Struct({
   booking: Schema.Struct({
@@ -96,23 +105,34 @@ const providerSlots = (
   );
 
 /**
- * Open slots for one booking type, from Luca's own scheduler. The provider
- * route knows nothing of booking types, so it would judge the slot against
- * the wrong calendar. Times are compared as instants, so the display timezone
- * does not matter.
+ * Open slots for one booking type in a window, from Luca's own scheduler,
+ * which already takes the coach's calendar conflicts out. The provider route
+ * knows nothing of booking types, so it would judge a slot against the wrong
+ * calendar.
+ *
+ * An answer this cannot read fails as a decode error instead of reading as no
+ * slots, so a changed response is never mistaken for a full calendar.
  */
-const bookingTypeSlots = (
+const managedSlots = (
   call: TaskCall<"bookings.managedAvailability">,
-  bookingTypeId: string,
-  window: AvailabilityWindow
+  query: AvailabilityWindow & {
+    readonly bookingTypeId: string;
+    readonly timezone: string;
+  }
 ) =>
-  call("bookings.managedAvailability", {
-    query: { ...window, bookingTypeId, timezone: "UTC" },
-  }).pipe(
-    Effect.map((page) =>
-      decodeManagedAvailabilityPage(page).pipe(
-        Option.map((parsed) => parsed.slots)
-      )
+  call("bookings.managedAvailability", { query }).pipe(
+    Effect.flatMap((page) =>
+      Option.match(decodeManagedSlotPage(page), {
+        onNone: () =>
+          Effect.fail(
+            new LucaDecodeError({
+              message:
+                "Luca API returned managed availability in a shape this server cannot read",
+              body: toJsonPayload(page),
+            })
+          ),
+        onSome: (parsed) => Effect.succeed(parsed.slots),
+      })
     )
   );
 
@@ -204,77 +224,139 @@ function slotNotAvailable<const Key extends string>(key: Key) {
   });
 }
 
+const SlotTakenBody = Schema.Struct({
+  error: Schema.Struct({ code: Schema.Literal("slot_unavailable") }),
+});
+
+const isSlotTakenBody = Schema.is(SlotTakenBody);
+
+/**
+ * The provider booking route's answer when the slot went between the
+ * availability read and the booking: a 409 whose code names it.
+ */
+function isSlotTaken(error: LucaError): boolean {
+  return (
+    P.isTagged(error, "LucaHttpError") &&
+    error.status === 409 &&
+    isSlotTakenBody(error.body)
+  );
+}
+
 const bookCall = taskTool({
   name: "luca_book_call",
   title: "Book a call with a lead",
   description:
-    "Record a booked call for a lead in Luca. This does not create an event on the coach's calendar or send the lead an invite: book the call with the provider too, or have the lead book through the coach's booking link. Checks availability first, against the schedule of the booking type when bookingTypeId is given, and returns the open slots instead of booking when the requested one is taken. A call with an idempotencyKey skips that check so a retry gets the original result back. Booking moves the lead to booked and notifies the coach's webhook subscribers, so pass confirm: true only after the coach approves this exact slot. Example: call with { leadId, slotAt: \"2026-07-14T15:00:00Z\", confirm: true } after the lead agreed to a time.",
+    "Book a call on the coach's calendar provider and have the provider invite the lead's email; the lead also gets Luca's booking confirmation. Works for call types on Calendly, Cal.com, or Google Calendar. Reads the open slots of the call type first and books the one that starts at slotAt. When that slot is taken it books nothing and returns the open slots instead, so pick one of them and call again. The answer is usually pending while the provider confirms; check it with luca_bookings_provider_requests_get. The booking puts an event on the coach's calendar and invites the lead, so pass confirm: true only after the coach approves this exact slot. If a retry answers slot_not_available, the first attempt may have taken the slot, so check luca_bookings_list before booking again. To record a call that is already on a calendar, use luca_bookings_create instead. Example: call with { leadId, bookingTypeId, slotAt: \"2026-07-14T15:00:00Z\", inviteeEmail: \"sam@example.com\", confirm: true } after the lead agreed to a time.",
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     leadId: NonEmptyString.annotate({ description: "The lead to book." }),
-    slotAt: IsoDateTime.annotate({
-      description: "ISO-8601 start time for the call, with an offset.",
+    bookingTypeId: NonEmptyString.annotate({
+      description:
+        "The call type to book, from luca_bookings_types_list. Its provider is the calendar the call lands on.",
     }),
-    provider: Schema.optionalKey(
-      Schema.Literals(BOOKING_PROVIDERS).annotate({
-        description:
-          "The coach's booking provider. Sent with the booking and used for the availability check. Pass it when the coach is not on Calendly, or the availability check reads the wrong calendar. Left off, the check reads Calendly and the API records the booking as manual.",
+    slotAt: IsoDateTime.annotate({
+      description:
+        "ISO-8601 start time for the call, with an offset. It must be an open slot of the call type, as luca_bookings_managed_availability lists them.",
+    }),
+    inviteeEmail: NonEmptyString.annotate({
+      description: "The lead's email. The provider sends the invite there.",
+    }),
+    inviteeName: Schema.optionalKey(
+      NonEmptyString.check(Schema.isMaxLength(200)).annotate({
+        description: "The lead's name as the invite should show it.",
       })
     ),
-    bookingTypeId: Schema.optionalKey(
-      NonEmptyString.annotate({
+    timezone: Schema.optionalKey(
+      IanaTimeZone.annotate({
         description:
-          "The booking type to book under, from luca_bookings_types_list. Required when provider is google_calendar, and it must be an active google_calendar type.",
+          "IANA time zone the booking is shown in, such as Europe/Madrid. Defaults to UTC.",
       })
     ),
     ...idempotencyKeyInput(
-      "Reuse the same key when retrying this exact booking. A keyed call skips the availability check and lets the API replay the first result."
+      "Reuse the same key when retrying this exact booking, so a repeat of a request that already reached the API cannot book the call twice."
     ),
   },
   outputSchema: Schema.Union([
     slotNotAvailable("booked"),
-    operationResult("bookings.create"),
+    operationResult("bookings.providerRequests.create"),
   ]),
   composes: [
-    "bookings.availability",
     "bookings.managedAvailability",
-    "bookings.create",
+    "bookings.providerRequests.create",
   ],
   run: (call, input) =>
     Effect.gen(function* () {
       const slotAt = stringInput(input.slotAt);
+      const bookingTypeId = stringInput(input.bookingTypeId);
 
-      // A booking type has its own schedule, which the provider route knows
-      // nothing of.
-      const open = yield* openSlotsAt(input, slotAt, (window) =>
-        input.bookingTypeId === undefined
-          ? providerSlots(call, input, window)
-          : bookingTypeSlots(call, stringInput(input.bookingTypeId), window)
+      const timezone =
+        input.timezone === undefined ? "UTC" : stringInput(input.timezone);
+
+      // oxlint-disable-next-line effect/use-clock-service -- parse date value from stored data
+      const start = new Date(slotAt);
+
+      // The provider route books only a slot the scheduler offers, so its id
+      // and end come from these reads. A failed read fails the tool: there is
+      // nothing to book without it.
+      const slots = yield* managedSlots(call, {
+        bookingTypeId,
+        timezone,
+        start: start.toISOString(),
+        // oxlint-disable-next-line effect/use-clock-service -- parse date value from stored data
+        end: new Date(start.getTime() + AVAILABILITY_WINDOW_MS).toISOString(),
+      });
+
+      const found = slots.find((candidate) =>
+        sameInstant(candidate.startsAt, slotAt)
       );
 
-      // Refuse only on a confident "that slot is not open". Handing back the
-      // real slots lets the agent pick again in one turn instead of writing a
-      // booking the provider will reject later.
-      if (
-        Option.isSome(open) &&
-        !open.value.some((candidate) => sameInstant(candidate, slotAt))
-      ) {
-        return {
-          booked: false,
-          reason: "slot_not_available",
-          requestedSlotAt: slotAt,
-          openSlots: open.value,
-        };
+      const taken = {
+        booked: false,
+        reason: "slot_not_available",
+        requestedSlotAt: slotAt,
+        openSlots: slots
+          .filter((candidate) => candidate !== found)
+          .map((candidate) => candidate.startsAt),
+      };
+
+      if (found === undefined) {
+        return taken;
       }
 
-      return yield* call("bookings.create", {
+      // A slot id carries a version of everything the read saw in its window,
+      // and the provider route checks it against a read of the slot's own
+      // window. Read that window too, so the id is the one the route expects.
+      const exact = (yield* managedSlots(call, {
+        bookingTypeId,
+        timezone,
+        start: found.startsAt,
+        end: found.endsAt,
+      })).find(
+        (candidate) =>
+          sameInstant(candidate.startsAt, found.startsAt) &&
+          sameInstant(candidate.endsAt, found.endsAt)
+      );
+
+      if (exact === undefined) {
+        return taken;
+      }
+
+      return yield* call("bookings.providerRequests.create", {
         body: {
           leadId: input.leadId,
-          slotAt: input.slotAt,
-          ...optionalField("provider", input.provider),
-          ...optionalField("bookingTypeId", input.bookingTypeId),
+          bookingTypeId,
+          slotId: exact.id,
+          startsAt: exact.startsAt,
+          endsAt: exact.endsAt,
+          timezone: exact.timezone,
+          inviteeEmail: input.inviteeEmail,
+          ...optionalField("inviteeName", input.inviteeName),
         },
-      });
+      }).pipe(
+        // The slot went between the read and the booking. Hand back the rest
+        // so the agent can pick again in one turn.
+        Effect.catchIf(isSlotTaken, () => Effect.succeed<JsonValue>(taken))
+      );
     }),
 });
 
@@ -285,7 +367,7 @@ const rescheduleCall = taskTool({
   name: "luca_reschedule_call",
   title: "Move a call to a new time",
   description:
-    'Move a booked call to a new time and hand back a fresh reschedule link for the lead. Checks the new slot is open first, against the schedule of its booking type when it has one, and returns the open slots instead of moving the call when it is taken. A call with an idempotencyKey skips that check so a retry gets the original result back. A manual booking moves in Luca only. A Cal.com or Google Calendar booking moves on that calendar too. A Calendly, GoHighLevel or iClosed booking is refused so the coach can move it with the provider, and so is a provider booking with no calendar event, such as one from luca_book_call. Moving the call re-arms the lead\'s reminder for the new time, so pass confirm: true only after the coach approves the move. Example: call with { bookingId, slotAt: "2026-07-16T15:00:00Z", confirm: true } after the lead asked to push the call. No message about the move is sent: send the lead the link yourself, or draft the message through the review queue.',
+    'Move a booked call to a new time and hand back a fresh reschedule link for the lead. Checks the new slot is open first, against the schedule of its booking type when it has one, and returns the open slots instead of moving the call when it is taken. A call with an idempotencyKey skips that check so a retry gets the original result back. A manual booking moves in Luca only. A Cal.com or Google Calendar booking moves on that calendar too. A Calendly, GoHighLevel or iClosed booking is refused so the coach can move it with the provider, and so is a provider booking with no calendar event, such as one recorded with luca_bookings_create. Moving the call re-arms the lead\'s reminder for the new time, so pass confirm: true only after the coach approves the move. Example: call with { bookingId, slotAt: "2026-07-16T15:00:00Z", confirm: true } after the lead asked to push the call. No message about the move is sent: send the lead the link yourself, or draft the message through the review queue.',
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     bookingId: NonEmptyString.annotate({ description: "The booking to move." }),
@@ -341,8 +423,13 @@ const rescheduleCall = taskTool({
             Option.flatMapNullishOr(bookingType, (id) => id),
             {
               onNone: () => providerSlots(call, input, window),
+              // Compared as instants, so the display timezone does not matter.
               onSome: (bookingTypeId) =>
-                bookingTypeSlots(call, bookingTypeId, window),
+                managedSlots(call, {
+                  ...window,
+                  bookingTypeId,
+                  timezone: "UTC",
+                }).pipe(Effect.map(Option.some)),
             }
           )
         )

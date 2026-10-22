@@ -66,7 +66,8 @@ export const OPENAPI_INPUT_SPECS = {
         "key",
         "label"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/leads/imports/preview": {
     "body": {
@@ -244,7 +245,8 @@ export const OPENAPI_INPUT_SPECS = {
         "rows",
         "mapping"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/leads/imports/apply": {
     "body": {
@@ -422,7 +424,8 @@ export const OPENAPI_INPUT_SPECS = {
         "rows",
         "mapping"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "GET /api/leads/{id}": {
     "path": {
@@ -493,7 +496,8 @@ export const OPENAPI_INPUT_SPECS = {
         "channel",
         "externalUserId"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "PATCH /api/leads/{id}": {
     "path": {
@@ -531,7 +535,8 @@ export const OPENAPI_INPUT_SPECS = {
           }
         }
       }
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/leads/{id}/identities": {
     "path": {
@@ -590,7 +595,8 @@ export const OPENAPI_INPUT_SPECS = {
         "channel",
         "externalUserId"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/leads/{id}/consents": {
     "path": {
@@ -648,7 +654,8 @@ export const OPENAPI_INPUT_SPECS = {
         "source",
         "evidenceId"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/leads/{id}/consents/revoke": {
     "path": {
@@ -689,7 +696,8 @@ export const OPENAPI_INPUT_SPECS = {
         "channel",
         "purpose"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/leads/{id}/notes": {
     "path": {
@@ -715,7 +723,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "body"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/leads/{id}/draft": {
     "path": {
@@ -760,6 +769,80 @@ export const OPENAPI_INPUT_SPECS = {
       ]
     }
   },
+  "POST /api/leads/{id}/drafting/pause": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "duration": {
+          "type": "string",
+          "enum": [
+            "1h",
+            "24h",
+            "7d",
+            "30d",
+            "until_resumed"
+          ]
+        }
+      },
+      "required": [
+        "duration"
+      ]
+    },
+    "bodyRequired": true
+  },
+  "POST /api/leads/{id}/drafting/resume": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "GET /api/conversations/{id}/send-status": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "query": {
+      "type": "object",
+      "properties": {
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      },
+      "required": [
+        "idempotencyKey"
+      ]
+    }
+  },
   "GET /api/conversations/summary": {},
   "GET /api/conversations": {
     "query": {
@@ -794,6 +877,10 @@ export const OPENAPI_INPUT_SPECS = {
         "q": {
           "type": "string",
           "minLength": 1
+        },
+        "leadId": {
+          "type": "string",
+          "format": "uuid"
         }
       }
     }
@@ -903,6 +990,10 @@ export const OPENAPI_INPUT_SPECS = {
                       "text": {
                         "type": "string",
                         "minLength": 1
+                      },
+                      "textGroupId": {
+                        "type": "string",
+                        "format": "uuid"
                       }
                     },
                     "required": [
@@ -1323,9 +1414,14 @@ export const OPENAPI_INPUT_SPECS = {
             "version",
             "parts"
           ]
+        },
+        "replacesReplyFailureId": {
+          "type": "string",
+          "format": "uuid"
         }
       }
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/conversations/{id}/messages/{messageId}/retry": {
     "path": {
@@ -1343,6 +1439,68 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "id",
         "messageId"
+      ]
+    }
+  },
+  "POST /api/conversations/{id}/reply-failures/{failureId}/retry": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "failureId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "failureId"
+      ]
+    }
+  },
+  "POST /api/conversations/{id}/reply-failures/{failureId}/dismiss": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "failureId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "failureId"
+      ]
+    }
+  },
+  "POST /api/conversations/{id}/messages/{messageId}/media/{mediaId}/retry": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "messageId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "mediaId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "messageId",
+        "mediaId"
       ]
     }
   },
@@ -1375,7 +1533,14 @@ export const OPENAPI_INPUT_SPECS = {
         },
         "status": {
           "type": "string",
-          "minLength": 1
+          "enum": [
+            "pending",
+            "approved",
+            "rejected",
+            "sent",
+            "superseded",
+            "stale"
+          ]
         },
         "category": {
           "type": "string",
@@ -1387,6 +1552,10 @@ export const OPENAPI_INPUT_SPECS = {
             "pricing-adjacent",
             "other"
           ]
+        },
+        "leadId": {
+          "type": "string",
+          "format": "uuid"
         },
         "order": {
           "type": "string",
@@ -1470,6 +1639,10 @@ export const OPENAPI_INPUT_SPECS = {
                       "text": {
                         "type": "string",
                         "minLength": 1
+                      },
+                      "textGroupId": {
+                        "type": "string",
+                        "format": "uuid"
                       }
                     },
                     "required": [
@@ -1894,6 +2067,46 @@ export const OPENAPI_INPUT_SPECS = {
       }
     }
   },
+  "POST /api/review-queue/bulk-approve": {
+    "body": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "minItems": 1,
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "ids"
+      ]
+    },
+    "bodyRequired": true
+  },
+  "POST /api/review-queue/bulk-reject": {
+    "body": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "minItems": 1,
+          "maxItems": 100
+        }
+      },
+      "required": [
+        "ids"
+      ]
+    },
+    "bodyRequired": true
+  },
   "POST /api/review-queue/{id}/media/{mediaId}/retry": {
     "path": {
       "type": "object",
@@ -1925,6 +2138,27 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "id"
       ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "reasonCode": {
+          "type": "string",
+          "enum": [
+            "wrong_facts",
+            "wrong_tone",
+            "too_long",
+            "too_pushy",
+            "should_not_reply",
+            "other"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280
+        }
+      }
     }
   },
   "POST /api/review-queue/{id}/restore": {
@@ -1942,6 +2176,19 @@ export const OPENAPI_INPUT_SPECS = {
     }
   },
   "GET /api/review-queue/sla": {},
+  "GET /api/review-queue/summary": {},
+  "GET /api/review-queue/changes": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "since": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  "GET /api/review-queue/drafting": {},
   "POST /api/review-queue/{id}/objection-variant": {
     "path": {
       "type": "object",
@@ -1966,6 +2213,72 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "label"
       ]
+    },
+    "bodyRequired": true
+  },
+  "POST /api/review-queue/drafting/{turnId}/cancel": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "turnId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "turnId"
+      ]
+    }
+  },
+  "POST /api/review-queue/drafting/{turnId}/retry": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "turnId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "turnId"
+      ]
+    }
+  },
+  "POST /api/review-queue/drafting/{turnId}/dismiss": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "turnId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "turnId"
+      ]
+    }
+  },
+  "POST /api/review-queue/{id}/regenerate": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "hint": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
     }
   },
   "GET /api/bookings": {
@@ -2177,6 +2490,53 @@ export const OPENAPI_INPUT_SPECS = {
       ]
     }
   },
+  "GET /api/bookings/{id}/recovery": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "POST /api/bookings/{id}/recovery/stop": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "recoveryCaseId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "outcomeVersion": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "recoveryCaseId",
+        "outcomeVersion"
+      ],
+      "additionalProperties": false
+    },
+    "bodyRequired": true
+  },
   "GET /api/bookings/{id}/outcome": {
     "path": {
       "type": "object",
@@ -2318,7 +2678,8 @@ export const OPENAPI_INPUT_SPECS = {
         "leadId",
         "slotAt"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "PATCH /api/bookings/{id}": {
     "path": {
@@ -2404,9 +2765,74 @@ export const OPENAPI_INPUT_SPECS = {
           ]
         }
       }
-    }
+    },
+    "bodyRequired": true
   },
   "DELETE /api/bookings/{id}": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "POST /api/bookings/provider-requests": {
+    "body": {
+      "type": "object",
+      "properties": {
+        "leadId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "bookingTypeId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "slotId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endsAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inviteeEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "inviteeName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "leadId",
+        "bookingTypeId",
+        "slotId",
+        "startsAt",
+        "endsAt",
+        "timezone",
+        "inviteeEmail"
+      ]
+    },
+    "bodyRequired": true
+  },
+  "GET /api/bookings/provider-requests/{id}": {
     "path": {
       "type": "object",
       "properties": {
@@ -2579,7 +3005,8 @@ export const OPENAPI_INPUT_SPECS = {
           ]
         }
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/bookings/outcome-reasons": {
     "body": {
@@ -2619,7 +3046,8 @@ export const OPENAPI_INPUT_SPECS = {
         "code",
         "label"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "PATCH /api/bookings/outcome-reasons/{id}": {
     "path": {
@@ -2650,7 +3078,8 @@ export const OPENAPI_INPUT_SPECS = {
           "minimum": 0
         }
       }
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/bookings/{id}/lifecycle-resolution": {
     "path": {
@@ -2707,7 +3136,8 @@ export const OPENAPI_INPUT_SPECS = {
           ]
         }
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/bookings/{id}/provider-sync/retry": {
     "path": {
@@ -2746,7 +3176,8 @@ export const OPENAPI_INPUT_SPECS = {
           "default": 168
         }
       }
-    }
+    },
+    "bodyRequired": true
   },
   "DELETE /api/bookings/{id}/guest-links": {
     "path": {
@@ -3001,7 +3432,8 @@ export const OPENAPI_INPUT_SPECS = {
         "name",
         "timezone"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "PATCH /api/bookings/types/{id}": {
     "path": {
@@ -3237,7 +3669,8 @@ export const OPENAPI_INPUT_SPECS = {
           "additionalProperties": false
         }
       }
-    }
+    },
+    "bodyRequired": true
   },
   "DELETE /api/bookings/types/{id}": {
     "path": {
@@ -3339,7 +3772,8 @@ export const OPENAPI_INPUT_SPECS = {
         "rules",
         "overrides"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/bookings/types/{id}/attendees": {
     "path": {
@@ -3376,7 +3810,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "email"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "DELETE /api/bookings/types/{id}/attendees/{attendeeId}": {
     "path": {
@@ -3444,7 +3879,8 @@ export const OPENAPI_INPUT_SPECS = {
         "conflictEnabled",
         "defaultDestination"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "DELETE /api/bookings/calendars": {
     "body": {
@@ -3465,7 +3901,8 @@ export const OPENAPI_INPUT_SPECS = {
         "provider",
         "calendarId"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "GET /api/call-events": {},
   "GET /api/call-events/by-booking/{bookingId}": {
@@ -3540,6 +3977,13 @@ export const OPENAPI_INPUT_SPECS = {
     "body": {
       "type": "object",
       "properties": {
+        "expectedOutcomeUpdatedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
         "outcome": {
           "type": "string",
           "enum": [
@@ -3604,7 +4048,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "outcome"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/call-events/{id}/summary": {
     "path": {
@@ -3674,7 +4119,8 @@ export const OPENAPI_INPUT_SPECS = {
         "summary"
       ],
       "additionalProperties": false
-    }
+    },
+    "bodyRequired": true
   },
   "GET /api/campaigns": {
     "query": {
@@ -4130,7 +4576,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "name"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/campaigns/generate": {
     "body": {
@@ -4515,7 +4962,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "prompt"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "PATCH /api/campaigns/{id}/draft": {
     "path": {
@@ -4797,7 +5245,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "graph"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/campaigns/{id}/simulations": {
     "path": {
@@ -4894,7 +5343,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "leadId"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "GET /api/campaigns/{id}/enrollments": {
     "path": {
@@ -4989,7 +5439,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "status"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/campaigns/{id}/duplicate": {
     "path": {
@@ -5317,7 +5768,8 @@ export const OPENAPI_INPUT_SPECS = {
         "campaignId",
         "name"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/broadcasts/{id}/preview": {
     "path": {
@@ -5368,7 +5820,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "previewVersion"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/broadcasts/{id}/launch": {
     "path": {
@@ -5577,7 +6030,8 @@ export const OPENAPI_INPUT_SPECS = {
         "targetUrl",
         "eventTypes"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "PATCH /api/webhook-subscriptions/{id}": {
     "path": {
@@ -5868,7 +6322,8 @@ export const OPENAPI_INPUT_SPECS = {
         "code",
         "state"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/integrations/crm/connections": {
     "body": {
@@ -5898,9 +6353,24 @@ export const OPENAPI_INPUT_SPECS = {
         "provider",
         "credentialsRef"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "GET /api/integrations/crm/connections/{id}/schema": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "POST /api/integrations/crm/connections/{id}/disconnect": {
     "path": {
       "type": "object",
       "properties": {
@@ -6027,7 +6497,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "mappings"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/integrations/crm/connections/{id}/sync-runs": {
     "path": {
@@ -6228,6 +6699,32 @@ export const OPENAPI_INPUT_SPECS = {
       ]
     }
   },
+  "PATCH /api/channels/{id}/auto-send": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled"
+      ]
+    },
+    "bodyRequired": true
+  },
   "GET /api/reports/morning": {},
   "GET /api/reports/scorecard": {},
   "GET /api/insights/unread-count": {},
@@ -6350,7 +6847,8 @@ export const OPENAPI_INPUT_SPECS = {
           "additionalProperties": false
         }
       }
-    }
+    },
+    "bodyRequired": true
   },
   "GET /api/teach-luca": {},
   "GET /api/framework-performance": {
@@ -6689,7 +7187,8 @@ export const OPENAPI_INPUT_SPECS = {
         "action",
         "ids"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/cadences/rescue": {
     "body": {
@@ -6716,7 +7215,8 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "leadIds"
       ]
-    }
+    },
+    "bodyRequired": true
   },
   "POST /api/leads/{id}/cadence/pause": {
     "path": {
@@ -6846,6 +7346,25 @@ export const OPENAPI_INPUT_SPECS = {
         "end": {
           "type": "string",
           "format": "date-time"
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "this_week",
+            "this_month",
+            "last_week",
+            "last_month",
+            "last_30_days"
+          ]
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "telegram",
+            "instagram",
+            "messenger",
+            "whatsapp"
+          ]
         }
       }
     }
