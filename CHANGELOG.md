@@ -44,6 +44,12 @@ input schema, or changing what a tool does to a workspace.
 
 ### Fixed
 
+- Serve a favicon and the SetLuca icons on `mcp.setluca.com`. Claude shows a
+  connector without its own icon with the favicon Google indexed for its
+  domain, and `/favicon.ico` answered 404.
+- The browser page at `/` and `/mcp` now names SetLuca, links to the connection
+  guide at `https://setluca.com/connect`, and asks search engines not to index
+  it. MCP clients still get the 401 OAuth challenge.
 - Mark `luca_insights_settings_get` read-only. Luca's API now returns the
   default alert settings without creating a row, so the read no longer counts
   as a write.

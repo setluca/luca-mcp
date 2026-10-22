@@ -133,6 +133,21 @@ describe("worker fetch handler", () => {
     ]);
   });
 
+  it.each(["/", "/mcp"])(
+    "answers a browser opening %s with the landing page",
+    async (path) => {
+      const response = await request(path, {
+        headers: { accept: "text/html,application/xhtml+xml" },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe(
+        "text/html; charset=utf-8"
+      );
+      expect(await response.text()).toContain("https://setluca.com/connect");
+    }
+  );
+
   it("404s unknown paths", async () => {
     const response = await request("/nope");
     expect(response.status).toBe(404);

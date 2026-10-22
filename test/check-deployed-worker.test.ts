@@ -21,6 +21,11 @@ const challenge = () =>
     "www-authenticate": `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`,
   });
 
+const favicon = () =>
+  new Response(new Uint8Array([0, 0, 1, 0]), {
+    headers: { "content-type": "image/x-icon" },
+  });
+
 /** Responses keyed by URL, or by `<url> from <origin>` for a browser origin. */
 function fetcher(
   overrides: Partial<Record<string, Response>> = {}
@@ -42,6 +47,7 @@ function fetcher(
     ],
     [`${origin}/mcp`, challenge()],
     [`${origin}/mcp from https://claude.ai`, challenge()],
+    [`${origin}/favicon.ico`, favicon()],
     ...Object.entries(overrides).filter(
       (entry): entry is [string, Response] => entry[1] !== undefined
     ),
@@ -61,10 +67,10 @@ function fetcher(
 }
 
 describe("deployed Worker check", () => {
-  it("accepts a matching server card, OAuth metadata, and 401 challenge", async () => {
+  it("accepts a matching server card, OAuth metadata, 401 challenge, and favicon", async () => {
     const request = fetcher();
     await expect(checkDeployment("1.2.3", request)).resolves.toBeUndefined();
-    expect(request).toHaveBeenCalledTimes(4);
+    expect(request).toHaveBeenCalledTimes(5);
   });
 
   it("names the origin when production refuses Claude's connector", async () => {
@@ -112,6 +118,12 @@ describe("deployed Worker check", () => {
       "missing challenge for claude.ai",
       `${origin}/mcp from https://claude.ai`,
       response({}, 401),
+    ],
+    ["missing favicon", `${origin}/favicon.ico`, response({}, 404)],
+    [
+      "favicon served as JSON",
+      `${origin}/favicon.ico`,
+      response({ error: "not_found" }),
     ],
   ])("rejects %s", async (_name, url, badResponse) => {
     await expect(

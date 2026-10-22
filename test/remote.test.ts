@@ -789,9 +789,12 @@ describe("remote transport", () => {
       );
 
       const html = await response.text();
-      expect(html).toContain("Luca MCP Server");
+      expect(html).toContain("SetLuca MCP server");
       expect(html).toContain("Model Context Protocol");
-      expect(html).toContain("setluca/luca-mcp");
+      expect(html).toContain("https://setluca.com/connect");
+      expect(html).toContain('<meta name="robots" content="noindex">');
+      expect(html).toContain('<link rel="icon" href="/favicon.ico"');
+      expect(response.headers.get("vary")).toBe("Accept, Authorization");
     });
 
     it("returns 401 with WWW-Authenticate for GET /mcp with Authorization header, even with HTML Accept", async () => {
@@ -875,8 +878,34 @@ describe("remote transport", () => {
       );
 
       const html = await response.text();
-      expect(html).toContain("Luca MCP Server");
+      expect(html).toContain("SetLuca MCP server");
+      expect(html).toContain("https://setluca.com/connect");
       expect(html).toContain("setluca/luca-mcp");
+    });
+
+    it("404s a browser opening any other path", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const other = new URL(MCP_URL);
+      other.pathname = "/docs";
+
+      const response = await handler(
+        new Request(other, { headers: { accept: "text/html" } })
+      );
+
+      expect(response.status).toBe(404);
+    });
+
+    it("still challenges a browser that sends no Accept header", async () => {
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),
+      });
+
+      const response = await handler(new Request(MCP_URL));
+
+      expect(response.status).toBe(401);
     });
 
     it("does not return HTML for GET /mcp without HTML in Accept", async () => {

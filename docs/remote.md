@@ -182,3 +182,11 @@ A client that supports OAuth needs only the URL:
 | ------------------------------------ | --------------------------------------------------------------------------------------- |
 | `/.well-known/mcp/server-card.json`  | The server card: name, version, description, icons, and tool count. Open to any origin. |
 | `/.well-known/openai-apps-challenge` | The OpenAI apps domain-verification token as plain text, or 404 when none is set        |
+| `/` and `/mcp` in a browser          | A small `noindex` page linking to the connection guide at `https://setluca.com/connect` |
+| `/favicon.ico` and the icons         | Static assets from `public/`, the same art as setluca.com, served ahead of the Worker   |
+
+The landing page goes only to a `GET` that accepts `text/html`, does not ask
+for `text/event-stream`, and carries no `Authorization` header. Every other
+request to `/mcp`, including a client's first unauthenticated `POST`, still
+gets the 401 OAuth challenge, which is what starts sign-in in Claude and other
+clients.

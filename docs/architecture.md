@@ -34,6 +34,8 @@ Entry points:
   tsconfig excludes it, so the npm tarball stays stdio-only.
 - `src/remote.ts`: the Streamable HTTP handler and the bearer-token resolvers.
   One server and transport per request, no session affinity.
+- `src/landing.ts`: the HTML page a browser gets at `/` and `/mcp` instead of
+  the OAuth challenge. The favicon and icons are static assets under `public/`.
 - `src/oauth-resolver.ts`: resolves an OAuth access token to a coach-scoped
   identity through the Luca API.
 
