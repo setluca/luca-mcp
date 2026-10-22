@@ -1277,9 +1277,10 @@ describe("task tools", () => {
     expect(result.isError).toBeUndefined();
     expect(requests.map((request) => request.operation.id)).toEqual([
       "bookings.managedAvailability",
+      "bookings.managedAvailability",
       "bookings.providerRequests.create",
     ]);
-    expect(requests[1]?.body).toEqual({
+    expect(requests[2]?.body).toEqual({
       leadId: "00000000-0000-0000-0000-000000000000",
       bookingTypeId,
       slotId: "slot-1",

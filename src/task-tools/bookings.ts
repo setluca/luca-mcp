@@ -243,7 +243,7 @@ const bookCall = taskTool({
   name: "luca_book_call",
   title: "Book a call with a lead",
   description:
-    'Book a call on the coach\'s calendar provider and have the provider invite the lead\'s email. Reads the open slots of the call type first and books the one that starts at slotAt. When that slot is taken it books nothing and returns the open slots instead, so pick one of them and call again. The answer can be pending while the provider confirms; check it with luca_bookings_provider_requests_get. Booking moves the lead to booked, so pass confirm: true only after the coach approves this exact slot. Reuse the idempotencyKey when retrying the same booking. If a retry answers slot_not_available, the first attempt may have taken the slot, so check luca_bookings_list before booking again. To record a call that is already on a calendar, use luca_bookings_create instead. Example: call with { leadId, bookingTypeId, slotAt: "2026-07-14T15:00:00Z", inviteeEmail: "sam@example.com", confirm: true } after the lead agreed to a time.',
+    "Book a call on the coach's calendar provider and have the provider invite the lead's email; the lead also gets Luca's booking confirmation. Works for call types on Calendly, Cal.com, or Google Calendar. Reads the open slots of the call type first and books the one that starts at slotAt. When that slot is taken it books nothing and returns the open slots instead, so pick one of them and call again. The answer is usually pending while the provider confirms; check it with luca_bookings_provider_requests_get. The booking puts an event on the coach's calendar and invites the lead, so pass confirm: true only after the coach approves this exact slot. If a retry answers slot_not_available, the first attempt may have taken the slot, so check luca_bookings_list before booking again. To record a call that is already on a calendar, use luca_bookings_create instead. Example: call with { leadId, bookingTypeId, slotAt: \"2026-07-14T15:00:00Z\", inviteeEmail: \"sam@example.com\", confirm: true } after the lead agreed to a time.",
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     leadId: NonEmptyString.annotate({ description: "The lead to book." }),
@@ -270,7 +270,7 @@ const bookCall = taskTool({
       })
     ),
     ...idempotencyKeyInput(
-      "Reuse the same key when retrying this exact booking, so the API replays the first result instead of booking twice."
+      "Reuse the same key when retrying this exact booking, so a repeat of a request that already reached the API cannot book the call twice."
     ),
   },
   outputSchema: Schema.Union([
@@ -284,55 +284,76 @@ const bookCall = taskTool({
   run: (call, input) =>
     Effect.gen(function* () {
       const slotAt = stringInput(input.slotAt);
+      const bookingTypeId = stringInput(input.bookingTypeId);
+
+      const timezone =
+        input.timezone === undefined ? "UTC" : stringInput(input.timezone);
+
       // oxlint-disable-next-line effect/use-clock-service -- parse date value from stored data
       const start = new Date(slotAt);
 
       // The provider route books only a slot the scheduler offers, so its id
-      // and end come from this read. A failed read fails the tool: there is
+      // and end come from these reads. A failed read fails the tool: there is
       // nothing to book without it.
-      const page = yield* call("bookings.managedAvailability", {
-        query: {
-          bookingTypeId: stringInput(input.bookingTypeId),
-          timezone:
-            input.timezone === undefined ? "UTC" : stringInput(input.timezone),
-          start: start.toISOString(),
-          // oxlint-disable-next-line effect/use-clock-service -- parse date value from stored data
-          end: new Date(start.getTime() + AVAILABILITY_WINDOW_MS).toISOString(),
-        },
+      const slotsIn = (window: AvailabilityWindow) =>
+        call("bookings.managedAvailability", {
+          query: { bookingTypeId, timezone, ...window },
+        }).pipe(
+          Effect.map((page) =>
+            decodeManagedSlotPage(page).pipe(
+              Option.map((parsed) => parsed.slots),
+              Option.getOrElse(() => [])
+            )
+          )
+        );
+
+      const slots = yield* slotsIn({
+        start: start.toISOString(),
+        // oxlint-disable-next-line effect/use-clock-service -- parse date value from stored data
+        end: new Date(start.getTime() + AVAILABILITY_WINDOW_MS).toISOString(),
       });
 
-      const slots = decodeManagedSlotPage(page).pipe(
-        Option.map((parsed) => parsed.slots),
-        Option.getOrElse(() => [])
-      );
-
-      const slot = slots.find((candidate) =>
+      const found = slots.find((candidate) =>
         sameInstant(candidate.startsAt, slotAt)
       );
-
-      const others = slots
-        .filter((candidate) => candidate !== slot)
-        .map((candidate) => candidate.startsAt);
 
       const taken = {
         booked: false,
         reason: "slot_not_available",
         requestedSlotAt: slotAt,
-        openSlots: others,
+        openSlots: slots
+          .filter((candidate) => candidate !== found)
+          .map((candidate) => candidate.startsAt),
       };
 
-      if (slot === undefined) {
+      if (found === undefined) {
+        return taken;
+      }
+
+      // A slot id carries a version of everything the read saw in its window,
+      // and the provider route checks it against a read of the slot's own
+      // window. Read that window too, so the id is the one the route expects.
+      const exact = (yield* slotsIn({
+        start: found.startsAt,
+        end: found.endsAt,
+      })).find(
+        (candidate) =>
+          sameInstant(candidate.startsAt, found.startsAt) &&
+          sameInstant(candidate.endsAt, found.endsAt)
+      );
+
+      if (exact === undefined) {
         return taken;
       }
 
       return yield* call("bookings.providerRequests.create", {
         body: {
           leadId: input.leadId,
-          bookingTypeId: input.bookingTypeId,
-          slotId: slot.id,
-          startsAt: slot.startsAt,
-          endsAt: slot.endsAt,
-          timezone: slot.timezone,
+          bookingTypeId,
+          slotId: exact.id,
+          startsAt: exact.startsAt,
+          endsAt: exact.endsAt,
+          timezone: exact.timezone,
           inviteeEmail: input.inviteeEmail,
           ...optionalField("inviteeName", input.inviteeName),
         },

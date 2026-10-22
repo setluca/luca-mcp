@@ -185,8 +185,11 @@ and `luca_reschedule_call` moves the booking and mints a guest link under one.
 `luca_book_call` and `luca_reschedule_call` check availability before they write.
 `luca_book_call` books on the coach's calendar provider through
 `POST /api/bookings/provider-requests`, which takes only a slot Luca's scheduler
-offers, so it always reads the call type's slots first and sends the matching
-slot's id, start, end, and time zone. The API checks the slot again and answers
+offers, so it reads the call type's slots for a day from `slotAt`, then reads
+the matching slot's own window again and sends that read's slot id, start, end,
+and time zone. A slot id carries a version of everything its read saw, and the
+route checks it against a read of the slot's own window, so an id from the day
+read would never match. The API checks the slot again and answers
 409 `slot_unavailable` when it went in between; the tool turns that into its
 `slot_not_available` answer. A retry under the same `idempotencyKey` reads the
 slots again, so a retry after a lost response can find its own booking holding
