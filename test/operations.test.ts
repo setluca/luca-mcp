@@ -279,6 +279,15 @@ describe("operation manifest", () => {
       "luca_review_queue_media_retry",
       "luca_review_queue_sla",
       "luca_review_queue_objection_variant",
+      "luca_review_queue_summary",
+      "luca_review_queue_changes",
+      "luca_review_queue_drafting",
+      "luca_review_queue_drafting_cancel",
+      "luca_review_queue_drafting_retry",
+      "luca_review_queue_drafting_dismiss",
+      "luca_review_queue_regenerate",
+      "luca_review_queue_bulk_approve",
+      "luca_review_queue_bulk_reject",
     ]);
   });
 
@@ -497,14 +506,27 @@ describe("operation manifest", () => {
         "callEvents.pushToCrm",
         "integrations.crm.connections.webhooksSetup",
         "integrations.crm.syncRuns.create",
+        "integrations.crm.connections.disconnect",
+        "leads.drafting.resume",
+        "conversations.reply_failure_retry",
+        "reviewQueue.bulkApprove",
+        "reviewQueue.drafting.retry",
+        "reviewQueue.regenerate",
+        "bookings.providerRequests.create",
+        "channels.set_ai_dm_auto_send",
       ])
     );
   });
 
   it("only gates state-changing operations a retry cannot repeat", () => {
-    // An active subscription with the same target URL is updated in place, so
-    // a retried create cannot add a second one and the route takes no key.
-    const naturallyIdempotent = "webhooks.subscriptions.create";
+    const naturallyIdempotent = [
+      // An active subscription with the same target URL is updated in place,
+      // so a retried create cannot add a second one and the route takes no key.
+      "webhooks.subscriptions.create",
+      // The resend goes out under the key the failed reply first used, so a
+      // repeat never reaches the lead twice.
+      "conversations.reply_failure_retry",
+    ];
 
     const gated = LUCA_OPERATIONS.filter(
       (operation) => operation.confirm !== undefined
@@ -513,7 +535,8 @@ describe("operation manifest", () => {
     Arr.forEach(gated, (operation) => {
       expect(operation.method).not.toBe("GET");
       expect(
-        operation.idempotencyRequired || operation.id === naturallyIdempotent
+        operation.idempotencyRequired ||
+          Arr.contains(naturallyIdempotent, operation.id)
       ).toBe(true);
     });
   });
@@ -673,6 +696,14 @@ describe("operation manifest", () => {
         "broadcasts.launch",
         "broadcasts.retry",
         "cadences.rescueStart",
+        "conversations.reply_failure_retry",
+        "reviewQueue.bulkApprove",
+        // A restarted draft goes back through the channel's auto-send policy,
+        // and the switch decides whether Luca's replies skip review at all.
+        "leads.drafting.resume",
+        "reviewQueue.drafting.retry",
+        "reviewQueue.regenerate",
+        "channels.set_ai_dm_auto_send",
         // An outside URL.
         "webhooks.subscriptions.create",
         "webhooks.subscriptions.update",
@@ -691,6 +722,7 @@ describe("operation manifest", () => {
         "bookings.providerSync.retry",
         "bookings.lifecycleResolution",
         "bookings.outcome.record",
+        "bookings.providerRequests.create",
         "callEvents.feedback",
         "callEvents.summary.replace",
         "callEvents.pushToCrm",
@@ -881,6 +913,20 @@ describe("operation manifest", () => {
       "reviewQueue.objectionVariant",
       "learning.proposals.dismiss",
       "memory.setArchived",
+      "leads.drafting.pause",
+      "leads.drafting.resume",
+      "conversations.reply_failure_retry",
+      "conversations.reply_failure_dismiss",
+      "conversations.media_retry",
+      "reviewQueue.drafting.cancel",
+      "reviewQueue.drafting.retry",
+      "reviewQueue.drafting.dismiss",
+      "reviewQueue.regenerate",
+      "reviewQueue.bulkApprove",
+      "reviewQueue.bulkReject",
+      // Reads that answer with ids, counts, and states only.
+      "conversations.send_status",
+      "reviewQueue.changes",
       // The coach's own writing echoed back.
       "leads.fieldDefinitions.upsert",
       "leads.consents.grant",

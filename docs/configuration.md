@@ -54,8 +54,8 @@ retrying the same user intent, so a replay cannot double-file the write.
 
 ## Toolset selection
 
-`LUCA_TOOLSET=full`, the default, registers all 188 operation tools plus the 15
-task tools, 203 in all. `LUCA_TOOLSET=tasks` registers only the task tools and
+`LUCA_TOOLSET=full`, the default, registers all 209 operation tools plus the 15
+task tools, 224 in all. `LUCA_TOOLSET=tasks` registers only the task tools and
 capability discovery, 16 in all. Use it for a coach-facing assistant that works
 through intents like "book this lead a call" rather than raw API calls.
 `LUCA_TOOLSET=claude` registers a fixed set of 43 tools, the one submitted to

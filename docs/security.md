@@ -208,14 +208,20 @@ Its `structuredContent.error` is
 `{ "code": "confirmation_required", "toolName": "<toolName>", "requiredArgument": "confirm" }`,
 and the server logs `mcp.write_gate.rejected`.
 
-These 28 operations carry the gate:
+These 37 operations carry the gate:
 
 - `luca_leads_import_apply`
 - `luca_leads_consents_grant`
+- `luca_leads_drafting_resume`
 - `luca_conversations_send`
 - `luca_conversations_partial_send_retry`
+- `luca_conversations_reply_failure_retry`
 - `luca_review_queue_approve`
+- `luca_review_queue_bulk_approve`
+- `luca_review_queue_drafting_retry`
+- `luca_review_queue_regenerate`
 - `luca_bookings_create`
+- `luca_bookings_provider_requests_create`
 - `luca_bookings_update`
 - `luca_bookings_cancel`
 - `luca_bookings_lifecycle_resolution`
@@ -236,13 +242,18 @@ These 28 operations carry the gate:
 - `luca_webhooks_events_bulk_replay`
 - `luca_integrations_crm_connections_webhooks_setup`
 - `luca_integrations_crm_sync_runs_create`
+- `luca_integrations_crm_connections_disconnect`
+- `luca_channels_set_ai_dm_auto_send`, only when `enabled` is `true`
 - `luca_knowledge_approve_suggestion`
 - `luca_cadences_rescue_start`
 
-`luca_campaigns_set_status` and `luca_call_events_feedback` are the conditional
-gates. Setting `published` resumes a paused campaign, which restarts automatic
-sends to real leads. Pausing or archiving only stops work, so those calls run
-without `confirm`. Reporting a `no_show` outcome can start recovery messaging to
+`luca_campaigns_set_status`, `luca_call_events_feedback`, and
+`luca_channels_set_ai_dm_auto_send` are the conditional gates. Setting
+`published` resumes a paused campaign, which restarts automatic sends to real
+leads. Pausing or archiving only stops work, so those calls run without
+`confirm`. Turning a channel's auto-send on lets Luca's replies reach leads
+without review, and turns on the workspace switch for every other channel whose
+own switch is on; turning it off only sends drafts to review. Reporting a `no_show` outcome can start recovery messaging to
 the lead, so that report needs `confirm`; the other outcomes run without it. The
 tool's description says when the gate applies.
 

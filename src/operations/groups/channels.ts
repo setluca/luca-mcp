@@ -1,3 +1,4 @@
+import { isJsonObject } from "../../serialization.ts";
 import { op } from "../registry.ts";
 import type { LucaOperation } from "../registry.ts";
 
@@ -25,5 +26,20 @@ export const channelsOperations: readonly LucaOperation[] = [
     title: "Get a channel account",
     description:
       "Read one channel account: status, health, cleanup state after a disconnect, and the actions the coach can take on it. Older rows stay readable by ID.",
+  }),
+  op({
+    id: "channels.set_ai_dm_auto_send",
+    title: "Turn auto-send on or off for a channel",
+    // Turning it on lets Luca's replies reach leads without review, on this
+    // account and on every other account whose own switch is on.
+    openWorld: true,
+    confirm: {
+      applies: (input) =>
+        isJsonObject(input.body) && input.body.enabled === true,
+      description:
+        "enabled is true (lets Luca's replies reach leads without review)",
+    },
+    description:
+      "Turn Luca's DM auto-send on or off for one channel account. Off puts every Luca draft on that account in the review queue. On sends them without review and also turns on the workspace switch, so every other account with its own switch on starts sending too. Campaign sends follow their own policy.",
   }),
 ];

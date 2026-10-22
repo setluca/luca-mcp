@@ -10,6 +10,37 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Added
+
+- Add 21 tools for API routes Luca shipped since 0.4.0, bringing the full
+  toolset to 224:
+  - Leads: `luca_leads_drafting_pause` and `luca_leads_drafting_resume`.
+  - Conversations: `luca_conversations_send_status`,
+    `luca_conversations_reply_failure_retry`,
+    `luca_conversations_reply_failure_dismiss`, and
+    `luca_conversations_media_retry`.
+  - Review queue: `luca_review_queue_summary`, `luca_review_queue_changes`,
+    `luca_review_queue_drafting`, `luca_review_queue_drafting_cancel`,
+    `luca_review_queue_drafting_retry`, `luca_review_queue_drafting_dismiss`,
+    `luca_review_queue_regenerate`, `luca_review_queue_bulk_approve`, and
+    `luca_review_queue_bulk_reject`.
+  - Bookings: `luca_bookings_recovery_get`, `luca_bookings_recovery_stop`,
+    `luca_bookings_provider_requests_create`, and
+    `luca_bookings_provider_requests_get`.
+  - `luca_integrations_crm_connections_disconnect` and
+    `luca_channels_set_ai_dm_auto_send`.
+
+  Tools that can send to a lead, book on a calendar, disconnect a CRM, or turn
+  auto-send on need `confirm: true`. Resuming a lead, retrying a draft, and
+  regenerating a draft are gated too: with auto-send on, the new draft can reach
+  the lead without review.
+
+### Fixed
+
+- Let a call leave out a request body the API marks optional. Every body was
+  required, so `luca_review_queue_approve` without edits, and 35 other tools,
+  demanded a `body` argument the API does not need.
+
 ## [0.4.0] - 2026-10-13
 
 ### Added

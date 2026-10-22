@@ -101,7 +101,7 @@ export const LUCA_OPERATION_GROUPS = {
   channels: {
     title: "Channels",
     description:
-      "Connected channel accounts, which channels can be connected, and what each provider supports. Read-only.",
+      "Connected channel accounts, which channels can be connected, what each provider supports, and each account's auto-send switch.",
   },
   insights: {
     title: "Insights",

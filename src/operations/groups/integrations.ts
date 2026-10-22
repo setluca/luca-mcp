@@ -82,4 +82,13 @@ export const integrationsOperations: readonly LucaOperation[] = [
     untrustedContent: true,
     description: "List integration event log.",
   }),
+  op({
+    id: "integrations.crm.connections.disconnect",
+    title: "Disconnect a CRM",
+    mutatesExisting: true,
+    // Stops every sync with that CRM until the coach signs in to it again.
+    confirm: "always",
+    description:
+      "Disable a CRM connection and clear its credentials, which stops every sync with that CRM until the coach connects it again. Saved field mappings and event history stay.",
+  }),
 ];
