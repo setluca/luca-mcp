@@ -119,6 +119,52 @@ describe("remote transport", () => {
     });
   });
 
+  // Directory health checks send these without a token. They stay behind the
+  // challenge, because Claude starts sign-in on the first 401 (docs/remote.md).
+  it.each([
+    [
+      "initialize",
+      {
+        protocolVersion: "2025-06-18",
+        capabilities: {},
+        clientInfo: { name: "probe", version: "1" },
+      },
+    ],
+    ["tools/list", {}],
+    ["tools/call", { name: "luca_leads_list", arguments: {} }],
+    ["tools/call", { name: "luca_conversations_list", arguments: {} }],
+  ])(
+    "challenges an unauthenticated %s without touching the API",
+    async (method, params) => {
+      const apiFetch = vi.fn<typeof fetch>();
+
+      const handler = createRemoteHandler({
+        resolveToken: apiKeyResolver(DEFAULT_SETTINGS, apiFetch),
+        apiFetch,
+      });
+
+      const response = await handler(
+        new Request(MCP_URL, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            accept: "application/json, text/event-stream",
+          },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+        })
+      );
+
+      expect(response.status).toBe(401);
+      expect(response.headers.get("www-authenticate")).toContain("Bearer");
+      // The body names the failure and nothing about any workspace.
+      expect(await response.json()).toEqual({
+        error: "unauthorized",
+        detail: "Missing bearer token",
+      });
+      expect(apiFetch).not.toHaveBeenCalled();
+    }
+  );
+
   it("names the realm and default scope when no resource metadata url is configured", async () => {
     const handler = createRemoteHandler({
       resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),

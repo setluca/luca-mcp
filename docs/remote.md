@@ -190,3 +190,11 @@ for `text/event-stream`, and carries no `Authorization` header. Every other
 request to `/mcp`, including a client's first unauthenticated `POST`, still
 gets the 401 OAuth challenge, which is what starts sign-in in Claude and other
 clients.
+
+The unauthenticated `initialize` and `tools/list` that directory health checks
+such as Glama's try also get the 401. Opening those two methods would let a
+directory list the tools, but Claude and Claude Code start OAuth on that first
+401, so a server that answered `initialize` without a token could connect them
+without ever asking the coach to sign in. Until a real Claude connection has
+been tested against such a change, point the directory's test profile at a
+read-only key for a dedicated test workspace instead.
