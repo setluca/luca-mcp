@@ -36,6 +36,8 @@ export type ToolAnnotationSource = {
    * qualify; creating a new record does not.
    */
   readonly mutatesExisting: boolean;
+  /** Repeating the call with the same input has no further effect. */
+  readonly idempotent: boolean;
   /** Absent when no call needs `confirm: true`. */
   readonly confirm?: ConfirmGate;
   /** The call can read or change something outside the coach's Luca workspace. */
@@ -54,6 +56,7 @@ export function operationAnnotationSource(
     title: operation.title,
     readOnly: operation.readOnly,
     mutatesExisting: operation.mutatesExisting,
+    idempotent: operation.idempotent,
     ...optionalField("confirm", operation.confirm),
     openWorld: operation.openWorld,
   };
@@ -85,11 +88,11 @@ export function toolAnnotations(
     destructiveHint:
       !source.readOnly &&
       (source.confirm !== undefined || source.mutatesExisting),
-    // The idempotency key is optional in the MCP input. The HTTP layer mints a
-    // new key when it is absent, so two otherwise identical writes can still
-    // have different effects. Only advertise the unconditional read guarantee
-    // until the key becomes a required tool argument.
-    idempotentHint: source.readOnly,
+    // Stated per operation: every read, plus the writes a repeat cannot move
+    // further, such as a delete, a dismiss, or a whole-value replace. It never
+    // leans on the idempotency key, which the HTTP layer mints fresh when the
+    // caller leaves it out.
+    idempotentHint: source.idempotent,
     // Every call goes to the Luca API, but most only touch the coach's own
     // workspace. The hint is true only when the call can reach past it: a
     // lead's inbox, an outside URL, or a connected calendar or CRM.

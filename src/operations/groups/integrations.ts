@@ -23,12 +23,16 @@ export const integrationsOperations: readonly LucaOperation[] = [
   op({
     id: "integrations.crm.connections.create",
     title: "Create a CRM connection",
+    idempotent: true,
     mutatesExisting: true,
     description: "Create or update a workspace-scoped CRM connection.",
   }),
   op({
     id: "integrations.crm.connections.schema",
     title: "Read a CRM's field schema",
+    // Refreshes Luca's cached copy of the CRM schema, the same copy every time.
+    readOnly: false,
+    idempotent: true,
     openWorld: true,
     // sampleRecords are literal contact and deal rows from the coach's CRM, which leads and other people filled in.
     untrustedContent: true,
@@ -51,11 +55,13 @@ export const integrationsOperations: readonly LucaOperation[] = [
   op({
     id: "integrations.crm.mappings.suggest",
     title: "Suggest CRM field mappings",
+    idempotent: true,
     description: "Suggest CRM field mappings.",
   }),
   op({
     id: "integrations.crm.mappings.confirm",
     title: "Confirm CRM field mappings",
+    idempotent: true,
     mutatesExisting: true,
     description: "Confirm CRM field mappings.",
   }),
@@ -68,12 +74,11 @@ export const integrationsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "integrations.crm.syncRuns.create",
-    title: "Start a CRM sync",
-    openWorld: true,
-    confirm: "always",
+    title: "Preview a CRM sync",
     // Mutations carry CRM record values: names, emails, notes.
     untrustedContent: true,
-    description: "Create a CRM dry-run or live sync run.",
+    description:
+      "Record a dry-run preview of the changes a CRM sync would make, as a new sync run. Nothing is written to the CRM: the API refuses a live sync.",
   }),
   op({
     id: "integrations.events.list",
@@ -85,6 +90,7 @@ export const integrationsOperations: readonly LucaOperation[] = [
   op({
     id: "integrations.crm.connections.disconnect",
     title: "Disconnect a CRM",
+    idempotent: true,
     mutatesExisting: true,
     // Stops every sync with that CRM until the coach signs in to it again.
     confirm: "always",

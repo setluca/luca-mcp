@@ -61,6 +61,7 @@ export const conversationsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "conversations.reply_failure_dismiss",
+    idempotent: true,
     // Answers with a flag only; no lead-authored text.
     untrustedContent: false,
     title: "Dismiss a failed reply",

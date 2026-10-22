@@ -48,7 +48,8 @@ Registration:
 - `src/tool-cache.ts`: memoizes the derived tool definitions so the Worker
   doesn't rebuild every Effect schema on each request.
 - `src/annotations.ts`: decides what a client is told about a tool before it
-  calls it (`readOnlyHint`, `destructiveHint`, `idempotentHint`).
+  calls it (`readOnlyHint`, `destructiveHint`, `idempotentHint`,
+  `openWorldHint`).
 - `src/resources.ts`, `src/prompts.ts`, `src/completions.ts`: the non-tool MCP
   surfaces. Completions cover `leadId` and `conversationId`, read live from
   `leads.list` and `conversations.list`. MCP completes prompt arguments and

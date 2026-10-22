@@ -13,6 +13,7 @@ export const cadencesOperations: readonly LucaOperation[] = [
   op({
     id: "cadences.pause",
     title: "Pause a lead's cadence",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Pause (cancel) a lead's running rescue cadence with an optional reason.",

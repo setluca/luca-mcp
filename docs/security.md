@@ -220,7 +220,7 @@ Its `structuredContent.error` is
 `{ "code": "confirmation_required", "toolName": "<toolName>", "requiredArgument": "confirm" }`,
 and the server logs `mcp.write_gate.rejected`.
 
-These 37 operations carry the gate:
+These 36 operations carry the gate:
 
 - `luca_leads_import_apply`
 - `luca_leads_consents_grant`
@@ -254,7 +254,6 @@ These 37 operations carry the gate:
 - `luca_webhooks_events_replay`
 - `luca_webhooks_events_bulk_replay`
 - `luca_integrations_crm_connections_webhooks_setup`
-- `luca_integrations_crm_sync_runs_create`
 - `luca_integrations_crm_connections_disconnect`
 - `luca_channels_set_ai_dm_auto_send`, only when `enabled` is `true`
 - `luca_knowledge_approve_suggestion`
@@ -322,3 +321,22 @@ not: nothing it touches existed before the call.
 there. A catalog-wide test asserts that every `DELETE`, `PATCH`, and `PUT` tool
 reads destructive and every `GET` does not, so a new mutating route cannot ship
 announcing itself as safe.
+
+### `idempotentHint` and `openWorldHint`
+
+`idempotentHint` is stated per operation. Every read has it, and so does a
+write that a repeat with the same input cannot move further: deleting,
+dismissing, or cancelling the same record, or replacing a value with the same
+value. It never leans on the idempotency key, which the HTTP layer mints fresh
+when the caller leaves it out. A task tool has it only when every operation it
+composes does.
+
+`openWorldHint` is true when a call reaches past the coach's Luca workspace: a
+lead's inbox, an outside URL, a connected calendar or CRM, or the coach's own
+webhook subscribers, which hear about a lead, review, or broadcast change.
+That last kind is not confirm-gated. The subscriber is one the coach set up,
+and creating or changing a subscription is gated already.
+
+`test/operations.test.ts` lists every open-world operation and every idempotent
+write, and `test/server-protocol.test.ts` pins the hints the October 2026
+annotation audit corrected, as a real MCP client lists them.

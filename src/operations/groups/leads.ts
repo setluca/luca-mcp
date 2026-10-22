@@ -22,6 +22,8 @@ export const leadsOperations: readonly LucaOperation[] = [
   op({
     id: "leads.create",
     title: "Create or upsert a lead",
+    // Sends lead.created to the coach's webhook subscribers.
+    openWorld: true,
     mutatesExisting: true,
     description:
       "Create or upsert a lead identity. Body requires channel and externalUserId.",
@@ -29,6 +31,9 @@ export const leadsOperations: readonly LucaOperation[] = [
   op({
     id: "leads.update",
     title: "Update a lead",
+    // Sends lead.updated to the coach's webhook subscribers, and a tag change
+    // can resume a campaign step that messages the lead.
+    openWorld: true,
     description:
       "Update a lead's display name, stage, score, tags, or custom fields.",
   }),
@@ -39,6 +44,7 @@ export const leadsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "leads.fieldDefinitions.upsert",
+    idempotent: true,
     // Echoes the coach's own field definition back.
     untrustedContent: false,
     title: "Define a custom lead field",
@@ -48,6 +54,8 @@ export const leadsOperations: readonly LucaOperation[] = [
   op({
     id: "leads.importPreview",
     title: "Preview a lead import",
+    // A POST only so the CSV fits in a body. It checks the mapping and saves nothing.
+    readOnly: true,
     description: "Preview a mapped CSV lead import before applying it.",
   }),
   op({
@@ -61,6 +69,8 @@ export const leadsOperations: readonly LucaOperation[] = [
   op({
     id: "leads.identities.attach",
     title: "Attach a channel identity to a lead",
+    // Sends lead.updated to the coach's webhook subscribers.
+    openWorld: true,
     mutatesExisting: true,
     description: "Attach a verified or claimed identity to a lead.",
   }),
@@ -77,6 +87,7 @@ export const leadsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "leads.consents.revoke",
+    idempotent: true,
     // Echoes the consent record the coach revoked.
     untrustedContent: false,
     title: "Revoke a lead's consent",
@@ -99,6 +110,7 @@ export const leadsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "leads.notes.delete",
+    idempotent: true,
     // Answers with ids and status flags only; no lead-authored text.
     untrustedContent: false,
     title: "Delete a lead note",

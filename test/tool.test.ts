@@ -195,7 +195,7 @@ describe("registerTool", () => {
       title: "Delete a lead note",
       readOnlyHint: false,
       destructiveHint: true,
-      idempotentHint: false,
+      idempotentHint: true,
       openWorldHint: false,
     });
     expect(
@@ -228,9 +228,9 @@ describe("registerTool", () => {
     });
   });
 
-  it("claims no idempotency contract for a task tool", () => {
-    // A task tool sends several requests, so no single key describes the call.
-    // Booking composes a gated write, so the tool is destructive too.
+  it("claims idempotency for a task tool only when every operation it composes has it", () => {
+    // Booking composes a create that books again on a repeat, and a gated
+    // write, so the tool is destructive too.
     expect(
       capture(fromTaskTool(taskToolByName("luca_book_call"))).config.annotations
     ).toMatchObject({
@@ -238,6 +238,11 @@ describe("registerTool", () => {
       destructiveHint: true,
       idempotentHint: false,
     });
+    // Pausing a cadence that is already paused changes nothing.
+    expect(
+      capture(fromTaskTool(taskToolByName("luca_pause_cadence"))).config
+        .annotations
+    ).toMatchObject({ readOnlyHint: false, idempotentHint: true });
   });
 
   it("marks a task tool destructive when an ungated write it composes changes existing state", () => {

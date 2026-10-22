@@ -20,6 +20,7 @@ export const memoryOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "memory.setArchived",
+    idempotent: true,
     // Answers with ids and status flags only; no lead-authored text.
     untrustedContent: false,
     title: "Archive or restore memories",

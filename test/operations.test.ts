@@ -507,7 +507,6 @@ describe("operation manifest", () => {
         "callEvents.summary.replace",
         "callEvents.pushToCrm",
         "integrations.crm.connections.webhooksSetup",
-        "integrations.crm.syncRuns.create",
         "integrations.crm.connections.disconnect",
         "leads.drafting.resume",
         "conversations.reply_failure_retry",
@@ -761,8 +760,16 @@ describe("operation manifest", () => {
         "callEvents.feedback",
         "callEvents.summary.replace",
         "callEvents.pushToCrm",
+        "callEvents.summary.generate",
+        "callEvents.backfill",
         "integrations.crm.connections.webhooksSetup",
-        "integrations.crm.syncRuns.create",
+        // The coach's webhook subscribers, which hear about the change.
+        "leads.create",
+        "leads.update",
+        "leads.identities.attach",
+        "reviewQueue.reject",
+        "reviewQueue.bulkReject",
+        "broadcasts.pause",
         // These read outside Luca without changing the outside system.
         "integrations.crm.connections.schema",
         "integrations.crm.connections.health",
@@ -775,7 +782,10 @@ describe("operation manifest", () => {
     // An open-world write lands somewhere Luca cannot take it back from: a
     // lead's inbox, an outside URL, a connected calendar or CRM. CRM health,
     // knowledge sync, and calendar selection read an external system but do
-    // not write to it, so they need no confirmation gate.
+    // not write to it, so they need no confirmation gate. A change the coach's
+    // own webhook subscribers hear about, and a summary that reaches the CRM
+    // only after its review window, are open-world without being a write Luca
+    // cannot take back.
     const ungated = LUCA_OPERATIONS.filter(
       (operation) =>
         operation.method !== "GET" &&
@@ -785,6 +795,14 @@ describe("operation manifest", () => {
             "integrations.crm.connections.health",
             "knowledge.sources.sync",
             "bookings.calendars.select",
+            "leads.create",
+            "leads.update",
+            "leads.identities.attach",
+            "reviewQueue.reject",
+            "reviewQueue.bulkReject",
+            "broadcasts.pause",
+            "callEvents.summary.generate",
+            "callEvents.backfill",
           ],
           operation.id
         ) &&
@@ -1302,14 +1320,65 @@ describe("operation manifest", () => {
     expect(getOperation("bookings.create").pageContract).toBeUndefined();
   });
 
-  it("only advertises idempotency when the call is unconditionally safe", () => {
-    // The input key is optional and the HTTP layer mints a fresh key when it
-    // is omitted, so a retryable write cannot honestly claim idempotence.
+  it("advertises idempotency for reads and for writes a repeat cannot move further", () => {
+    // The hint never leans on the idempotency key, which the HTTP layer mints
+    // fresh when the caller leaves it out. A write claims it only when calling
+    // it again with the same input changes nothing more.
+    const idempotentWrites = LUCA_OPERATIONS.filter(
+      (operation) =>
+        !operation.readOnly && operationAnnotations(operation).idempotentHint
+    ).map((operation) => operation.id);
+
+    expect(sorted(idempotentWrites)).toEqual(
+      sorted([
+        // Removing or revoking the same thing twice.
+        "leads.notes.delete",
+        "leads.consents.revoke",
+        "bookings.guestLinks.revoke",
+        "bookings.types.delete",
+        "bookings.types.attendees.remove",
+        "bookings.calendars.remove",
+        "webhooks.subscriptions.delete",
+        "knowledge.sources.disconnect",
+        "integrations.crm.connections.disconnect",
+        // Moving a record to a state it then stays in.
+        "conversations.reply_failure_dismiss",
+        "reviewQueue.drafting.cancel",
+        "reviewQueue.drafting.dismiss",
+        "reviewQueue.bulkReject",
+        "bookings.recovery.stop",
+        "callEvents.undoOutcome",
+        "broadcasts.pause",
+        "broadcasts.cancel",
+        "cadences.pause",
+        "insights.markRead",
+        "insights.dismiss",
+        "insights.markActioned",
+        "learning.proposals.dismiss",
+        "knowledge.rejectSuggestion",
+        "memory.setArchived",
+        // Replacing a value with the same value, or creating what a repeat
+        // returns as is.
+        "leads.fieldDefinitions.upsert",
+        "bookings.types.schedule.replace",
+        "bookings.calendars.select",
+        "insights.settings.update",
+        "integrations.crm.connections.create",
+        "integrations.crm.mappings.suggest",
+        "integrations.crm.mappings.confirm",
+        "callEvents.backfill",
+        // Refreshes the same cached copy of the CRM schema.
+        "integrations.crm.connections.schema",
+      ])
+    );
+
+    // A preview is a POST only so the CSV fits in a body.
     expect(
       operationAnnotations(getOperation("leads.importPreview"))
     ).toMatchObject({
-      readOnlyHint: false,
-      idempotentHint: false,
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
     });
     expect(operationAnnotations(getOperation("leads.create"))).toMatchObject({
       idempotentHint: false,

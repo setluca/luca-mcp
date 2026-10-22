@@ -189,6 +189,51 @@ describe("MCP protocol", () => {
     }
   }, 15_000);
 
+  it("lists the hints the October 2026 annotation audit corrected", async () => {
+    // LUC-408: OpenAI rejects a submission whose hints do not match what each
+    // tool really does. These are the High and Medium rows of that audit.
+    const { client, close } = await connect(() => Effect.succeed({}));
+
+    onTestFinished(close);
+
+    const { tools } = await client.listTools();
+
+    const hints = (name: string) => {
+      const annotations = tools.find((tool) => tool.name === name)?.annotations;
+
+      return {
+        readOnlyHint: annotations?.readOnlyHint,
+        destructiveHint: annotations?.destructiveHint,
+        idempotentHint: annotations?.idempotentHint,
+        openWorldHint: annotations?.openWorldHint,
+      };
+    };
+
+    const hint = (
+      readOnlyHint: boolean,
+      destructiveHint: boolean,
+      idempotentHint: boolean,
+      openWorldHint: boolean
+    ) => ({ readOnlyHint, destructiveHint, idempotentHint, openWorldHint });
+
+    const expected = {
+      luca_leads_update: hint(false, true, false, true),
+      luca_call_events_summary_generate: hint(false, true, false, true),
+      luca_call_events_backfill: hint(false, false, true, true),
+      luca_insights_settings_get: hint(true, false, true, false),
+      luca_leads_create: hint(false, true, false, true),
+      luca_leads_import_preview: hint(true, false, true, false),
+      luca_leads_identities_attach: hint(false, true, false, true),
+      luca_review_queue_reject: hint(false, true, false, true),
+      luca_review_queue_objection_variant: hint(false, false, false, false),
+      luca_broadcasts_pause: hint(false, true, true, true),
+      luca_integrations_crm_connections_schema: hint(false, false, true, true),
+      luca_integrations_crm_sync_runs_create: hint(false, false, false, false),
+    };
+
+    expect(R.map(expected, (_, name) => hints(name))).toEqual(expected);
+  });
+
   it("registers lead/thread/queue resources and reads them via the API", async () => {
     const requests: LucaRequest[] = [];
 

@@ -27,6 +27,8 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "reviewQueue.reject",
+    // Sends review.rejected to the coach's webhook subscribers.
+    openWorld: true,
     // Answers with ids and status flags only; no lead-authored text.
     untrustedContent: false,
     title: "Reject a queued draft",
@@ -63,7 +65,6 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
     // Answers with ids and status flags only; no lead-authored text.
     untrustedContent: false,
     title: "Record an objection variant choice",
-    mutatesExisting: true,
     description:
       "Record which objection-specialist variant was picked for one queued draft. It is how the objection tests learn which handling works, so record the variant the coach actually chose.",
   }),
@@ -89,6 +90,7 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "reviewQueue.drafting.cancel",
+    idempotent: true,
     // Answers with a turn id and state only; no lead-authored text.
     untrustedContent: false,
     title: "Cancel a draft in progress",
@@ -110,6 +112,7 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "reviewQueue.drafting.dismiss",
+    idempotent: true,
     // Answers with no body.
     untrustedContent: false,
     title: "Dismiss a stopped draft",
@@ -142,6 +145,9 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "reviewQueue.bulkReject",
+    idempotent: true,
+    // Sends review.rejected for each draft to the coach's webhook subscribers.
+    openWorld: true,
     // Answers with one outcome per id; no lead-authored text.
     untrustedContent: false,
     title: "Reject several drafts",
