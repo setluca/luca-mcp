@@ -237,6 +237,7 @@ These 37 operations carry the gate:
 - `luca_bookings_update`
 - `luca_bookings_cancel`
 - `luca_bookings_lifecycle_resolution`
+- `luca_bookings_outcome_record`, only when `status` is `won` or `lost`
 - `luca_bookings_provider_sync_retry`
 - `luca_call_events_feedback`, only when `outcome` is `no_show`
 - `luca_call_events_summary_replace`
@@ -259,8 +260,9 @@ These 37 operations carry the gate:
 - `luca_knowledge_approve_suggestion`
 - `luca_cadences_rescue_start`
 
-`luca_campaigns_set_status`, `luca_call_events_feedback`, and
-`luca_channels_set_ai_dm_auto_send` are the conditional gates. Setting
+`luca_campaigns_set_status`, `luca_call_events_feedback`,
+`luca_bookings_outcome_record`, and `luca_channels_set_ai_dm_auto_send` are
+the conditional gates. Setting
 `published` resumes a paused campaign, which restarts automatic sends to real
 leads. Pausing or archiving only stops work, so those calls run without
 `confirm`. Turning a channel's auto-send on lets Luca's replies reach leads

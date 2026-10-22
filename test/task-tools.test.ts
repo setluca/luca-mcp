@@ -1281,6 +1281,53 @@ describe("luca_book_call", () => {
     ).toBe(false);
   });
 
+  it("sends a retry's idempotency key with the booking when the slot is still open", async () => {
+    const { api, calls } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
+      }),
+      "bookings.providerRequests.create": ok(receipt),
+    });
+
+    await runTool(tool(), api, { ...booking, idempotencyKey: "retry-1" });
+
+    // Both reads still run: the key protects the booking, not the reads.
+    expect(calls.map((call) => call.operation.id)).toEqual([
+      "bookings.managedAvailability",
+      "bookings.managedAvailability",
+      "bookings.providerRequests.create",
+    ]);
+    expect(nth(calls, 2).idempotencyKey).toBe("retry-1");
+  });
+
+  it("answers a retry whose slot is gone with slot_not_available and books nothing", async () => {
+    // The first attempt may have booked the slot and lost its response. The
+    // retry cannot rebuild that booking's request without the slot, so it
+    // reports the slot gone and the description tells the agent to check the
+    // lead's bookings instead of booking again.
+    const { api, calls } = stubApi({
+      "bookings.managedAvailability": ok({
+        slots: [slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z")],
+      }),
+      "bookings.providerRequests.create": ok(receipt),
+    });
+
+    const result = await runTool(tool(), api, {
+      ...booking,
+      idempotencyKey: "retry-1",
+    });
+
+    expect(result).toMatchObject({
+      booked: false,
+      reason: "slot_not_available",
+    });
+    expect(
+      calls.some(
+        (call) => call.operation.id === "bookings.providerRequests.create"
+      )
+    ).toBe(false);
+  });
+
   it("returns a pending answer while the provider confirms", async () => {
     const pending = { id: "action-1", state: "pending_provider" as const };
 
