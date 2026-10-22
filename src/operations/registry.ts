@@ -25,7 +25,7 @@ import {
 } from "../openapi-schema.ts";
 import { fieldsWhen, optionalField } from "../optional-field.ts";
 import { type PageContract, pageContractFor } from "../page-contract.ts";
-import { capabilityRank, effectiveCapability } from "../scopes.ts";
+import { effectiveCapability, higherTier } from "../scopes.ts";
 import type {
   JsonInputObject,
   JsonObject,
@@ -278,20 +278,14 @@ function requiredScopeFor(input: {
     capability = "queue_ops";
   }
 
-  // A stated tier is a floor: it can raise the tier the effect asks for, never
-  // lower it.
-  if (
-    input.capability !== undefined &&
-    capabilityRank(`luca:${input.capability}`) >
-      capabilityRank(`luca:${capability}`)
-  ) {
-    capability = input.capability;
-  }
-
   return {
+    // A stated tier is a floor: it can raise the tier the effect asks for,
+    // never lower it. With none stated the floor is `read`, the bottom rung.
     capability: effectiveCapability({
       scopes: input.scopes,
-      requiredScope: { capability },
+      requiredScope: {
+        capability: higherTier(capability, input.capability ?? "read"),
+      },
     }),
     dataSensitivity: input.untrustedContent ? "full_content" : "redacted",
   };

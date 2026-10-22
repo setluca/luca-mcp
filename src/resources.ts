@@ -70,7 +70,7 @@ export const LUCA_RESOURCES: readonly LucaResourceDef[] = [
   },
   {
     name: "luca-queue-today",
-    title: "Luca review queue (today)",
+    title: "SetLuca review queue (today)",
     description:
       "The current pending review queue: drafts awaiting the coach's approval. Reuses the pipeline's persisted triage; does not re-run it.",
     operationId: "reviewQueue.list",

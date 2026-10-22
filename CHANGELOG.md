@@ -20,8 +20,9 @@ input schema, or changing what a tool does to a workspace.
   `inviteeName` and `timezone`, and no longer takes `provider`. It books the
   call type's open slot that starts at `slotAt`, and answers
   `slot_not_available` with the open slots when that slot is taken, including
-  when it goes between the read and the booking. A call that used the old
-  arguments is refused by the input schema. To record a call that is already on
+  when it goes between the read and the booking. A slot list it cannot read
+  fails the call rather than reading as a full calendar. A call that used the
+  old arguments is refused by the input schema. To record a call that is already on
   a calendar, use `luca_bookings_create`.
 
 ### Added
@@ -51,8 +52,9 @@ input schema, or changing what a tool does to a workspace.
 
 ### Changed
 
-- Name the product SetLuca in the README, the npm description, and the MCP
-  registry description, and drop wording directories flagged. The npm package
+- Name the product SetLuca in the README, the npm description, the MCP
+  registry description, and the review-queue resource title, and drop wording
+  directories flagged. The npm package
   now links to https://setluca.com, and the registry entry links the public
   GitHub repository.
 - The `LICENSE` file now holds the Apache License 2.0 that `package.json`

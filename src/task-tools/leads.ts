@@ -72,7 +72,7 @@ const draftReply = taskTool({
   name: "luca_draft_reply",
   title: "Draft a reply for a lead",
   description:
-    'Draft a reply for a lead, written the way the coach writes, and put it in the Luca review queue, where it waits for the coach to approve it. It never sends, whatever the channel\'s auto-send setting. Optional guidance steers tone or content. Example: call with { leadId, guidance: "keep it short and warm" }.',
+    'Draft a reply for a lead, written the way the coach writes, and put it in the SetLuca review queue, where it waits for the coach to approve it. It never sends, whatever the channel\'s auto-send setting. Optional guidance steers tone or content. Example: call with { leadId, guidance: "keep it short and warm" }.',
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     leadId: NonEmptyString.annotate({

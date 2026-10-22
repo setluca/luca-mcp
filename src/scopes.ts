@@ -207,12 +207,14 @@ export function lowestCapabilityScopeFor(
   return CAPABILITY_LADDER.find((scope) => tierGrants(scope, apiScope));
 }
 
-/** The higher of two capability scopes. */
-function higherCapabilityScope(
-  left: LucaCapabilityScope,
-  right: LucaCapabilityScope
-): LucaCapabilityScope {
-  return capabilityRank(left) >= capabilityRank(right) ? left : right;
+/** The higher of two capability tiers. */
+export function higherTier(
+  left: CapabilityTier,
+  right: CapabilityTier
+): CapabilityTier {
+  return CAPABILITY_TIERS.indexOf(left) >= CAPABILITY_TIERS.indexOf(right)
+    ? left
+    : right;
 }
 
 /** The operation fields that decide which OAuth scope can call it. */
@@ -245,10 +247,7 @@ export function effectiveCapability(
       )
     ) ?? "full";
 
-  return CAPABILITY_TIERS.indexOf(routeTier) >=
-    CAPABILITY_TIERS.indexOf(operation.requiredScope.capability)
-    ? routeTier
-    : operation.requiredScope.capability;
+  return higherTier(routeTier, operation.requiredScope.capability);
 }
 
 /** The OAuth scope that requests {@link effectiveCapability}. */
@@ -265,9 +264,7 @@ export function oauthScopeForOperation(
 export function oauthScopeForTool(
   operations: readonly ScopedOperation[]
 ): LucaCapabilityScope {
-  return Arr.reduce(operations, scopeForTier("read"), (scope, operation) =>
-    higherCapabilityScope(scope, oauthScopeForOperation(operation))
-  );
+  return highestCapabilityScope(Arr.map(operations, oauthScopeForOperation));
 }
 
 /**

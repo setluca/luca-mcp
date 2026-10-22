@@ -889,13 +889,12 @@ describe("luca_book_call", () => {
 
   const BOOKING_TYPE_ID = "11111111-1111-4111-8111-111111111111";
 
-  // Every slot here starts on the hour and runs half an hour.
-  const slot = (startsAt: string, id = `slot-${startsAt}`) => ({
+  const slot = (startsAt: string, endsAt: string, id = `slot-${startsAt}`) => ({
     id,
     bookingTypeId: BOOKING_TYPE_ID,
     provider: "cal_com",
     startsAt,
-    endsAt: startsAt.replace(":00:00Z", ":30:00Z"),
+    endsAt,
     timezone: "UTC",
   });
 
@@ -1005,7 +1004,7 @@ describe("luca_book_call", () => {
   it("reads the call type's slots for a day from the requested start", async () => {
     const { api, calls } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [slot("2026-07-14T15:00:00Z")],
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
       }),
       "bookings.providerRequests.create": ok(receipt),
     });
@@ -1023,7 +1022,7 @@ describe("luca_book_call", () => {
   it("reads the slots in UTC when no time zone is given", async () => {
     const { api, calls } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [slot("2026-07-14T15:00:00Z")],
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
       }),
       "bookings.providerRequests.create": ok(receipt),
     });
@@ -1037,8 +1036,8 @@ describe("luca_book_call", () => {
     const { api, calls } = stubApi({
       "bookings.managedAvailability": ok({
         slots: [
-          slot("2026-07-14T16:00:00Z", "slot-later"),
-          slot("2026-07-14T15:00:00Z", "slot-asked"),
+          slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z", "slot-later"),
+          slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z", "slot-asked"),
         ],
       }),
       "bookings.providerRequests.create": ok(receipt),
@@ -1077,11 +1076,23 @@ describe("luca_book_call", () => {
           request.query?.end === "2026-07-15T15:00:00.000Z"
             ? {
                 slots: [
-                  slot("2026-07-14T15:00:00Z", "day-read-id"),
-                  slot("2026-07-14T16:00:00Z"),
+                  slot(
+                    "2026-07-14T15:00:00Z",
+                    "2026-07-14T15:30:00Z",
+                    "day-read-id"
+                  ),
+                  slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z"),
                 ],
               }
-            : { slots: [slot("2026-07-14T15:00:00Z", "slot-read-id")] }
+            : {
+                slots: [
+                  slot(
+                    "2026-07-14T15:00:00Z",
+                    "2026-07-14T15:30:00Z",
+                    "slot-read-id"
+                  ),
+                ],
+              }
         ),
       "bookings.providerRequests.create": ok(receipt),
     });
@@ -1109,8 +1120,8 @@ describe("luca_book_call", () => {
           request.query?.end === "2026-07-15T15:00:00.000Z"
             ? {
                 slots: [
-                  slot("2026-07-14T15:00:00Z"),
-                  slot("2026-07-14T16:00:00Z"),
+                  slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z"),
+                  slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z"),
                 ],
               }
             : { slots: [] }
@@ -1136,7 +1147,7 @@ describe("luca_book_call", () => {
   it("leaves the invitee name off when none is given", async () => {
     const { api, calls } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [slot("2026-07-14T15:00:00Z")],
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
       }),
       "bookings.providerRequests.create": ok(receipt),
     });
@@ -1153,12 +1164,7 @@ describe("luca_book_call", () => {
   it("treats a slot in another offset as the same moment", async () => {
     const { api, calls } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [
-          {
-            ...slot("2026-07-14T15:00:00Z"),
-            startsAt: "2026-07-14T17:00:00+02:00",
-          },
-        ],
+        slots: [slot("2026-07-14T17:00:00+02:00", "2026-07-14T17:30:00+02:00")],
       }),
       "bookings.providerRequests.create": ok(receipt),
     });
@@ -1175,7 +1181,7 @@ describe("luca_book_call", () => {
   it("books nothing when the slot is not open, and returns the open ones", async () => {
     const { api, calls } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [slot("2026-07-14T16:00:00Z")],
+        slots: [slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z")],
       }),
       "bookings.providerRequests.create": ok(receipt),
     });
@@ -1198,7 +1204,10 @@ describe("luca_book_call", () => {
   it("answers slot_not_available when the slot goes between the read and the booking", async () => {
     const { api } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [slot("2026-07-14T15:00:00Z"), slot("2026-07-14T16:00:00Z")],
+        slots: [
+          slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z"),
+          slot("2026-07-14T16:00:00Z", "2026-07-14T16:30:00Z"),
+        ],
       }),
       "bookings.providerRequests.create": slotTaken,
     });
@@ -1231,7 +1240,7 @@ describe("luca_book_call", () => {
 
     const { api } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [slot("2026-07-14T15:00:00Z")],
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
       }),
       "bookings.providerRequests.create": typeGone,
     });
@@ -1253,15 +1262,18 @@ describe("luca_book_call", () => {
     ).toBe(false);
   });
 
-  it("treats an unreadable slot list as no open slots", async () => {
+  it("fails instead of answering slot_not_available when the slot list cannot be read", async () => {
+    // A changed response is not evidence the calendar is full. Answering
+    // slot_not_available with no open slots would tell the agent something
+    // false about the coach's week.
     const { api, calls } = stubApi({
       "bookings.managedAvailability": ok({ unexpected: true }),
       "bookings.providerRequests.create": ok(receipt),
     });
 
-    const result = await runTool(tool(), api, booking);
-
-    expect(result).toMatchObject({ booked: false, openSlots: [] });
+    await expect(runTool(tool(), api, booking)).rejects.toThrow(
+      "managed availability in a shape this server cannot read"
+    );
     expect(
       calls.some(
         (call) => call.operation.id === "bookings.providerRequests.create"
@@ -1274,7 +1286,7 @@ describe("luca_book_call", () => {
 
     const { api } = stubApi({
       "bookings.managedAvailability": ok({
-        slots: [slot("2026-07-14T15:00:00Z")],
+        slots: [slot("2026-07-14T15:00:00Z", "2026-07-14T15:30:00Z")],
       }),
       "bookings.providerRequests.create": ok(pending),
     });
@@ -1544,7 +1556,14 @@ describe("luca_reschedule_call", () => {
       const { api, calls } = stubApi({
         "bookings.get": BOOKING,
         "bookings.managedAvailability": ok({
-          slots: [{ startsAt: "2026-07-16T15:00:00.000Z" }],
+          slots: [
+            {
+              id: "slot-1",
+              startsAt: "2026-07-16T15:00:00.000Z",
+              endsAt: "2026-07-16T15:30:00.000Z",
+              timezone: "UTC",
+            },
+          ],
         }),
         "bookings.update": ok({ booking: { id: "booking-1" } }),
         "bookings.guestLinks.create": ok({ rescheduleUrl: "https://x/y" }),
@@ -1572,7 +1591,14 @@ describe("luca_reschedule_call", () => {
       const { api, calls } = stubApi({
         "bookings.get": BOOKING,
         "bookings.managedAvailability": ok({
-          slots: [{ startsAt: "2026-07-16T16:00:00Z" }],
+          slots: [
+            {
+              id: "slot-2",
+              startsAt: "2026-07-16T16:00:00Z",
+              endsAt: "2026-07-16T16:30:00Z",
+              timezone: "UTC",
+            },
+          ],
         }),
         "bookings.update": ok({ booking: { id: "booking-1" } }),
       });
@@ -1588,6 +1614,21 @@ describe("luca_reschedule_call", () => {
       expect(
         calls.some((call) => call.operation.id === "bookings.update")
       ).toBe(false);
+    });
+
+    it("moves the call when the booking type's availability comes back unreadable", async () => {
+      // An unreadable slot list is "could not tell" for a reschedule, which
+      // never blocks the move, the same as a failed read.
+      const { api } = stubApi({
+        "bookings.get": BOOKING,
+        "bookings.managedAvailability": ok({ unexpected: true }),
+        "bookings.update": ok({ booking: { id: "booking-1" } }),
+        "bookings.guestLinks.create": ok({ rescheduleUrl: "https://x/y" }),
+      });
+
+      expect(await runTool(tool(), api, move)).toMatchObject({
+        rescheduled: true,
+      });
     });
 
     it("moves the call when the booking type's availability cannot be read", async () => {

@@ -3,7 +3,7 @@ import * as Option from "effect/Option";
 import * as P from "effect/Predicate";
 import * as Schema from "effect/Schema";
 
-import type { LucaError } from "../errors.ts";
+import { LucaDecodeError, type LucaError } from "../errors.ts";
 import {
   IanaTimeZone,
   IsoDateTime,
@@ -12,7 +12,7 @@ import {
 } from "../fields.ts";
 import type { LucaApi } from "../http.ts";
 import { optionalField } from "../optional-field.ts";
-import type { JsonValue } from "../serialization.ts";
+import { type JsonValue, toJsonPayload } from "../serialization.ts";
 import {
   failureAsField,
   idempotencyKeyInput,
@@ -59,13 +59,19 @@ const AvailabilityPage = Schema.Struct({
 
 const decodeAvailabilityPage = Schema.decodeUnknownOption(AvailabilityPage);
 
-const ManagedAvailabilityPage = Schema.Struct({
-  slots: Schema.Array(Schema.Struct({ startsAt: Schema.String })),
+/** A slot from Luca's own scheduler, as the provider booking route takes it. */
+const ManagedSlotPage = Schema.Struct({
+  slots: Schema.Array(
+    Schema.Struct({
+      id: Schema.String,
+      startsAt: Schema.String,
+      endsAt: Schema.String,
+      timezone: Schema.String,
+    })
+  ),
 });
 
-const decodeManagedAvailabilityPage = Schema.decodeUnknownOption(
-  ManagedAvailabilityPage
-);
+const decodeManagedSlotPage = Schema.decodeUnknownOption(ManagedSlotPage);
 
 const BookingBookingType = Schema.Struct({
   booking: Schema.Struct({
@@ -99,23 +105,34 @@ const providerSlots = (
   );
 
 /**
- * Open slots for one booking type, from Luca's own scheduler. The provider
- * route knows nothing of booking types, so it would judge the slot against
- * the wrong calendar. Times are compared as instants, so the display timezone
- * does not matter.
+ * Open slots for one booking type in a window, from Luca's own scheduler,
+ * which already takes the coach's calendar conflicts out. The provider route
+ * knows nothing of booking types, so it would judge a slot against the wrong
+ * calendar.
+ *
+ * An answer this cannot read fails as a decode error instead of reading as no
+ * slots, so a changed response is never mistaken for a full calendar.
  */
-const bookingTypeSlots = (
+const managedSlots = (
   call: TaskCall<"bookings.managedAvailability">,
-  bookingTypeId: string,
-  window: AvailabilityWindow
+  query: AvailabilityWindow & {
+    readonly bookingTypeId: string;
+    readonly timezone: string;
+  }
 ) =>
-  call("bookings.managedAvailability", {
-    query: { ...window, bookingTypeId, timezone: "UTC" },
-  }).pipe(
-    Effect.map((page) =>
-      decodeManagedAvailabilityPage(page).pipe(
-        Option.map((parsed) => parsed.slots)
-      )
+  call("bookings.managedAvailability", { query }).pipe(
+    Effect.flatMap((page) =>
+      Option.match(decodeManagedSlotPage(page), {
+        onNone: () =>
+          Effect.fail(
+            new LucaDecodeError({
+              message:
+                "Luca API returned managed availability in a shape this server cannot read",
+              body: toJsonPayload(page),
+            })
+          ),
+        onSome: (parsed) => Effect.succeed(parsed.slots),
+      })
     )
   );
 
@@ -207,20 +224,6 @@ function slotNotAvailable<const Key extends string>(key: Key) {
   });
 }
 
-/** A slot from Luca's own scheduler, as the provider booking route takes it. */
-const ManagedSlotPage = Schema.Struct({
-  slots: Schema.Array(
-    Schema.Struct({
-      id: Schema.String,
-      startsAt: Schema.String,
-      endsAt: Schema.String,
-      timezone: Schema.String,
-    })
-  ),
-});
-
-const decodeManagedSlotPage = Schema.decodeUnknownOption(ManagedSlotPage);
-
 const SlotTakenBody = Schema.Struct({
   error: Schema.Struct({ code: Schema.Literal("slot_unavailable") }),
 });
@@ -295,19 +298,9 @@ const bookCall = taskTool({
       // The provider route books only a slot the scheduler offers, so its id
       // and end come from these reads. A failed read fails the tool: there is
       // nothing to book without it.
-      const slotsIn = (window: AvailabilityWindow) =>
-        call("bookings.managedAvailability", {
-          query: { bookingTypeId, timezone, ...window },
-        }).pipe(
-          Effect.map((page) =>
-            decodeManagedSlotPage(page).pipe(
-              Option.map((parsed) => parsed.slots),
-              Option.getOrElse(() => [])
-            )
-          )
-        );
-
-      const slots = yield* slotsIn({
+      const slots = yield* managedSlots(call, {
+        bookingTypeId,
+        timezone,
         start: start.toISOString(),
         // oxlint-disable-next-line effect/use-clock-service -- parse date value from stored data
         end: new Date(start.getTime() + AVAILABILITY_WINDOW_MS).toISOString(),
@@ -333,7 +326,9 @@ const bookCall = taskTool({
       // A slot id carries a version of everything the read saw in its window,
       // and the provider route checks it against a read of the slot's own
       // window. Read that window too, so the id is the one the route expects.
-      const exact = (yield* slotsIn({
+      const exact = (yield* managedSlots(call, {
+        bookingTypeId,
+        timezone,
         start: found.startsAt,
         end: found.endsAt,
       })).find(
@@ -428,8 +423,13 @@ const rescheduleCall = taskTool({
             Option.flatMapNullishOr(bookingType, (id) => id),
             {
               onNone: () => providerSlots(call, input, window),
+              // Compared as instants, so the display timezone does not matter.
               onSome: (bookingTypeId) =>
-                bookingTypeSlots(call, bookingTypeId, window),
+                managedSlots(call, {
+                  ...window,
+                  bookingTypeId,
+                  timezone: "UTC",
+                }).pipe(Effect.map(Option.some)),
             }
           )
         )
