@@ -1,6 +1,6 @@
 {
   "name": "@setluca/mcp",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": false,
   "description": "Connect SetLuca to Claude, ChatGPT, Cursor, or any MCP client to triage the review queue, look up leads, draft replies, and check campaigns.",
   "keywords": [

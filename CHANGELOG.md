@@ -10,6 +10,35 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-22
+
+### Fixed
+
+- Tool annotations now match what each tool does, as the October 2026 audit
+  for the OpenAI app directory listed them. All 203 tools it covered match its
+  corrected values, and the 21 tools added in 0.5.0 follow the same rules.
+  - `idempotentHint` is true for 33 writes that a repeat with the same input
+    cannot move further, such as `luca_leads_notes_delete`,
+    `luca_insights_dismiss`, `luca_broadcasts_cancel`, and
+    `luca_pause_cadence`. It was true only for reads before.
+  - `openWorldHint` is true for writes the coach's webhook subscribers hear
+    about (`luca_leads_create`, `luca_leads_update`,
+    `luca_leads_identities_attach`, `luca_review_queue_reject`,
+    `luca_review_queue_bulk_reject`, `luca_broadcasts_pause`) and for the call
+    summaries that later reach the CRM (`luca_call_events_summary_generate`,
+    `luca_call_events_backfill`). None of them needs `confirm: true`.
+  - `luca_leads_import_preview` is read-only. It saves nothing.
+  - `luca_integrations_crm_connections_schema` is no longer read-only, because
+    it refreshes Luca's cached copy of the CRM schema.
+  - `luca_review_queue_objection_variant` is no longer destructive. It adds a
+    learning event and leaves the draft as it was.
+- `luca_integrations_crm_sync_runs_create` is titled "Preview a CRM sync" and
+  no longer asks for `confirm: true` or claims to reach the CRM. The API
+  refuses a live sync, so the tool only records a dry-run preview.
+- `luca_reschedule_call` says that a Cal.com or Google Calendar move waits for
+  the provider: until it confirms, the booking reads `pending_provider` and
+  keeps its old time.
+
 ## [0.5.0] - 2026-10-22
 
 ### Breaking
