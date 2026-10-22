@@ -95,7 +95,7 @@ export const leadsOperations: readonly LucaOperation[] = [
     title: "Draft a reply to a lead",
     untrustedContent: true,
     description:
-      "Draft a voice-matched reply for a lead on demand and queue it for review. Optional guidance steers tone or content.",
+      "Draft a reply for a lead, written the way the coach writes, and put it in the review queue for the coach to approve. It never sends, whatever the channel's auto-send setting. Optional guidance steers tone or content.",
   }),
   op({
     id: "leads.notes.delete",

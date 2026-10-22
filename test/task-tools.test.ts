@@ -2532,7 +2532,7 @@ describe("luca_post_call_queue", () => {
   it("pins the exact metadata", () => {
     expect(tool().name).toBe("luca_post_call_queue");
     expect(tool().description).toBe(
-      "Return everything waiting on the coach after a call: calls that still need a report on how they went, and attended calls with no revenue outcome recorded. The two halves are tracked separately by the API, so a call can sit on one list and not the other. Close an item with luca_close_call_loop. Example: call with {} after a day of calls."
+      "Return everything waiting on the coach after a call: calls that still need a report on how they went, and attended calls with no revenue outcome recorded. The two halves are tracked separately by the API, so a call can sit on one list and not the other. An item leaves the list once the coach reports how the call went and what it was worth. Example: call with {} after a day of calls."
     );
     expect(tool().title).toBe("List the post-call work");
     expect(fromTaskTool(tool()).readOnly).toBe(true);

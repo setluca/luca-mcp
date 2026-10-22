@@ -49,6 +49,15 @@ input schema, or changing what a tool does to a workspace.
 
 ### Changed
 
+- The server introduces itself as SetLuca and names the channels that are live
+  today, Telegram, Instagram, and Messenger, with WhatsApp coming soon. It used
+  to list all four as if they were live.
+- No tool in the Claude toolset names another tool in its description.
+  `luca_draft_reply` no longer tells the model to approve with
+  `luca_approve_and_send`, which the Claude set leaves out. It now says the
+  draft waits in the review queue for the coach and never sends, whatever the
+  channel's auto-send setting. `luca_triage_inbox`, `luca_post_call_queue`,
+  and `luca_analytics_deep_dive` lost their pointers to other tools too.
 - `luca_call_events_feedback` now asks for `luca:queue_ops` instead of
   `luca:draft`. A `no_show` report can start recovery messages to the lead, and
   Luca's API refuses one from a key below `queue_ops`, so a draft-only grant no

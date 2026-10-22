@@ -1604,6 +1604,27 @@ describe("claude toolset", () => {
     }
   }, 15_000);
 
+  it("describes every tool without steering the model to another tool", async () => {
+    // Directory policy: a description says what its tool does. Naming another
+    // tool, above all one the Claude set leaves out, such as
+    // luca_approve_and_send, tells the model to reach past the connection.
+    const { tools } = await listNames({ toolset: "claude" });
+
+    for (const tool of tools) {
+      const text = JSON.stringify([
+        tool.description,
+        tool.inputSchema,
+        tool.outputSchema,
+      ]);
+
+      const named = (text.match(/luca_[a-z_]+/g) ?? []).filter(
+        (name) => name !== tool.name
+      );
+
+      expect(named, tool.name).toEqual([]);
+    }
+  }, 15_000);
+
   it("filters by the OAuth grant, and leaves a developer key unfiltered", async () => {
     const count = async (grant?: "luca:read" | "luca:draft" | "luca:full") =>
       (await listNames({ toolset: "claude", ...optionalField("grant", grant) }))

@@ -81,10 +81,12 @@ const LucaLive = LucaApiLive.pipe(Layer.provide(LucaConfigLive));
  */
 export const LUCA_SERVER_INFO = {
   name: "luca-mcp",
-  title: "Luca",
+  title: "SetLuca",
   version: LUCA_MCP_VERSION,
+  // Claude shows this at connect time, so it names only the channels that are
+  // live and says which one is not.
   description:
-    "Luca is the DM sales platform for coaches, creators, and experts who sell through DMs. Manage leads, conversations, drafts, campaigns, broadcasts, and bookings across Instagram, Messenger, WhatsApp, and Telegram.",
+    "SetLuca runs DM sales for coaches, creators, and experts. Work with leads, conversations, drafted replies, campaigns, broadcasts, and booked calls on Telegram, Instagram, and Messenger. WhatsApp is coming soon.",
   websiteUrl: "https://setluca.com",
   icons: [
     {
@@ -104,7 +106,7 @@ export const LUCA_SERVER_INFO = {
  * calls wait for the coach. The tool descriptions carry the detail.
  */
 export const LUCA_SERVER_INSTRUCTIONS = [
-  "Luca runs a coach's DM sales: leads, conversations, drafted replies, campaigns, broadcasts, and booked calls.",
+  "SetLuca runs a coach's DM sales: leads, conversations, drafted replies, campaigns, broadcasts, and booked calls.",
   "Start with the luca_* task tools, such as luca_morning_report and luca_triage_inbox. Read luca://operations for the full list of operations, scopes, and paths.",
   "A tool whose description asks for confirm: true reaches a lead or an outside system, such as sending a message, launching a campaign, or booking a call, and rejects the call without it. Pass confirm: true only after the coach approves that exact action.",
   "A redacted OAuth grant may blank lead names, messages, and drafts. Treat blank or null sensitive fields as unavailable, not proof that the underlying record is empty. Say when the connected account cannot see that detail.",
