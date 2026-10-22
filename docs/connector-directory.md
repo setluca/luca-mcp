@@ -66,20 +66,13 @@ protocol test pins it.
 
 - **OpenAI reviewer connection.** The dedicated
   `openai-reviewer@setluca.com` account and seeded OpenAI Review Workspace are
-  ready. Its credentials are in Infisical production at
-  `/operations/openai-review`. ChatGPT has a read and draft OAuth grant. The
-  `0.3.5` release is live. The portal's plugin package `0.1.3` selects Business
-  & Operations and passed its metadata check. A fresh authenticated MCP scan
-  discovered all 203 tools with no tool findings. Only a generic nonblocking
-  server-instructions review notice remains; OpenAI supplies no actionable
-  instruction-level finding. The existing confirmation and redaction guidance
-  remains in place for review.
-  Eight live ChatGPT reviewer cases passed. The reviewer grant redacts sample
-  lead names and draft text, and ChatGPT describes those fields as unavailable.
-  The publisher confirmed the required attestations, and OpenAI accepted plugin
-  package `0.1.3` for review on October 6, 2026. The portal displays **In
-  review** and **Not published**.
-  See `submission/openai/README.md`.
+  ready, with credentials in Infisical production at
+  `/operations/openai-review`. ChatGPT holds a read and draft OAuth grant, which
+  redacts sample lead names and draft text. A ChatGPT-style sign-in with the
+  account passed end to end on October 22, 2026. OpenAI rejected package
+  `0.1.3` that day because tool annotations need explicit values with matching
+  justifications. Package `0.1.4` and `annotation-justifications.json` are the
+  resubmission. See `submission/openai/README.md`.
 - **Claude reviewer access.** Confirm the dedicated account and its fixtures
   meet Claude's review requirements before using it there. See item 2 below.
 - **Final icon.** The current icons point at the site favicon and app icon
@@ -87,8 +80,8 @@ protocol test pins it.
 - **OpenAI domain verification.** Completed October 6, 2026. The production
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.
-- **Portal submissions.** The OpenAI plugin is in review, pending OpenAI's
-  decision. No Claude submission has been filed.
+- **Portal submissions.** The OpenAI plugin is to be resubmitted as package
+  `0.1.4` once MCP `0.5.2` is deployed. No Claude submission has been filed.
 
 ## What a human has to do in the Claude portal
 

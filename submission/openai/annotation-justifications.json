@@ -1,0 +1,1573 @@
+{
+  "$comment": "One justification per tool for the OpenAI plugin review form. Each states why the server's readOnlyHint, destructiveHint, and openWorldHint values match what the tool does. test/openai-justifications.test.ts fails when a tool is missing or its hints no longer match these.",
+  "tools": {
+    "luca_capabilities_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: returns what this Luca API connection can do. Changes nothing and contacts no one."
+    },
+    "luca_leads_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list leads from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_leads_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a lead's timeline from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_leads_explain": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: explain why a lead qualified from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_leads_create": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Creates a lead, or updates the same lead if it already exists (upsert, so destructive). Sends a lead.created event to the coach's webhook subscribers outside Luca. Messages no one."
+    },
+    "luca_leads_update": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Edits an existing lead in Luca (overwrite, so destructive). Changing tags can resume a paused campaign step that messages the lead, and the change is sent to the coach's webhook subscribers, so it reaches outside Luca."
+    },
+    "luca_leads_field_definitions_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list custom lead fields from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_leads_field_definitions_upsert": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Define a custom lead field: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_leads_import_preview": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: checks a CSV mapping and shows which leads would be created or updated. Nothing is saved; use the apply tool to import."
+    },
+    "luca_leads_import_apply": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Creates and updates many leads from a CSV in the coach's Luca workspace, overwriting existing fields, so it is destructive and needs confirm. Sends no messages."
+    },
+    "luca_leads_identities_attach": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Links another channel handle to an existing lead (upsert, so destructive). Sends a lead.updated event to the coach's webhook subscribers outside Luca."
+    },
+    "luca_leads_consents_grant": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Records a lead's consent for one channel and purpose. It sends nothing itself but unlocks outreach to a real person on that channel, so it is gated by confirm and marked open-world."
+    },
+    "luca_leads_consents_revoke": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Withdraws a consent the coach granted earlier (changes existing state). Stops outreach on that channel; contacts no one."
+    },
+    "luca_leads_notes_add": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Adds a private coach note to a lead in Luca. Changes nothing existing and contacts no one."
+    },
+    "luca_leads_draft": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Writes a new AI draft reply into the coach's review queue for a human to check. It never sends the message."
+    },
+    "luca_leads_notes_delete": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Delete a lead note: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_leads_drafting_pause": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Pauses Luca's drafting, follow-up cadences, and campaign messages for one lead, replacing any earlier pause (changes existing state). Sends nothing and stays inside the coach's Luca workspace."
+    },
+    "luca_leads_drafting_resume": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Clears a lead's pause and has Luca draft a reply to each unanswered conversation. With auto-send on for the channel, that reply can reach the lead without review, and a sent message cannot be undone. Refuses to run without confirm: true."
+    },
+    "luca_conversations_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list conversations from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_conversations_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a conversation from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_conversations_messages": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read a conversation's messages from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_conversations_send": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Sends a real message to the lead on their channel right away. Cannot be undone, so it is destructive, open-world and needs confirm."
+    },
+    "luca_conversations_partial_send_retry": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Re-sends the parts of a message that did not reach the lead's channel. Sends to a real person, so it is destructive, open-world and needs confirm."
+    },
+    "luca_conversations_send_status": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: looks up whether a manual reply sent under an idempotency key was accepted for sending. Changes nothing and sends nothing."
+    },
+    "luca_conversations_reply_failure_retry": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Sends a reply the coach wrote that failed to go out to the lead through their channel. A sent message cannot be undone. Refuses to run without confirm: true."
+    },
+    "luca_conversations_reply_failure_dismiss": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Closes a failed reply so it leaves the thread for good (changes existing state). Sends nothing and stays inside Luca; dismissing twice changes nothing."
+    },
+    "luca_conversations_media_retry": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Runs a voice note's transcription again, which sends the audio to OpenRouter's speech-to-text outside Luca and replaces the failed transcript. Never drafts or sends anything to the lead."
+    },
+    "luca_review_queue_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list the review queue from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_review_queue_explain": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: explain a queued draft from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_review_queue_approve": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Approves a queued draft and sends it to the lead through their channel. A real message that cannot be undone. Refuses to run without confirm: true."
+    },
+    "luca_review_queue_reject": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Rejects a queued draft so it is never sent (changes existing state). Sends a review.rejected event to the coach's webhook subscribers outside Luca."
+    },
+    "luca_review_queue_restore": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Moves a rejected draft back into the review queue for another look. Changes existing state; sends nothing."
+    },
+    "luca_review_queue_media_retry": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Runs the transcription of a queued draft's voice note again, which sends the audio to OpenRouter's speech-to-text outside Luca and replaces the failed transcript. Never redrafts or sends anything to the lead."
+    },
+    "luca_review_queue_sla": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: check the review queue's response times from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_review_queue_objection_variant": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Records which objection-handling variant the coach picked, as a new learning event. Adds data only; the draft is not changed and nothing is sent."
+    },
+    "luca_review_queue_summary": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: counts the pending drafts and lists the newest few, without draft text. Changes nothing and sends nothing."
+    },
+    "luca_review_queue_changes": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: reports which drafts entered or left the pending queue since an earlier version. Changes nothing and sends nothing."
+    },
+    "luca_review_queue_drafting": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: lists the replies Luca is still drafting and the state of each. Changes nothing and sends nothing."
+    },
+    "luca_review_queue_drafting_cancel": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Stops a reply Luca is drafting and takes back its pending draft (changes existing state). Sends nothing and stays inside Luca; cancelling twice has the same result."
+    },
+    "luca_review_queue_drafting_retry": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Has Luca draft again for a stopped turn. With auto-send on for the channel, the new draft can reach the lead without review, and a sent message cannot be undone. Refuses to run without confirm: true."
+    },
+    "luca_review_queue_drafting_dismiss": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Removes a stopped turn from the drafting list without drafting again (changes existing state). Sends nothing and stays inside Luca; dismissing twice succeeds."
+    },
+    "luca_review_queue_regenerate": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Replaces a pending draft with a new one (overwrite). With auto-send on for the channel, the new draft can reach the lead without review, and a sent message cannot be undone. Refuses to run without confirm: true."
+    },
+    "luca_review_queue_bulk_approve": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Approves several drafts and sends each one to its lead through their channel. Sent messages cannot be undone. Refuses to run without confirm: true."
+    },
+    "luca_review_queue_bulk_reject": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": true,
+      "justification": "Rejects several pending drafts so they never send (changes existing state), and sends a review.rejected event for each to the coach's webhook subscribers outside Luca. A draft already handled is skipped, so repeating the call changes nothing."
+    },
+    "luca_bookings_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list bookings from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_create": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Books a call for a lead in Luca, moves the lead to booked and notifies the coach's webhook subscribers outside Luca. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_bookings_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a booking from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_availability": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "idempotentHint": true,
+      "justification": "Read-only: reads open slots live from the coach's connected booking provider. Changes nothing there or in Luca."
+    },
+    "luca_bookings_managed_availability": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "idempotentHint": true,
+      "justification": "Read-only: reads open slots for a Luca call type, checking conflicts on the coach's connected Google calendar. Changes nothing."
+    },
+    "luca_bookings_types_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list call types from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_types_schedule": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read a call type's schedule from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_types_attendees": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list a call type's attendees from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_providers_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list booking providers from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_providers_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "idempotentHint": true,
+      "justification": "Read-only: reads event types and calendars from the coach's connected booking provider account. Changes nothing."
+    },
+    "luca_bookings_calendars_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list connected calendars from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_outcome_reasons_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list loss reasons from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_outcome_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a booking's outcome from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_outcome_history": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read a booking's outcome history from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_needs_outcome": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list calls with no outcome recorded from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_lifecycle_attention": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list bookings needing attention from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_brief": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read a pre-call brief from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_bookings_update": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Reschedules or edits an existing booking; [Cal.com](<http://Cal.com>) and Google bookings move on that calendar too and the lead's reminder is re-armed. Overwrites and reaches outside Luca, so confirm is required."
+    },
+    "luca_bookings_cancel": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Cancels a booking in Luca and, for synced providers, on the coach's calendar. Destructive and reaches outside Luca, so confirm is required."
+    },
+    "luca_bookings_outcome_record": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Records whether a call was won, lost or still open. Won or lost can update a deal stage in the coach's connected CRM, so those need confirm."
+    },
+    "luca_bookings_lifecycle_resolution": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Settles a booking whose record disagrees with the provider: can retry the provider sync, mark it cancelled, or confirm a no-show that starts recovery messages to the lead. Refuses to run without confirm: true."
+    },
+    "luca_bookings_provider_sync_retry": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Retries writing a booking back to the coach's calendar or booking provider. Changes data in that outside system. Refuses to run without confirm: true."
+    },
+    "luca_bookings_guest_links_create": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Creates new reschedule and cancel links for a booking and returns them. Nothing is sent; the coach decides whether to share them."
+    },
+    "luca_bookings_guest_links_revoke": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Invalidates every outstanding guest link on a booking. Removes access, so it is destructive; contacts no one."
+    },
+    "luca_bookings_outcome_reasons_create": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Create a loss reason: adds new data in the coach's private Luca workspace without changing existing records. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_outcome_reasons_update": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Update a loss reason: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_types_create": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Create a booking type: adds new data in the coach's private Luca workspace without changing existing records. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_types_update": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Update a booking type: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_types_delete": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Delete a booking type: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_types_schedule_replace": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Replace a booking type schedule: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_types_attendees_add": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Add a booking type attendee: adds new data in the coach's private Luca workspace without changing existing records. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_types_attendees_remove": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Remove a booking type attendee: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_calendars_select": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": true,
+      "justification": "Adds or updates which connected Google calendar Luca reads for conflicts or writes bookings to; it checks the calendar with Google first."
+    },
+    "luca_bookings_calendars_remove": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Remove a booking calendar: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_bookings_recovery_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: returns a booking's no-show follow-up state. Changes nothing and sends nothing."
+    },
+    "luca_bookings_recovery_stop": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Stops a booking's no-show follow-ups so no more are scheduled (changes existing state). Sends nothing and stays inside Luca; stopping twice has the same result."
+    },
+    "luca_bookings_provider_requests_create": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Books a slot on the coach's Calendly, Cal.com, or Google Calendar, which emails the lead an invite. The invite cannot be unsent. Refuses to run without confirm: true."
+    },
+    "luca_bookings_provider_requests_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: returns where a calendar booking request stands. Changes nothing and sends nothing."
+    },
+    "luca_call_events_needing_feedback": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list calls still needing a report from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_call_events_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a call event from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_call_events_by_booking": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a booking's call event from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_call_events_by_lead": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list a lead's call events from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_call_events_feedback": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Records how a call went. A no_show can start recovery messages to the lead, so that outcome needs confirm (and a queue_ops grant at the API); a completed call queues a summary that can sync to the CRM."
+    },
+    "luca_call_events_summary_generate": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Queues a fresh AI summary for a call. The summary is pushed to the coach's connected CRM after a 15 minute review window, and an already-synced note is overwritten."
+    },
+    "luca_call_events_summary_replace": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Replaces the call summary with the coach's own text and pushes it to the connected CRM, updating the same note. Overwrites data outside Luca. Refuses to run without confirm: true."
+    },
+    "luca_call_events_push_to_crm": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Pushes the current call summary to the coach's connected CRM now, updating the existing note. Changes data outside Luca. Refuses to run without confirm: true."
+    },
+    "luca_call_events_undo_outcome": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Removes a call outcome recorded in the last few minutes (changes existing state). Contacts no one."
+    },
+    "luca_call_events_backfill": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "idempotentHint": true,
+      "justification": "Creates the call record for a past booking if it is missing and queues a summary that later syncs to the connected CRM. A repeat call returns the same record."
+    },
+    "luca_campaigns_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list campaigns from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a campaign from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_create": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Create a campaign: adds new data in the coach's private Luca workspace without changing existing records. Sends nothing to leads or outside systems."
+    },
+    "luca_campaigns_generate": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Builds a suggested campaign plan from the coach's goal and returns it. Only an audit entry is saved; nothing is sent."
+    },
+    "luca_campaigns_draft_update": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Edit a campaign draft: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_campaigns_enrollments_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list a campaign's enrollments from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_enroll": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Enrolls leads in a live campaign, which starts sending its messages to those real people. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_campaigns_analytics": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read a campaign's results from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_provider_capabilities": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: check what a campaign's channel supports from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_comment_events_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list campaign comment events from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_simulations_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list a campaign's simulations from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_simulations_create": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Simulate a campaign: adds new data in the coach's private Luca workspace without changing existing records. Sends nothing to leads or outside systems."
+    },
+    "luca_campaigns_simulations_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a campaign simulation from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_comment_simulation_suite_run": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Run the comment automation suite: adds new data in the coach's private Luca workspace without changing existing records. Sends nothing to leads or outside systems."
+    },
+    "luca_campaigns_publish": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Publishes a campaign version; enrollments then send its messages to real leads. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_campaigns_set_status": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Pauses, resumes or archives a campaign. Resuming restarts sends to real leads, so that case needs confirm."
+    },
+    "luca_campaigns_duplicate": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Duplicate a campaign: adds new data in the coach's private Luca workspace without changing existing records. Sends nothing to leads or outside systems."
+    },
+    "luca_campaigns_versions_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list campaign versions from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_campaigns_enrollments_timeline": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read an enrollment timeline from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_broadcasts_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list broadcasts from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_broadcasts_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a broadcast from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_broadcasts_create": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Create a broadcast: adds new data in the coach's private Luca workspace without changing existing records. Sends nothing to leads or outside systems."
+    },
+    "luca_broadcasts_preview": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Refreshes which leads match a broadcast and renders sample messages, replacing the previous preview. Nothing is sent."
+    },
+    "luca_broadcasts_approve": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Approves the previewed broadcast and freezes its recipient list. Nothing is sent until launch."
+    },
+    "luca_broadcasts_launch": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Starts sending the approved broadcast to real leads. Cannot be undone; gated by confirm."
+    },
+    "luca_broadcasts_pause": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": true,
+      "justification": "Pauses sends of a running broadcast (changes its state) and sends a broadcast.paused event to the coach's webhook subscribers outside Luca."
+    },
+    "luca_broadcasts_retry": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Re-sends broadcast messages that failed to reach leads. Sends to real people; gated by confirm."
+    },
+    "luca_broadcasts_cancel": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Cancels a broadcast so the remaining messages are never sent. Changes existing state; contacts no one."
+    },
+    "luca_webhooks_subscriptions_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list webhook subscriptions from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_webhooks_subscriptions_create": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Creates a webhook subscription that will post the coach's Luca events to an outside URL they choose. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_webhooks_subscriptions_update": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Changes an existing webhook subscription, including the outside URL that receives events. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_webhooks_subscriptions_delete": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Deletes a webhook subscription in Luca so events stop going to that URL. Destructive; contacts no one."
+    },
+    "luca_webhooks_test_delivery": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Posts a test event to the coach's outside webhook URL. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_webhooks_deliveries_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list webhook deliveries from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_webhooks_signature_guide": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the webhook signature guide from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_webhooks_deliveries_replay": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Re-posts one past webhook delivery to the subscriber's outside URL, which can re-run their automations. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_webhooks_events_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list webhook events from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_webhooks_events_replay": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Re-posts one past event to every matching outside webhook URL. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_webhooks_events_bulk_replay": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Re-posts many past events to the coach's outside webhook URLs. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_integrations_connectors_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list available connectors from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_integrations_crm_oauth_url": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Builds a CRM sign-in URL and saves a short-lived OAuth state token in Luca. Does not contact the CRM."
+    },
+    "luca_integrations_crm_connections_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list CRM connections from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_integrations_crm_connections_create": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Creates or replaces the stored CRM connection settings in Luca (upsert, so destructive). Does not contact the CRM."
+    },
+    "luca_integrations_crm_connections_schema": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "idempotentHint": true,
+      "justification": "Reads the fields and objects from the coach's connected CRM and refreshes Luca's cached copy of that schema. Changes nothing in the CRM."
+    },
+    "luca_integrations_crm_connections_health": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Probes the coach's connected CRM live and stores the health result in Luca. Changes nothing in the CRM."
+    },
+    "luca_integrations_crm_connections_webhooks_setup": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Registers or repairs a webhook on the coach's CRM account. Changes settings in that outside system; gated by confirm."
+    },
+    "luca_integrations_crm_mappings_suggest": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Saves suggested CRM field mappings in Luca for the coach to review. Nothing is applied and the CRM is not touched."
+    },
+    "luca_integrations_crm_mappings_confirm": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Saves the field mapping future CRM syncs will use, replacing the previous mapping. Does not contact the CRM."
+    },
+    "luca_integrations_crm_sync_runs_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list CRM sync runs from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_integrations_crm_sync_runs_create": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Records a dry-run CRM sync preview in Luca. Live sync is refused today, so nothing is written to the CRM."
+    },
+    "luca_integrations_events_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list integration events from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_integrations_crm_connections_disconnect": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Disables a CRM connection and deletes the credentials Luca holds for it, which stops every sync until the coach connects it again. Changes nothing in the CRM itself. Refuses to run without confirm: true."
+    },
+    "luca_voice_profile": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the coach's voice fingerprint from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_voice_corpus": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the coach's voice corpus from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_coach_profile": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the coach's profile from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_coach_niche": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the coach's niche from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_coach_niche_profile": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the coach's niche profile from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_coach_objection_playbook": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the coach's objection playbook from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_coach_post_call_settings": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the post-call settings from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_coach_post_call_crm_mapping": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the post-call CRM mapping from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_coach_post_call_deal_sync": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the post-call deal sync settings from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_coach_audit_log": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the audit log from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_usage_spend": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read this period's spend from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_usage_messages": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read this period's message count from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_safety_accounts": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: check connected account safety from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_channels_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list channel accounts from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_channels_catalog": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list available channels from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_channels_features": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list channel features from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_channels_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get a channel account from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_channels_set_ai_dm_auto_send": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Turns DM auto-send on or off for a channel account. Turned on, Luca's drafts reach leads on that account, and on others with their own switch on, without review, and sent messages cannot be undone. Refuses to run without confirm: true."
+    },
+    "luca_reports_scorecard": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the scorecard from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_reports_morning": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the morning report from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_insights_unread_count": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: count unread insights from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_insights_mark_read": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Mark an insight read: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_insights_dismiss": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Dismiss an insight: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_insights_mark_actioned": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Mark an insight actioned: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_insights_settings_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: returns the coach's alert settings, or the defaults if none were saved. Nothing is created or changed."
+    },
+    "luca_insights_settings_update": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Merge-patches the coach's alert delivery settings in Luca, overwriting the fields sent. Contacts no one."
+    },
+    "luca_learning_panel": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read what Luca wants to learn from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_learning_framework_performance": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read framework objection performance from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_learning_ab_tests_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list A/B tests from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_learning_ab_tests_get": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get an A/B test from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_learning_proposals_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list learning proposals from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_learning_proposals_dismiss": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Dismiss a learning proposal: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_knowledge_suggestions": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list knowledge suggestions from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_knowledge_approve_suggestion": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Applies a suggested change to the coach's profile that Luca uses for drafting. Overwrites profile fields; gated by confirm."
+    },
+    "luca_knowledge_reject_suggestion": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Reject a knowledge suggestion: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_knowledge_sources_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list knowledge sources from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_knowledge_sources_sync": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Queues a re-read of a connected knowledge source, which fetches it from the outside service."
+    },
+    "luca_knowledge_sources_disconnect": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Disconnect a knowledge source: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_memory_list": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list what Luca remembers from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_memory_update": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Edit a memory: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_memory_set_archived": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Archive or restore memories: changes or removes existing data in the coach's private Luca workspace, so it is marked destructive. Sends nothing to leads or outside systems."
+    },
+    "luca_cadences_rescue_start": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Enrolls silent leads in a multi-day rescue cadence that sends real messages to them. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_cadences_pause": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Cancels a lead's in-flight rescue cadence so no more touches are sent. Changes existing state; contacts no one."
+    },
+    "luca_analytics_funnel": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the funnel from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_revenue": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read revenue from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_speed_impact": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read what reply speed is worth from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_forecast": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the revenue forecast from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_call_intelligence": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read call intelligence from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_call_intelligence_calls": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list calls behind call intelligence from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_ghosted_leads": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: analyze leads who stopped replying from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_trust_score": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the trust score from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_lead_score": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read a lead's score from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_loss_reasons": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read why deals are lost from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_content_attribution": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read which content brings leads from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_content_performance": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read content performance from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_topic_performance": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read topic performance from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_benchmarks": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read peer benchmarks from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_insights": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list insights from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_trends": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read trends from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_recommendations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read recommendations from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_benchmark_consent": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: check benchmark sharing consent from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_learning_insights": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read what Luca has learned from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_crm_sync_health": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: check CRM sync health from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_objections": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read objection patterns from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_objection_drilldown": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: drill into one objection type from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_triage_inbox": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: lists the review queue with explanations for the top drafts. Changes nothing and sends nothing."
+    },
+    "luca_morning_report": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get the morning digest from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_find_leads": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: find leads from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_flag_for_human": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Adds a note on a lead asking a human to step in. Adds data only and contacts no one."
+    },
+    "luca_draft_reply": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": false,
+      "justification": "Writes an AI draft reply into the review queue for a human to check. Never sends it."
+    },
+    "luca_approve_and_send": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Approves a queued draft and sends it to the lead. A real message that cannot be undone; gated by confirm."
+    },
+    "luca_book_call": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Checks availability, then books a call for a lead in Luca and notifies the coach's webhook subscribers outside Luca. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_reschedule_call": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Moves a booking to a new time (on [Cal.com](<http://Cal.com>) or Google too) and returns a fresh reschedule link. Overwrites and reaches outside Luca; gated by confirm."
+    },
+    "luca_post_call_queue": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: list the post-call work from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_close_call_loop": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Records how a call went and what it was worth. A no_show can start recovery messages to the lead and won or lost can update the CRM, so those need confirm."
+    },
+    "luca_rescue_silent_leads": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": true,
+      "idempotentHint": false,
+      "justification": "Enrolls silent leads in a rescue cadence that sends real messages over the next days. Gated by confirm. Refuses to run without confirm: true."
+    },
+    "luca_pause_cadence": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Cancels a lead's rescue cadence so no more touches go out. Changes existing state; contacts no one."
+    },
+    "luca_analytics_rollup": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: get campaign and broadcast analytics from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_magic_monday": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: read the weekly business report from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    },
+    "luca_analytics_deep_dive": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "openWorldHint": false,
+      "idempotentHint": true,
+      "justification": "Read-only: run a deep-dive analytics investigation from the coach's own Luca workspace. Creates, changes, deletes and sends nothing."
+    }
+  }
+}
