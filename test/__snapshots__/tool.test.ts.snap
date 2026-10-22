@@ -81,7 +81,7 @@ exports[`tool auth metadata > pins the OAuth scope every tool asks for 1`] = `
   "luca_call_events_backfill": "luca:draft",
   "luca_call_events_by_booking": "luca:read",
   "luca_call_events_by_lead": "luca:read",
-  "luca_call_events_feedback": "luca:draft",
+  "luca_call_events_feedback": "luca:queue_ops",
   "luca_call_events_get": "luca:read",
   "luca_call_events_needing_feedback": "luca:read",
   "luca_call_events_push_to_crm": "luca:queue_ops",

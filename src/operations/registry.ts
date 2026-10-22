@@ -263,11 +263,14 @@ function requiredScopeFor(input: {
   readonly method: LucaMethod;
   readonly scopes: readonly string[];
   readonly confirm: ConfirmGate | undefined;
+  readonly capability: CapabilityTier | undefined;
   readonly untrustedContent: boolean;
 }): RequiredScope {
   let capability: CapabilityTier = "draft";
 
-  if (input.method === "GET") {
+  if (input.capability !== undefined) {
+    capability = input.capability;
+  } else if (input.method === "GET") {
     capability = "read";
   } else if (input.confirm === "always") {
     // Real-world side effect (sends, enrollments, replays) = operating the
@@ -508,6 +511,13 @@ export function op(input: {
    * Absent means the call runs without it.
    */
   readonly confirm?: ConfirmGate;
+  /**
+   * The tier the operation states when the API asks more of some calls than
+   * the route's scopes say. A conditional gate leaves the tier at the route's,
+   * so an operation whose gated calls also need a higher grant names it here.
+   * The route's scopes can still raise it further.
+   */
+  readonly capability?: CapabilityTier;
 }) {
   const route = ROUTE_CATALOG[input.id];
   const { method, path, scopes, idempotencyRequired } = route;
@@ -537,6 +547,7 @@ export function op(input: {
       method,
       scopes,
       confirm: input.confirm,
+      capability: input.capability,
       untrustedContent,
     }),
     description: input.description,

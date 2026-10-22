@@ -164,7 +164,7 @@ describe("MCP protocol", () => {
     expect(
       tools.find((tool) => tool.name === "luca_insights_settings_get")
         ?.annotations?.readOnlyHint
-    ).toBe(false);
+    ).toBe(true);
     expect(
       tools.find((tool) => tool.name === "luca_integrations_crm_oauth_url")
         ?.annotations?.readOnlyHint

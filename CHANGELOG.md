@@ -35,8 +35,18 @@ input schema, or changing what a tool does to a workspace.
   regenerating a draft are gated too: with auto-send on, the new draft can reach
   the lead without review.
 
+### Changed
+
+- `luca_call_events_feedback` now asks for `luca:queue_ops` instead of
+  `luca:draft`. A `no_show` report can start recovery messages to the lead, and
+  Luca's API refuses one from a key below `queue_ops`, so a draft-only grant no
+  longer lists the tool as one it can call.
+
 ### Fixed
 
+- Mark `luca_insights_settings_get` read-only. Luca's API now returns the
+  default alert settings without creating a row, so the read no longer counts
+  as a write.
 - Let a call leave out a request body the API marks optional. Every body was
   required, so `luca_review_queue_approve` without edits, and 35 other tools,
   demanded a `body` argument the API does not need.

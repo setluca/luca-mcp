@@ -24,6 +24,7 @@ import {
   operationManifest,
   outputSchemaFor,
 } from "../src/operations.ts";
+import { oauthScopeForOperation } from "../src/scopes.ts";
 import { JsonObject } from "../src/serialization.ts";
 import { toStandardSchema } from "../src/standard-schema.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
@@ -568,6 +569,17 @@ describe("operation manifest", () => {
     );
   });
 
+  it("tiers a call-event report at queue_ops because a no_show can message the lead", () => {
+    const operation = getOperation("callEvents.feedback");
+
+    // The route's call_events:write is a draft-tier scope, but the API refuses
+    // a no_show from a key below queue_ops. A draft grant must not see a tool
+    // that can start recovery messages as one it is allowed to call.
+    expect(operation.requiredScope.capability).toBe("queue_ops");
+    expect(oauthScopeForOperation(operation)).toBe("luca:queue_ops");
+    expect(operationAnnotations(operation).openWorldHint).toBe(true);
+  });
+
   it("gates only booking outcomes that can change a connected CRM deal", () => {
     const operation = getOperation("bookings.outcome.record");
 
@@ -659,13 +671,13 @@ describe("operation manifest", () => {
       openWorldHint: false,
     });
 
-    // This GET inserts the default settings row on first use.
+    // Returns the defaults without writing a row before the first change.
     expect(
       operationAnnotations(getOperation("insights.settings.get"))
     ).toMatchObject({
-      readOnlyHint: false,
+      readOnlyHint: true,
       destructiveHint: false,
-      idempotentHint: false,
+      idempotentHint: true,
     });
 
     // This GET stores a fresh OAuth state record for the callback.

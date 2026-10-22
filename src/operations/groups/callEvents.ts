@@ -44,8 +44,11 @@ export const callEventsOperations: readonly LucaOperation[] = [
       applies: (input) => isNoShowReport(input.body),
       description: "outcome is no_show (can start recovery messaging)",
     },
+    // The API refuses a no_show from a key below queue_ops, so the tool states
+    // the tier that can file every report it accepts.
+    capability: "queue_ops",
     description:
-      "File the coach's report on how a call went. A completed or no_show outcome also records booking attendance, and a completed call queues its summary.",
+      "File the coach's report on how a call went. A completed or no_show outcome also records booking attendance, and a completed call queues its summary. A no_show can start recovery messages to the lead, so it needs the queue_ops grant and confirm: true.",
   }),
   op({
     id: "callEvents.summary.generate",
