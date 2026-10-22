@@ -10,6 +10,8 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-22
+
 ### Breaking
 
 - `luca_book_call` now books the call on the coach's calendar provider, which
@@ -53,8 +55,8 @@ input schema, or changing what a tool does to a workspace.
   registry description, and drop wording directories flagged. The npm package
   now links to https://setluca.com, and the registry entry links the public
   GitHub repository.
-- License the package under the Apache License 2.0 in the `LICENSE` file too.
-  `package.json` already said Apache-2.0 while the file held the MIT text.
+- The `LICENSE` file now holds the Apache License 2.0 that `package.json`
+  already named. It held the MIT text, so npm and GitHub disagreed.
 - The server introduces itself as SetLuca and names the channels that are live
   today, Telegram, Instagram, and Messenger, with WhatsApp coming soon. It used
   to list all four as if they were live.
