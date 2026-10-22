@@ -53,6 +53,9 @@ export const broadcastsOperations: readonly LucaOperation[] = [
   op({
     id: "broadcasts.pause",
     title: "Pause a broadcast",
+    idempotent: true,
+    // Sends broadcast.paused to the coach's webhook subscribers.
+    openWorld: true,
     mutatesExisting: true,
     // Recipient snapshot, see the note above this list.
     untrustedContent: true,
@@ -72,6 +75,7 @@ export const broadcastsOperations: readonly LucaOperation[] = [
   op({
     id: "broadcasts.cancel",
     title: "Cancel a broadcast",
+    idempotent: true,
     mutatesExisting: true,
     // Recipient snapshot, see the note above this list.
     untrustedContent: true,

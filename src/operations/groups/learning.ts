@@ -34,6 +34,7 @@ export const learningOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "learning.proposals.dismiss",
+    idempotent: true,
     // Answers with ids and status flags only; no lead-authored text.
     untrustedContent: false,
     title: "Dismiss a learning proposal",

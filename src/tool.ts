@@ -56,6 +56,7 @@ export type RegisterableTool = {
   readonly outputSchema: ToolFields;
   readonly readOnly: boolean;
   readonly mutatesExisting: boolean;
+  readonly idempotent: boolean;
   /** Absent when no call needs `confirm: true`. */
   readonly confirm?: ConfirmGate;
   readonly untrustedContent: boolean;
@@ -175,6 +176,9 @@ function buildFromTaskTool(tool: LucaTaskTool): RegisterableTool {
     // A task tool overwrites or removes existing state when any write it
     // composes does.
     mutatesExisting: composed.some((operation) => operation.mutatesExisting),
+    // Repeating a task tool has no further effect only when that holds for
+    // every operation it composes.
+    idempotent: composed.every((operation) => operation.idempotent),
     ...optionalField("confirm", confirm),
     untrustedContent,
     // A task tool reaches as far as the furthest operation it composes.

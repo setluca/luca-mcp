@@ -186,6 +186,13 @@ export type LucaOperation = {
   readonly mutatesExisting: boolean;
   /** Whether the call leaves Luca and its connected systems unchanged. */
   readonly readOnly: boolean;
+  /**
+   * Whether repeating the call with the same input has no further effect, such
+   * as deleting, dismissing, or cancelling the same record twice. Clients read
+   * it as the MCP `idempotentHint`. It is about the call itself, not the
+   * idempotency key, which only makes a retry of the same request safe.
+   */
+  readonly idempotent: boolean;
   readonly idempotencyRequired: boolean;
   /** Absent when the operation needs no confirmation; see {@link ConfirmGate}. */
   readonly confirm?: ConfirmGate;
@@ -494,6 +501,8 @@ export function op(input: {
   readonly mutatesExisting?: boolean;
   /** Override method-derived behavior for a GET that creates or changes state. */
   readonly readOnly?: boolean;
+  /** See {@link LucaOperation.idempotent}. Defaults to `readOnly`. */
+  readonly idempotent?: boolean;
   /** See {@link LucaOperation.openWorld}. Defaults to false. */
   readonly openWorld?: boolean;
   readonly description: string;
@@ -530,6 +539,8 @@ export function op(input: {
   const untrustedContent =
     input.untrustedContent ?? HashSet.has(UNTRUSTED_CONTENT_GROUPS, group);
 
+  const readOnly = input.readOnly ?? method === "GET";
+
   const operation: LucaOperation = {
     id: input.id,
     group,
@@ -539,7 +550,8 @@ export function op(input: {
     path,
     scopes,
     mutatesExisting: mutatesExistingRoute,
-    readOnly: input.readOnly ?? method === "GET",
+    readOnly,
+    idempotent: input.idempotent ?? readOnly,
     idempotencyRequired,
     ...optionalField("confirm", input.confirm),
     openWorld: input.openWorld ?? false,

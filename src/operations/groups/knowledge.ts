@@ -19,6 +19,7 @@ export const knowledgeOperations: readonly LucaOperation[] = [
   op({
     id: "knowledge.rejectSuggestion",
     title: "Reject a knowledge suggestion",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Reject a profile suggestion so it stops being offered. The profile is left as it stands.",
@@ -40,6 +41,7 @@ export const knowledgeOperations: readonly LucaOperation[] = [
   op({
     id: "knowledge.sources.disconnect",
     title: "Disconnect a knowledge source",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Delete a knowledge source. Its pending suggestions go with it; values the coach already approved stay in the profile, because approving copies them there.",

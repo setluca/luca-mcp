@@ -53,6 +53,8 @@ export const callEventsOperations: readonly LucaOperation[] = [
   op({
     id: "callEvents.summary.generate",
     title: "Generate a call summary",
+    // The summary is pushed to the coach's connected CRM after its review window.
+    openWorld: true,
     mutatesExisting: true,
     untrustedContent: true,
     description:
@@ -86,6 +88,7 @@ export const callEventsOperations: readonly LucaOperation[] = [
   op({
     id: "callEvents.undoOutcome",
     title: "Undo a call's outcome",
+    idempotent: true,
     mutatesExisting: true,
     untrustedContent: true,
     description:
@@ -94,6 +97,9 @@ export const callEventsOperations: readonly LucaOperation[] = [
   op({
     id: "callEvents.backfill",
     title: "Backfill a booking's call event",
+    idempotent: true,
+    // The summary it queues later syncs to the coach's connected CRM.
+    openWorld: true,
     untrustedContent: true,
     description:
       "Create a call event for a booking that predates automatic creation, then queue its summary. Safe to call twice: an existing call event comes back as is.",

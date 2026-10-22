@@ -192,6 +192,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.guestLinks.revoke",
     title: "Revoke a booking's guest links",
+    idempotent: true,
     mutatesExisting: true,
     description: "Kill every outstanding guest link on a booking at once.",
   }),
@@ -224,12 +225,14 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.types.delete",
     title: "Delete a booking type",
+    idempotent: true,
     description:
       "Remove a booking type and get back the types that are left. Calls already booked against it are not cancelled.",
   }),
   op({
     id: "bookings.types.schedule.replace",
     title: "Replace a booking type schedule",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Replace a booking type's schedule outright. Send every rule and override you want to keep \u2014 anything left out is dropped, which is also how you clear a day. Read the current schedule first unless you mean to start over.",
@@ -243,6 +246,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.types.attendees.remove",
     title: "Remove a booking type attendee",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Remove a standing attendee from one booking type and get back the ones that are left. Calls already booked keep the invitees they were created with.",
@@ -250,6 +254,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.calendars.select",
     title: "Select a booking calendar",
+    idempotent: true,
     mutatesExisting: true,
     // Selection checks that the calendar exists in the connected Google account.
     openWorld: true,
@@ -259,6 +264,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.calendars.remove",
     title: "Remove a booking calendar",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Stop using a calendar for conflict checks or as the booking destination. The calendar itself is left alone in Google; only Luca's selection changes.",
@@ -272,6 +278,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
   op({
     id: "bookings.recovery.stop",
     title: "Stop a no-show recovery",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Stop a booking's no-show recovery so no further follow-up is scheduled. A follow-up already being sent may still arrive. Send recovery.id as recoveryCaseId and recovery.outcomeVersion from luca_bookings_recovery_get; a recovery that changed since that read returns 409 booking_recovery_changed.",

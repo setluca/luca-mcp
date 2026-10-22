@@ -11,6 +11,7 @@ export const insightsOperations: readonly LucaOperation[] = [
   op({
     id: "insights.markRead",
     title: "Mark an insight read",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Mark one insight read, so it stops coming back at the top of the feed.",
@@ -18,6 +19,7 @@ export const insightsOperations: readonly LucaOperation[] = [
   op({
     id: "insights.dismiss",
     title: "Dismiss an insight",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Dismiss one insight the coach does not want to act on. Use this rather than leaving it unread forever.",
@@ -25,6 +27,7 @@ export const insightsOperations: readonly LucaOperation[] = [
   op({
     id: "insights.markActioned",
     title: "Mark an insight actioned",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Record that the thing an insight asked for was actually done. Use it after doing the work, not instead of it.",
@@ -38,6 +41,7 @@ export const insightsOperations: readonly LucaOperation[] = [
   op({
     id: "insights.settings.update",
     title: "Update alert delivery settings",
+    idempotent: true,
     mutatesExisting: true,
     description:
       "Merge-patch the coach's alert-delivery settings. Send only what you are changing; anything left out keeps its current value.",

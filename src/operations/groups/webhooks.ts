@@ -31,6 +31,7 @@ export const webhooksOperations: readonly LucaOperation[] = [
   op({
     id: "webhooks.subscriptions.delete",
     title: "Delete a webhook subscription",
+    idempotent: true,
     // Deleting by id is naturally idempotent (the route matches its policy
     // entry, which carries no requireIdempotency), so no Idempotency-Key is
     // sent and it stays out of the confirm-gated tier that re-triggers live
