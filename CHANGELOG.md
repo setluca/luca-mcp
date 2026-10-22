@@ -10,6 +10,18 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Breaking
+
+- `luca_book_call` now books the call on the coach's calendar provider, which
+  sends the lead an invite, instead of only recording a booking in Luca. It
+  takes `bookingTypeId` and `inviteeEmail`, both required, plus an optional
+  `inviteeName` and `timezone`, and no longer takes `provider`. It books the
+  call type's open slot that starts at `slotAt`, and answers
+  `slot_not_available` with the open slots when that slot is taken, including
+  when it goes between the read and the booking. A call that used the old
+  arguments is refused by the input schema. To record a call that is already on
+  a calendar, use `luca_bookings_create`.
+
 ### Added
 
 - Add 21 tools for API routes Luca shipped since 0.4.0, bringing the full

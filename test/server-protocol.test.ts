@@ -1238,13 +1238,27 @@ describe("task tools", () => {
     });
   });
 
-  it("book_call checks availability, then posts leadId and slotAt to bookings.create", async () => {
+  it("book_call reads the call type's slots, then books the matching one on the provider", async () => {
     const requests: LucaRequest[] = [];
+    const bookingTypeId = "11111111-1111-4111-8111-111111111111";
 
     const { client, close } = await connect((request) => {
       requests.push(request);
 
-      return Effect.succeed({ bookingId: "b-1" });
+      return Effect.succeed(
+        request.operation.id === "bookings.managedAvailability"
+          ? {
+              slots: [
+                {
+                  id: "slot-1",
+                  startsAt: "2026-07-14T15:00:00Z",
+                  endsAt: "2026-07-14T15:30:00Z",
+                  timezone: "UTC",
+                },
+              ],
+            }
+          : { id: "action-1", state: "confirmed" }
+      );
     });
 
     onTestFinished(close);
@@ -1253,22 +1267,26 @@ describe("task tools", () => {
       name: "luca_book_call",
       arguments: {
         leadId: "00000000-0000-0000-0000-000000000000",
+        bookingTypeId,
         slotAt: "2026-07-14T15:00:00Z",
+        inviteeEmail: "sam@example.com",
         confirm: true,
       },
     });
 
     expect(result.isError).toBeUndefined();
-    // The availability read comes first. This stub answers it with a shape
-    // the tool cannot read as slots, which is the "we could not tell" path:
-    // the booking still goes through.
     expect(requests.map((request) => request.operation.id)).toEqual([
-      "bookings.availability",
-      "bookings.create",
+      "bookings.managedAvailability",
+      "bookings.providerRequests.create",
     ]);
     expect(requests[1]?.body).toEqual({
       leadId: "00000000-0000-0000-0000-000000000000",
-      slotAt: "2026-07-14T15:00:00Z",
+      bookingTypeId,
+      slotId: "slot-1",
+      startsAt: "2026-07-14T15:00:00Z",
+      endsAt: "2026-07-14T15:30:00Z",
+      timezone: "UTC",
+      inviteeEmail: "sam@example.com",
     });
   });
 
@@ -1287,7 +1305,9 @@ describe("task tools", () => {
       name: "luca_book_call",
       arguments: {
         leadId: "00000000-0000-0000-0000-000000000000",
+        bookingTypeId: "11111111-1111-4111-8111-111111111111",
         slotAt: "2026-07-14T15:00:00Z",
+        inviteeEmail: "sam@example.com",
       },
     });
 
