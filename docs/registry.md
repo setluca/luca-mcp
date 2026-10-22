@@ -24,13 +24,18 @@ ownership is proven and what the workflow does.
   entry whose transport type or url the registry schema would refuse, because
   that failure would otherwise land at publish time, after npm has already
   shipped.
-- No `repository` field. The source repo is private, so a repository link would
-  404 for every reader of a public listing.
+- `repository` points at `https://github.com/setluca/luca-mcp`, which is public.
+  Directories such as Glama and LibHunt read the description from there too, so
+  keep the GitHub repo description in the same SetLuca wording as `server.json`.
 
 ## Still open
 
-**Smithery and Glama.** Neither has a Luca listing yet. Confirm their current
-manifest requirements before submitting, since both may want metadata beyond
+**Smithery and Glama.** Glama lists the server from this manifest as
+`io.github.setluca/luca-mcp`. Its health check calls `/mcp` without a token
+and gets the 401, so it shows the server as unhealthy until its test profile
+holds a read-only key; [remote.md](./remote.md#other-public-routes) explains
+why the 401 stays. Smithery has no listing yet. Confirm its manifest
+requirements before submitting, since it may want metadata beyond
 `server.json`.
 
 **The 0.1.1 listing under the old namespace.** `io.github.leonardomso/luca-mcp`

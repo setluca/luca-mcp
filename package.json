@@ -2,13 +2,15 @@
   "name": "@setluca/mcp",
   "version": "0.4.0",
   "private": false,
-  "description": "Let your AI assistant help with Luca conversations, leads, replies, campaigns, and bookings.",
+  "description": "Connect SetLuca to Claude, ChatGPT, Cursor, or any MCP client to triage the review queue, look up leads, draft replies, and check campaigns.",
   "keywords": [
     "ai",
     "luca",
     "mcp",
-    "model-context-protocol"
+    "model-context-protocol",
+    "setluca"
   ],
+  "homepage": "https://setluca.com",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
