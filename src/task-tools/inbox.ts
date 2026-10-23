@@ -6,10 +6,11 @@ import * as Schema from "effect/Schema";
 import { formatError } from "../errors.ts";
 import { WORKSPACE_INPUT_FIELDS } from "../fields.ts";
 import { logAgentSurfaceEvent } from "../observability.ts";
+import { operationById } from "../operations.ts";
+import { recordIdsOf } from "../pagination.ts";
 import type { JsonValue } from "../serialization.ts";
 import {
   isPartialFailure,
-  listingIds,
   numberInput,
   operationResult,
   resultOrError,
@@ -20,6 +21,8 @@ import {
 const DEFAULT_QUEUE_LIMIT = 20;
 
 const DEFAULT_EXPLAIN_TOP = 3;
+
+const queueIds = recordIdsOf(operationById("reviewQueue.list"));
 
 const TRIAGE_INBOX_TOOL_NAME = "luca_triage_inbox";
 
@@ -118,8 +121,7 @@ const triageInbox = taskTool({
         query: { limit: numberInput(input.limit, DEFAULT_QUEUE_LIMIT) },
       });
 
-      const ids = listingIds(
-        "reviewQueue.list",
+      const ids = queueIds(
         queue,
         numberInput(input.explainTop, DEFAULT_EXPLAIN_TOP)
       );

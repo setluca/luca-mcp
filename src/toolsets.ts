@@ -7,14 +7,15 @@ import { LUCA_TASK_TOOLS } from "./task-tools.ts";
  * - `tasks` trims to the task-shaped tools plus capability discovery, a smaller
  *   intent-level set for coach-facing assistants that don't need raw API
  *   coverage.
- * - `claude` is the fixed set submitted to the Claude connector directory.
+ * - `claude` is a fixed read and draft set for a coach who wants Claude kept to
+ *   that. The Claude directory listing serves `full`, like every other client.
  */
 export type LucaToolset = "full" | "tasks" | "claude";
 
 /**
- * The tools the `claude` toolset exposes. This list is the contract with the
- * connector directory submission, and a test pins it name for name. Adding or
- * removing a tool here changes what the directory lists.
+ * The tools the `claude` toolset exposes, and a test pins it name for name.
+ * Coaches who chose `?toolset=claude` rely on it staying read and draft, so a
+ * tool that sends, books, or changes settings does not belong here.
  */
 export const CLAUDE_TOOL_NAMES: readonly string[] = [
   "luca_triage_inbox",

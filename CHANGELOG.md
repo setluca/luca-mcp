@@ -32,7 +32,6 @@ input schema, or changing what a tool does to a workspace.
   Claude requests what the challenge names, and the consent screen offers only
   what was requested, so a coach could not let Claude send or book. The consent
   screen still starts at read and draft, with every higher scope unticked.
-
 - Built on Effect 4.0.6, up from 4.0.0. Its JSON Schema output flattens a
   nested `anyOf`, which reshapes `luca_close_call_loop`'s output schema without
   changing what it accepts. No other tool's schema changed.

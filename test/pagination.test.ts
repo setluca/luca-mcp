@@ -9,9 +9,13 @@ import { assert, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { formatError, LucaHttpError, LucaTimeoutError } from "../src/errors.ts";
 import { LucaApi, type LucaRequest } from "../src/http.ts";
-import { LUCA_OPERATIONS, type LucaOperation } from "../src/operations.ts";
+import {
+  LUCA_OPERATIONS,
+  type LucaOperation,
+  operationById,
+} from "../src/operations.ts";
 import type { PageContract } from "../src/page-contract.ts";
-import { paginatedProgram } from "../src/pagination.ts";
+import { paginatedProgram, recordIdsOf } from "../src/pagination.ts";
 import type { JsonValueInput } from "../src/serialization.ts";
 import { parseJsonRecord, toJsonValue } from "./helpers.ts";
 
@@ -439,5 +443,44 @@ describe("paginatedProgram", () => {
       toolName: OPERATION.toolName,
       pages: 1,
     });
+  });
+});
+
+describe("recordIdsOf", () => {
+  it("reads ids from the array the route's page contract names", () => {
+    // The campaign list answers `{ campaigns, nextCursor }`. Reading `items`
+    // there is the mistake that kept the analytics rollup empty.
+    const campaignIds = recordIdsOf(operationById("campaigns.list"));
+
+    expect(
+      campaignIds(
+        { campaigns: [{ id: "c1" }, { id: "c2" }], items: [{ id: "x" }] },
+        5
+      )
+    ).toEqual(["c1", "c2"]);
+  });
+
+  it("counts records toward the limit before dropping those without a string id", () => {
+    const queueIds = recordIdsOf(operationById("reviewQueue.list"));
+
+    expect(
+      queueIds(
+        { items: [{}, { id: 7 }, { id: "a" }, { id: "b" }, { id: "c" }] },
+        4
+      )
+    ).toEqual(["a", "b"]);
+  });
+
+  it("reads nothing from a page without the array", () => {
+    const queueIds = recordIdsOf(operationById("reviewQueue.list"));
+
+    expect(queueIds("not-a-page", 5)).toEqual([]);
+    expect(queueIds({ items: "not-a-list" }, 5)).toEqual([]);
+  });
+
+  it("refuses an operation that does not list records", () => {
+    expect(() => recordIdsOf(operationById("capabilities.get"))).toThrow(
+      "capabilities.get carries no list of records to read ids from"
+    );
   });
 });
