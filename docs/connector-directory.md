@@ -26,7 +26,7 @@ These hold for both directories unless a row says otherwise.
 | Narrow, accurate descriptions                             | One tool per API operation, generated from that route's own schema                                                                                                                                                                                                               |
 | No catch-all HTTP tool                                    | Every tool is one fixed method against one closed path template. There is no tool that takes a URL or a method as an argument                                                                                                                                                    |
 | No prompt-injection phrasing in descriptions              | Descriptions state what the route does and nothing about how the model should behave                                                                                                                                                                                             |
-| Every tool returns a successful response for valid input  | Covered by the operation and protocol suites                                                                                                                                                                                                                                     |
+| Every tool returns a successful response for valid input  | Covered by the operation and protocol suites, and a live sweep of the read tools. One exception is open: `luca_bookings_availability` without `start` and `end` gets a 400, because the API requires both while its OpenAPI marks them optional (LUC-513)                        |
 | Actionable errors                                         | The API's error body names the missing scope or the failed field, and the server passes it through rather than flattening it                                                                                                                                                     |
 | Reasonably sized responses                                | List tools auto-paginate to a bounded guard and report `pagination.truncated` rather than returning an unbounded merge. See [pagination-and-tool-count.md](./pagination-and-tool-count.md)                                                                                       |
 | OAuth 2.0 for an authenticated service                    | Authorization-code flow with PKCE, dynamic client registration, and RFC 9728 protected-resource metadata. See [remote.md](./remote.md). The open auth items are listed below                                                                                                     |
@@ -56,10 +56,12 @@ Claude gets the same server as ChatGPT, every tool included:
 https://mcp.setluca.com/mcp
 ```
 
-The 401 challenge asks for every scope, so Claude's consent screen can offer
-each tier, and the coach ticks anything past read and draft. Until the Luca API
-lifts its Claude-only cap (LUC-401), a Claude connection still holds read and
-draft at most, and the tools past that answer 403.
+The 401 challenge asks for every scope plus `offline_access`, so Claude's
+consent screen can offer each tier and the connection gets a refresh token. The
+coach ticks anything past read and draft. Until the Luca API lifts its
+Claude-only cap (LUC-401, in setluca/luca#361, where ADR 0067 supersedes ADR
+0065), a claude.ai connection still holds read and draft at most, and the tools
+past that answer 403.
 
 `https://mcp.setluca.com/mcp?toolset=claude` stays available as a smaller,
 read and draft set of 43 tools for coaches who want Claude limited to that. It
@@ -75,14 +77,14 @@ in `src/toolsets.ts` and a protocol test pins it.
   redacts sample lead names and draft text. A ChatGPT-style sign-in with the
   account passed end to end on October 22, 2026. OpenAI rejected package
   `0.1.3` that day because tool annotations need explicit values with matching
-  justifications. Package `0.1.4` and `annotation-justifications.json` are the
+  justifications. Package `0.1.4` and `chatgpt-app-submission.json` are the
   resubmission. See `submission/openai/README.md`.
 - **Claude reviewer connection.** The dedicated
   `claude-reviewer@setluca.com` account owns **Claude Review Workspace**,
   seeded on October 22, 2026 with the same synthetic fixtures as the OpenAI
   workspace (lead Sam Demo). Its credentials are in Infisical production at
-  `/operations/claude-review`. A claude.ai-style and a Claude Code sign-in both
-  passed that day. See `submission/claude/README.md` for the portal fields.
+  `/operations/claude-review`. A Claude Code sign-in passed that day, and a
+  sign-in with claude.ai's own client ID metadata document passed on October 23. See `submission/claude/README.md` for the portal fields.
 - **Final icon.** The current icons point at the site favicon and app icon
   with a `wordmark-1` version tag. The listing icon isn't final.
 - **OpenAI domain verification.** Completed October 6, 2026. The production
@@ -90,7 +92,8 @@ in `src/toolsets.ts` and a protocol test pins it.
   The token is a Worker secret and must not be committed here.
 - **Portal submissions.** The OpenAI plugin is to be resubmitted as package
   `0.1.4` once MCP `0.5.2` is deployed. No Claude submission has been filed;
-  it waits on the Luca API lifting its Claude cap and a real claude.ai test.
+  it waits on the Luca API lifting its Claude cap (setluca/luca#361) and a
+  real claude.ai test (LUC-411).
 
 ## What a human has to do in the Claude portal
 

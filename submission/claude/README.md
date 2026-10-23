@@ -9,15 +9,22 @@ criteria beside it. No credentials belong in this file.
 
 ## Before submitting
 
-- MCP `0.5.2` or later is deployed: its 401 challenge asks for every scope, so
-  Claude's consent screen can offer each tier. Check
-  `https://mcp.setluca.com/.well-known/mcp/server-card.json`.
-- The Luca API no longer caps Claude at read and draft (LUC-401, ADR 0065).
-  Until it ships, a claude.ai connection holds read and draft only, and every
-  tool past that answers 403.
-- A real claude.ai connection has been tested (LUC-411), including whether
-  Claude loads tools while `serverInfo` carries icons
-  (anthropics/claude-ai-mcp#474).
+- MCP `0.5.2` or later is deployed. Check
+  `https://mcp.setluca.com/.well-known/mcp/server-card.json`. It brings three
+  things this submission relies on:
+  - its 401 challenge asks for every scope, so Claude's consent screen can
+    offer each tier;
+  - the challenge also asks for `offline_access`, so the connection gets a
+    refresh token;
+  - `serverInfo` no longer carries icons, which make claude.ai drop the session
+    after `initialize` (anthropics/claude-ai-mcp#474).
+- The Luca API no longer caps Claude at read and draft (LUC-401;
+  setluca/luca#361, where ADR 0067 supersedes ADR 0065). Until it ships, a
+  claude.ai connection holds read and draft only, and every tool past that
+  answers 403.
+- A real claude.ai connection has been tested (LUC-411): it lists the tools,
+  a send-tier tool answers once granted, and it still works after the first
+  hour.
 - Two calls only the owner can make: the submitting account, which owns the
   listing, and the URL slug, which can never change after publishing.
 - Whether reviewers should try a send. What a send on the disconnected sample
@@ -29,8 +36,8 @@ criteria beside it. No credentials belong in this file.
 - URL: `https://mcp.setluca.com/mcp`, Streamable HTTP, universal URL.
 - Tools: all of them, the same set as the ChatGPT submission. Claude asks
   before every tool marked `destructiveHint: true`, and 41 tools, including
-  every one that sends to a lead or changes a booking, also refuse to run
-  without `confirm: true`.
+  every one that sends a message, launches a broadcast, or books, moves, or
+  cancels a call, also refuse to run without `confirm: true`.
 - `?toolset=claude` is a smaller read and draft set for coaches who want it. It
   is not the submitted URL.
 
@@ -51,14 +58,14 @@ criteria beside it. No credentials belong in this file.
   > conversation, prepare for a call, record how a call went, and see how
   > campaigns and broadcasts are performing. Claude can also act for you:
   > draft or approve a reply, book or move a call, pause a lead, or launch a
-  > broadcast. Each action that messages a lead or changes a booking asks you
-  > to confirm first.
+  > broadcast. Each tool that sends a message, launches a broadcast, or books,
+  > moves, or cancels a call asks you to confirm first.
   >
   > The connector works only with the SetLuca account you sign in to, and only
-  > with the permissions you grant on the consent screen. Read and draft are
-  > granted by default; sending, booking, and account settings are yours to
-  > tick. Lead names and message text stay redacted unless you also grant full
-  > content.
+  > with the permissions you grant on the consent screen. Read is always on
+  > and draft starts ticked; sending, booking, and account settings are yours
+  > to tick. Lead names and message text stay redacted unless you also grant
+  > full content.
 
 - **Categories:** Sales, Communication, Productivity (pick the closest names
   the portal offers).
@@ -86,16 +93,19 @@ who receives review email.
 ## 5. Authentication
 
 OAuth 2.1 with PKCE (S256). The authorization server is
-`https://api.setluca.com/api/auth`. It accepts a client ID metadata document
-(CIMD), and dynamic client registration is the fallback. No
-Anthropic-held credentials. Checked live on October 22, 2026 with the Claude
-reviewer account:
+`https://api.setluca.com/api/auth`. It advertises client ID metadata documents
+(CIMD) and the `none` token auth method, so Claude identifies itself with its
+own CIMD; dynamic client registration stays as the fallback. No
+Anthropic-held credentials. Checked live with the Claude reviewer account:
 
-- **claude.ai:** dynamic registration with `https://claude.ai/api/mcp/auth_callback`
-  passed the whole flow: sign-in with no MFA, consent, an `iss` that matches
-  the issuer, a token for the `https://mcp.setluca.com/mcp` audience, and a
-  rotated refresh token. The grant came back capped at read and draft, as
-  LUC-401 still does.
+- **claude.ai (October 23):** client ID
+  `https://claude.ai/oauth/mcp-oauth-client-metadata` with
+  `https://claude.ai/api/mcp/auth_callback` passed the whole flow: sign-in with
+  no MFA, a consent screen naming Claude and offering every scope, an `iss`
+  that matches the issuer, a token for the `https://mcp.setluca.com/mcp`
+  audience, and a refresh token that rotates. The grant came back capped at
+  read and draft, as LUC-401 still does. Dynamic registration with the same
+  callback passed on October 22.
 - **Claude Code:** its published CIMD (`https://claude.ai/oauth/claude-code-client-metadata`)
   passed with `http://localhost:<port>/callback` and
   `http://127.0.0.1:<port>/callback`, and received every scope it was granted.
@@ -166,7 +176,8 @@ against Claude Review Workspace:
 - 6 answered a clear 404 for a record the workspace lacks.
 - 3 showed that a required query was not marked required. `0.5.2` fixes them.
 - `luca_bookings_availability` without `start` and `end` gets a 400 from the
-  API, although its OpenAPI marks both optional. With them it answers.
+  API, although its OpenAPI marks both optional. With them it answers. The API
+  fix is LUC-513; it should be live before a reviewer tries the tool.
 
 Write tools were not swept, because they change the reviewer fixtures. The
 operation and protocol suites cover them.
