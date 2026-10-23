@@ -10,7 +10,7 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
-## [0.5.2] - 2026-10-22
+## [0.5.2] - 2026-10-23
 
 ### Fixed
 
@@ -34,6 +34,19 @@ input schema, or changing what a tool does to a workspace.
   `luca_webhooks_events_list` require `query`. Each route has a required query
   parameter, so a call without `query` already failed with the API's 400; the
   tool schema now says so. No call that worked before is rejected.
+- `luca_leads_draft` and `luca_draft_reply` set `destructiveHint: true` and
+  `openWorldHint: true`. Drafting again replaces the lead's earlier unapproved
+  draft from these tools, and the drafter sends the conversation to
+  OpenRouter's language model, the same reach that makes a transcription
+  retry open-world. Neither sends to the lead, so neither needs
+  `confirm: true`.
+- Descriptions that said more than the API does:
+  - `luca_campaigns_generate` builds its plan with fixed rules, not an AI
+    model;
+  - `luca_leads_update` cannot set a score;
+  - `luca_reschedule_call`, `luca_bookings_update`, and `luca_bookings_cancel`
+    say that a Google Calendar booking's calendar emails the lead, and Cal.com
+    may too, where the reschedule tool had said no message is sent.
 
 ### Changed
 

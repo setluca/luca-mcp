@@ -334,10 +334,11 @@ composes does.
 `openWorldHint` is true when a call reaches past the coach's Luca workspace: a
 lead's inbox, an outside URL, a connected calendar or CRM, the coach's own
 webhook subscribers, which hear about a lead, review, or broadcast change, or
-OpenRouter's speech-to-text, which a retried voice-note transcription sends the
-audio to. The last two kinds are not confirm-gated. The subscriber is one the
-coach set up, and creating or changing a subscription is gated already. A
-transcription reaches no person and changes nothing outside Luca.
+OpenRouter, which gets a voice note's audio when a transcription is retried and
+a lead's conversation when a reply is drafted on demand. The last two kinds are
+not confirm-gated. The subscriber is one the coach set up, and creating or
+changing a subscription is gated already. A transcription or a draft reaches no
+person and changes nothing outside Luca.
 
 `test/operations.test.ts` lists every open-world operation and every idempotent
 write, and `test/server-protocol.test.ts` pins the hints the October 2026

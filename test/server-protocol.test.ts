@@ -232,6 +232,10 @@ describe("MCP protocol", () => {
       // A retried transcription sends the voice note to OpenRouter.
       luca_conversations_media_retry: hint(false, true, false, true),
       luca_review_queue_media_retry: hint(false, true, false, true),
+      // Drafting sends the conversation to OpenRouter's language model and
+      // replaces the lead's earlier on-demand draft.
+      luca_leads_draft: hint(false, true, false, true),
+      luca_draft_reply: hint(false, true, false, true),
     };
 
     expect(R.map(expected, (_, name) => hints(name))).toEqual(expected);

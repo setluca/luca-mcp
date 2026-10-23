@@ -35,7 +35,7 @@ export const leadsOperations: readonly LucaOperation[] = [
     // can resume a campaign step that messages the lead.
     openWorld: true,
     description:
-      "Update a lead's display name, stage, score, tags, or custom fields.",
+      "Update a lead's display name, stage, tags, or custom fields. Tags are replaced as a whole list.",
   }),
   op({
     id: "leads.fieldDefinitions.list",
@@ -105,8 +105,14 @@ export const leadsOperations: readonly LucaOperation[] = [
     id: "leads.draft",
     title: "Draft a reply to a lead",
     untrustedContent: true,
+    // Drafting again replaces the lead's pending on-demand draft, as
+    // reviewQueue.regenerate replaces a queued one.
+    mutatesExisting: true,
+    // The drafter sends the conversation to OpenRouter's language model, the
+    // same reach that makes a transcription retry open-world.
+    openWorld: true,
     description:
-      "Draft a reply for a lead, written the way the coach writes, and put it in the review queue for the coach to approve. It never sends, whatever the channel's auto-send setting. Optional guidance steers tone or content.",
+      "Draft a reply for a lead, written the way the coach writes, and put it in the review queue for the coach to approve. Drafting again replaces this lead's earlier unapproved draft from this tool. It never sends, whatever the channel's auto-send setting. Optional guidance steers tone or content.",
   }),
   op({
     id: "leads.notes.delete",

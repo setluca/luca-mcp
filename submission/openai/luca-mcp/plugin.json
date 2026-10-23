@@ -11,7 +11,7 @@
       "interface": {
         "displayName": "SetLuca",
         "shortDescription": "Manage coach sales in SetLuca",
-        "longDescription": "SetLuca helps coaches, creators, and experts manage the business work behind sales conversations in direct messages. Connect your SetLuca workspace to review leads and conversations, triage the replies Luca drafts, prepare for calls, track bookings, and inspect campaign and broadcast results. This plugin works only with the connected SetLuca account and the permissions granted to it. Actions that message a lead, change a booking, or turn on auto-send ask for your explicit confirmation first.",
+        "longDescription": "SetLuca helps coaches, creators, and experts manage the business work behind sales conversations in direct messages. Connect your SetLuca workspace to review leads and conversations, triage the replies Luca drafts, prepare for calls, track bookings, and inspect campaign and broadcast results. This plugin works only with the connected SetLuca account and the permissions granted to it. Tools that send a message, launch a broadcast, book, move, or cancel a call, or turn on auto-send refuse to run until you confirm.",
         "developerName": "SetLuca, LLC",
         "category": "Business & Operations",
         "defaultPrompt": [
@@ -23,8 +23,8 @@
         "supportURL": "https://setluca.com/contact",
         "privacyPolicyURL": "https://setluca.com/privacy",
         "termsOfServiceURL": "https://setluca.com/terms",
-        "logo": "assets/luca.png",
-        "composerIcon": "assets/luca.png"
+        "logo": "./assets/luca.png",
+        "composerIcon": "./assets/luca.png"
       },
       "review": {
         "demo_recording_url": "https://github.com/setluca/luca-mcp/releases/download/mcp-v0.3.5/luca-mcp-openai-reviewer-demo.mp4",
@@ -63,16 +63,16 @@
           ],
           "negative": [
             {
-              "description": "Weather is outside Luca's workspace tools; no Luca tool should be called.",
+              "description": "Weather is outside SetLuca's workspace tools; no SetLuca tool should be called.",
               "prompt": "What is the weather in Madrid tomorrow?"
             },
             {
-              "description": "Luca's MCP tools do not charge a credit card or purchase goods; no Luca tool should be called.",
-              "prompt": "Use Luca to charge my credit card for a laptop."
+              "description": "SetLuca's tools do not charge a credit card or purchase goods; no SetLuca tool should be called.",
+              "prompt": "Use SetLuca to charge my credit card for a laptop."
             },
             {
-              "description": "Luca cannot read files from the user's computer through this MCP connection; no Luca tool should be called.",
-              "prompt": "Read the private files on my laptop through Luca and summarize them."
+              "description": "SetLuca cannot read files from the user's computer through this connection; no SetLuca tool should be called.",
+              "prompt": "Read the private files on my laptop through SetLuca and summarize them."
             }
           ]
         },
@@ -80,7 +80,7 @@
         "commerce_description": "This plugin does not sell products or process payments."
       },
       "publication": {
-        "release_notes": "Every tool now states readOnlyHint, destructiveHint, openWorldHint, and idempotentHint explicitly, matching what it does. Adds the review-queue, drafting, booking-request, and auto-send tools from MCP server 0.5, and fixes the campaign analytics rollup. The listing now uses the product name, SetLuca."
+        "release_notes": "Every tool now states readOnlyHint, destructiveHint, openWorldHint, and idempotentHint explicitly, matching what it does. Adds the review-queue, drafting, booking-request, and auto-send tools from MCP server 0.5, fixes the campaign analytics rollup, and keeps connections signed in past the first hour with a refresh token. The listing now uses the product name, SetLuca."
       }
     }
   }
