@@ -369,7 +369,7 @@ function renderScopes(): readonly string[] {
     "carrying every API scope that tier covers. A client never names an API",
     "scope itself.",
     "",
-    `New connections default to \`${OAUTH_DEFAULT_SCOPE}\`. The 401 challenge asks for every scope, and the consent screen starts with read locked on, draft on, and everything higher unticked, so the coach chooses anything more.`,
+    `New connections default to \`${OAUTH_DEFAULT_SCOPE}\`. The 401 challenge asks for every scope plus \`offline_access\`, which gets the connection a refresh token. The consent screen starts with read locked on, draft on, and everything higher unticked, so the coach chooses anything more.`,
     "",
     "## What each OAuth scope unlocks",
     "",

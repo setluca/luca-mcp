@@ -102,11 +102,15 @@ describe("OAUTH_DEFAULT_SCOPE", () => {
 });
 
 describe("OAUTH_CHALLENGE_SCOPE", () => {
-  it("asks for every scope the resource accepts, so the coach can grant any of them", () => {
+  it("asks for every scope and offline_access, so the coach can grant any tier and the connection gets a refresh token", () => {
     // Claude requests exactly what the challenge names, and the consent screen
-    // offers only what was requested.
-    expect(OAUTH_CHALLENGE_SCOPE.split(" ")).toEqual([...LUCA_RESOURCE_SCOPES]);
-    expect(OAUTH_CHALLENGE_SCOPE).not.toContain("offline_access");
+    // offers only what was requested. The authorization server issues a
+    // refresh token only when the grant carries offline_access; without it a
+    // connection lapses after an hour.
+    expect(OAUTH_CHALLENGE_SCOPE.split(" ")).toEqual([
+      ...LUCA_RESOURCE_SCOPES,
+      "offline_access",
+    ]);
   });
 });
 

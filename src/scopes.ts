@@ -50,14 +50,19 @@ export const LUCA_RESOURCE_SCOPES = Arr.filter(
 export const OAUTH_DEFAULT_SCOPE = "luca:read luca:draft";
 
 /**
- * The scope a 401 challenge asks for: every scope this resource accepts.
- * Claude requests exactly what the challenge names, and the consent screen
- * offers only what was requested, so naming less would leave a coach no way to
- * let Claude send or book. The screen still starts at
- * {@link OAUTH_DEFAULT_SCOPE}: read is locked on, draft starts on, and every
- * higher scope starts unchecked for the coach to tick.
+ * The scope a 401 challenge asks for: every scope this resource accepts, plus
+ * `offline_access`. Claude and ChatGPT request exactly what the challenge
+ * names, and the consent screen offers only what was requested, so naming less
+ * would leave a coach no way to let an assistant send or book. The screen
+ * still starts at {@link OAUTH_DEFAULT_SCOPE}: read is locked on, draft starts
+ * on, and every higher scope starts unchecked for the coach to tick.
+ *
+ * `offline_access` is here for the refresh token. The authorization server
+ * issues one only when the grant carries it, and a client asks for no more
+ * than the challenge names, so without it every connection lapses when its
+ * one-hour access token does.
  */
-export const OAUTH_CHALLENGE_SCOPE = LUCA_RESOURCE_SCOPES.join(" ");
+export const OAUTH_CHALLENGE_SCOPE = LUCA_OAUTH_SCOPES.join(" ");
 
 const READ_TIER_SCOPES = [
   "analytics:read",

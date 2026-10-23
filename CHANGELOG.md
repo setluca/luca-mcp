@@ -14,6 +14,15 @@ input schema, or changing what a tool does to a workspace.
 
 ### Fixed
 
+- Connections keep working past their first hour. The 401 challenge now asks
+  for `offline_access` along with the luca scopes, and the authorization server
+  issues a refresh token only when the grant carries it. Claude and ChatGPT ask
+  for exactly what the challenge names, so until now neither got a refresh
+  token and each connection lapsed with its one-hour access token.
+- claude.ai can connect. `serverInfo` no longer carries `icons`, which makes
+  claude.ai abandon the session after `initialize`
+  ([anthropics/claude-ai-mcp#474](https://github.com/anthropics/claude-ai-mcp/issues/474)).
+  The server card at `/.well-known/mcp/server-card.json` still lists them.
 - `luca_conversations_media_retry` and `luca_review_queue_media_retry` set
   `openWorldHint: true`. A retried transcription sends the voice note to
   OpenRouter's speech-to-text. Neither reaches a lead, so neither needs

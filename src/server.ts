@@ -73,11 +73,30 @@ import { LUCA_MCP_VERSION } from "./version.ts";
 const LucaLive = LucaApiLive.pipe(Layer.provide(LucaConfigLive));
 
 /**
+ * SetLuca's icons, for the Worker's server card. They stay out of
+ * {@link LUCA_SERVER_INFO}: claude.ai abandons a session whose `initialize`
+ * answer carries `serverInfo.icons`, at any protocol version
+ * (anthropics/claude-ai-mcp#474, open). The directories take their icon from
+ * the listing upload, not the handshake, so leaving them out costs nothing.
+ */
+export const LUCA_SERVER_ICONS = [
+  {
+    src: "https://setluca.com/favicon.svg?v=wordmark-1",
+    mimeType: "image/svg+xml",
+  },
+  {
+    src: "https://setluca.com/android-chrome-512x512.png?v=wordmark-1",
+    mimeType: "image/png",
+    sizes: ["512x512"],
+  },
+] satisfies NonNullable<Implementation["icons"]>;
+
+/**
  * How this server identifies itself to a client. Protocol revision 2026-07-28
- * carries a title, description, website, and icons alongside the name and
- * version, and a client renders those in its server list instead of the bare
- * package name. The Worker's server card is built from the same values, so
- * the two descriptions of this server cannot drift apart.
+ * carries a title, description, and website alongside the name and version,
+ * and a client renders those in its server list instead of the bare package
+ * name. The Worker's server card is built from the same values, so the two
+ * descriptions of this server cannot drift apart.
  */
 export const LUCA_SERVER_INFO = {
   name: "luca-mcp",
@@ -88,17 +107,6 @@ export const LUCA_SERVER_INFO = {
   description:
     "SetLuca runs DM sales for coaches, creators, and experts. Work with leads, conversations, drafted replies, campaigns, broadcasts, and booked calls on Telegram, Instagram, and Messenger. WhatsApp is coming soon.",
   websiteUrl: "https://setluca.com",
-  icons: [
-    {
-      src: "https://setluca.com/favicon.svg?v=wordmark-1",
-      mimeType: "image/svg+xml",
-    },
-    {
-      src: "https://setluca.com/android-chrome-512x512.png?v=wordmark-1",
-      mimeType: "image/png",
-      sizes: ["512x512"],
-    },
-  ],
 } satisfies Implementation;
 
 /**

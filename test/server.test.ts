@@ -9,7 +9,11 @@ import type { LucaRequest } from "../src/http.ts";
 import type { LucaPrompt } from "../src/prompts.ts";
 import { provenanceFields } from "../src/provenance.ts";
 import type { JsonValueInput } from "../src/serialization.ts";
-import { LUCA_SERVER_INFO, registerPrompts } from "../src/server.ts";
+import {
+  LUCA_SERVER_ICONS,
+  LUCA_SERVER_INFO,
+  registerPrompts,
+} from "../src/server.ts";
 import { LUCA_MCP_VERSION } from "../src/version.ts";
 import { connect, parseJsonRecord } from "./helpers.ts";
 
@@ -139,18 +143,24 @@ describe("server identity", () => {
       description:
         "SetLuca runs DM sales for coaches, creators, and experts. Work with leads, conversations, drafted replies, campaigns, broadcasts, and booked calls on Telegram, Instagram, and Messenger. WhatsApp is coming soon.",
       websiteUrl: "https://setluca.com",
-      icons: [
-        {
-          src: "https://setluca.com/favicon.svg?v=wordmark-1",
-          mimeType: "image/svg+xml",
-        },
-        {
-          src: "https://setluca.com/android-chrome-512x512.png?v=wordmark-1",
-          mimeType: "image/png",
-          sizes: ["512x512"],
-        },
-      ],
     });
+  });
+
+  it("keeps the icons for the server card and out of the handshake", () => {
+    // claude.ai abandons a session whose initialize answer carries
+    // serverInfo.icons (anthropics/claude-ai-mcp#474).
+    expect(LUCA_SERVER_INFO).not.toHaveProperty("icons");
+    expect(LUCA_SERVER_ICONS).toEqual([
+      {
+        src: "https://setluca.com/favicon.svg?v=wordmark-1",
+        mimeType: "image/svg+xml",
+      },
+      {
+        src: "https://setluca.com/android-chrome-512x512.png?v=wordmark-1",
+        mimeType: "image/png",
+        sizes: ["512x512"],
+      },
+    ]);
   });
 });
 
