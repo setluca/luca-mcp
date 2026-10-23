@@ -82,13 +82,18 @@ Schema a client reads is generated from the same Effect schema, keeping the
 ## Server identity and cache hints
 
 `LUCA_SERVER_INFO` in `src/server.ts` is the one place this server describes
-itself. It carries the name and version plus the title, description, website,
-and icons the 2026-07-28 revision added, and a client renders those in its
+itself. It carries the name and version plus the title, description, and
+website the 2026-07-28 revision added, and a client renders those in its
 server list instead of the bare package name. The Worker's
 `/.well-known/mcp/server-card.json` body is built from the same constant, so a
 client that reads the card and a client that connects cannot be told two
 different things. Changing the wording means changing it once, and both test
 suites assert against the constant rather than a copied literal.
+
+The icons are `LUCA_SERVER_ICONS`, and only the server card carries them.
+claude.ai abandons a session whose `initialize` answer has `serverInfo.icons`
+([anthropics/claude-ai-mcp#474](https://github.com/anthropics/claude-ai-mcp/issues/474)),
+so the handshake leaves them out until that is fixed.
 
 That well-known card is not replaced by `server/discover`. The card is an
 unauthenticated HTTP GET that anything crawling the domain can read, and the

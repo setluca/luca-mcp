@@ -1,5 +1,4 @@
 import * as Effect from "effect/Effect";
-import * as Option from "effect/Option";
 
 import { loadRemoteSettings } from "../src/config.ts";
 import type { TokenResolver } from "../src/remote.ts";
@@ -14,4 +13,4 @@ export const DEFAULT_SETTINGS = Effect.runSync(loadRemoteSettings({}));
 export const acceptingFetch = (async () =>
   Response.json({ capabilities: [] })) as typeof fetch;
 
-export const declines: TokenResolver = () => Effect.succeed(Option.none());
+export const declines: TokenResolver = () => Effect.succeedNone;

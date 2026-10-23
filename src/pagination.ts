@@ -33,6 +33,39 @@ function pageItems(page: JsonObject, itemsKey: string): readonly JsonValue[] {
   return Option.getOrElse(decodeItems(page[itemsKey]), () => []);
 }
 
+const hasStringId = Schema.is(Schema.Struct({ id: Schema.String }));
+
+/**
+ * A reader for the ids of the first `limit` records on a page of `operation`,
+ * for a caller that fans out over what a list route returned. The records sit
+ * under the field the route's page contract names: `items` on the review
+ * queue, `campaigns` on a campaign page. A page without that array, or a record
+ * without a string id, contributes nothing, and the caller still has the page.
+ *
+ * Throws when `operation` is not a list route. Naming one is a wiring mistake,
+ * and an empty id list is exactly how it would stay hidden.
+ */
+export function recordIdsOf(
+  operation: LucaOperation
+): (page: JsonValue, limit: number) => readonly string[] {
+  const itemsKey = operation.pageContract?.itemsKey;
+
+  if (itemsKey === undefined) {
+    // oxlint-disable-next-line effect/avoid-untagged-errors -- raw failure on an invariant or interop path; not a caller-recoverable domain failure
+    throw new Error(
+      `${operation.id} carries no list of records to read ids from`
+    );
+  }
+
+  return (page, limit) =>
+    isJsonObject(page)
+      ? pageItems(page, itemsKey)
+          .slice(0, limit)
+          .filter(hasStringId)
+          .map((record) => record.id)
+      : [];
+}
+
 /**
  * The page as something the walk can merge, or nothing when the body is not an
  * object or does not carry the array the route's page shape names. Merging a
@@ -194,7 +227,7 @@ function walkPages(walk: Walk, ref: Ref.Ref<CollectedPages>) {
       // list would read as "page 3 is down", and only a failed tool result
       // carries the challenge that sends the client back through sign-in.
       if (Result.isFailure(page) && isAuthorizationFailure(page.failure)) {
-        return yield* Effect.fail(page.failure);
+        return yield* page.failure;
       }
 
       yield* Ref.set(

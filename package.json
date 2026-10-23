@@ -1,6 +1,6 @@
 {
   "name": "@setluca/mcp",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "private": false,
   "description": "Connect SetLuca to Claude, ChatGPT, Cursor, or any MCP client to triage the review queue, look up leads, draft replies, and check campaigns.",
   "keywords": [
@@ -68,15 +68,17 @@
     "registry:check": "bun scripts/check-registry.ts",
     "docs:generate": "bun scripts/generate-docs.ts --write",
     "docs:check": "bun scripts/generate-docs.ts --check",
-    "clean": "rm -rf .turbo dist coverage node_modules"
+    "clean": "rm -rf .turbo dist coverage node_modules",
+    "prepare": "effect-tsgo patch --typescript --no-oxlint"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
-    "effect": "4.0.0"
+    "effect": "4.0.6"
   },
   "devDependencies": {
-    "@effect/platform-bun": "4.0.0",
-    "@effect/vitest": "4.0.0",
+    "@effect/platform-bun": "4.0.6",
+    "@effect/tsgo": "0.56.0",
+    "@effect/vitest": "4.0.6",
     "@modelcontextprotocol/client": "^2.0.0",
     "@modelcontextprotocol/inspector": "^2.5.0",
     "@mpsuesser/oxlint-plugin-effect": "0.6.0",

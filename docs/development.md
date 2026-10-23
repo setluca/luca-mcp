@@ -22,7 +22,7 @@ opening a PR.
 | `bun run openapi:outputs:check`    | `src/generated/openapi-outputs.ts`, with its redacted-field lists, matches the snapshot                                      |
 | `bun run openapi:check`            | every registered operation still exists in the snapshot (`--live` checks the deployed document)                              |
 | `bun run registry:check`           | `server.json` version, tool count, and env vars match the code                                                               |
-| `bun run typecheck`                | strict TypeScript via `tsc --noEmit`                                                                                         |
+| `bun run typecheck`                | strict TypeScript via `tsc --noEmit`, plus the Effect language service's errors, warnings, and suggestions (see below)       |
 | `bun run coverage`                 | Vitest tests with 90% line, statement, and function coverage and 85% branch coverage                                         |
 | `bun run build`                    | emits `dist/` with `tsc`                                                                                                     |
 | `bun run test:stdio`               | starts the built stdio server and checks MCP discovery                                                                       |
@@ -37,6 +37,15 @@ Outside that chain:
 - `bun run inspect`: MCP Inspector against the built stdio server.
 
 CI runs this same verification gate for pushes and pull requests.
+
+`bun install` runs the `prepare` script, which patches `tsc` with
+[`@effect/tsgo`](https://github.com/Effect-TS/tsgo), so `typecheck` and `build`
+also report the Effect language service's diagnostics. Any of them fails the
+check, suggestions included. Its options are the `@effect/language-service`
+plugin entry in `tsconfig.json`. Scripts and tests may use the Effect APIs it
+marks unstable, such as `FileSystem` and `@effect/vitest`; `src/` may not. In
+an editor, use `effect-tsgo` as the TypeScript language server, not alongside
+it; `npx effect-tsgo setup` prints the editor steps.
 
 ## Remote transport (Cloudflare Worker)
 

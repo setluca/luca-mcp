@@ -58,9 +58,9 @@ retrying the same user intent, so a replay cannot double-file the write.
 task tools, 224 in all. `LUCA_TOOLSET=tasks` registers only the task tools and
 capability discovery, 16 in all. Use it for a coach-facing assistant that works
 through intents like "book this lead a call" rather than raw API calls.
-`LUCA_TOOLSET=claude` registers a fixed set of 43 tools, the one submitted to
-the Claude connector directory: the read tools, the task tools that read, and
-four small writes (`luca_draft_reply`, `luca_flag_for_human`,
+`LUCA_TOOLSET=claude` registers a fixed read and draft set of 43 tools for a
+coach who wants Claude kept to that: the read tools, the task tools that read,
+and four small writes (`luca_draft_reply`, `luca_flag_for_human`,
 `luca_leads_notes_add`, `luca_leads_update`). The list is `CLAUDE_TOOL_NAMES`
 in `src/toolsets.ts`. It lists only two prompts, `luca-api-planner` and
 `luca-morning-report`. The others plan campaigns and broadcasts or name tools

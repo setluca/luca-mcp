@@ -1,53 +1,73 @@
 # OpenAI plugin submission
 
-`luca-mcp/` is the source for an OpenAI portal upload of Luca's remote MCP
-server. The ZIP should contain that directory as its single root. The icon is
-the current public Luca wordmark, downloaded from the server card's PNG URL.
-From this directory, rebuild the archive with
-`zip -r luca-mcp-0.1.3.zip luca-mcp` before changing the saved draft.
+`luca-mcp/` is the source for the OpenAI portal upload of SetLuca's remote MCP
+server. The ZIP holds that directory as its single root. From this directory,
+build it with `zip -r luca-mcp-0.1.4.zip luca-mcp`. The icon is the public
+SetLuca wordmark, the same file as `setluca.com/android-chrome-512x512.png`.
+No credentials or challenge token belong in the package.
 
-This package is the source for the version now in OpenAI review. The reviewer
-test runs passed, and the package includes a demo recording URL. The portal has
-secure reviewer access instructions and all-supported-country targeting. Its
-five positive and three negative review cases come from the tool catalog.
-The listing category is Business & Operations. The copy identifies coach DM
-sales as the main purpose and names the work available through Luca.
+`chatgpt-app-submission.json` fills the review form, in the import format
+OpenAI publishes
+(`developers.openai.com/plugins/schemas/chatgpt-app-submission.v1.json`): the
+listing text, the five positive and three negative test cases, and for every
+tool its three hints with one justification each (`read_only_justification`,
+`open_world_justification`, `destructive_justification`). A destructive
+justification says what cannot be undone and when, and every confirm-gated
+tool's ends with "Refuses to run without confirm: true."
+`test/openai-submission.test.ts` fails when a tool is missing, a hint no longer
+matches `tools/list`, a gate is named on the wrong tool, or the test cases
+drift from `plugin.json`, so change the justification in the same commit as
+the hint.
 
-The business publisher displayed by OpenAI on October 6, 2026 was
-`SetLuca, LLC` with status `Approved`. No credentials or challenge token belong
-in this package. The initial portal draft imported version `0.1.0`, and OpenAI
-verified `mcp.setluca.com` after the production Worker served the challenge
-token. The dedicated reviewer granted `luca:read` and `luca:draft` to ChatGPT
-on October 6, 2026. The portal shows Authorized. MCP `0.3.5` is deployed. Its
-fresh authenticated portal scan discovered all 203 tools and left only a
-general server-instructions manual-review notice. The earlier tool-name
-finding cleared on the fresh scan.
+## Status
 
-The portal's private reviewer form has the dedicated sign-in instructions and
-credentials saved. The password stays in Infisical and the portal, never in
-this package. Hands-on ChatGPT tests confirmed the reviewer workspace is
-connected, but the read/draft grant blanks sample lead names and draft text.
-The latest live ChatGPT tests correctly identify blanked lead names and draft
-text as unavailable through this connection. The positive test expectations in
-the ZIP account for that redaction. The recording uses only synthetic reviewer
-workspace data and is attached to the public `mcp-v0.3.5` GitHub release.
-The portal imported plugin package `0.1.3`, including the recording URL,
-five positive cases, three negative cases, and the Business & Operations
-category. Its metadata check reports no issues. A fresh authenticated scan
-discovered all 203 tools without tool findings. Its sole remaining finding is
-"These server instructions need further review." The portal provides no
-specific failing instruction or correction, and marks this notice nonblocking
-for submission. Keep the confirmation and redaction instructions for reviewer
-assessment rather than removing those safety cues to suppress the notice.
-The publisher confirmed the six legal and compliance attestations. The portal
-accepted version `0.1.3` for review on October 6, 2026 and displays **In
-review**. It is not published; approval and publication are separate steps.
+OpenAI accepted package `0.1.3` for review on October 6, 2026 and rejected it
+on October 22: every tool's annotations must be explicit booleans with a
+justification that matches the tool's behavior. MCP server `0.5.1` fixed the
+hints (LUC-408). `0.5.2` marks the two voice-note transcription retries
+open-world, since they send audio to OpenRouter, and does the same for the two
+on-demand drafting tools, which send the conversation to OpenRouter's model and
+replace the lead's earlier unapproved draft, so they are destructive too. It
+also asks for `offline_access`, so a ChatGPT connection gets a refresh token
+instead of lapsing after an hour. Package `0.1.4` is the resubmission. Beyond
+the version, it:
+
+- names the listing SetLuca, the product, with Luca as its AI;
+- declares that the plugin does not sell anything (`commerce: false`);
+- accepts an empty morning report, because the reviewer fixtures are older
+  than the report's 24-hour window;
+- expects the per-campaign analytics that `0.5.2` now returns.
+
+OpenAI verified `mcp.setluca.com` on October 6, 2026. The business publisher is
+`SetLuca, LLC`, status Approved.
+
+## Reviewer account
 
 The dedicated production account `openai-reviewer@setluca.com` owns **OpenAI
-Review Workspace**. It has synthetic lead, conversation, pending review draft,
-campaign, broadcast, and past booking fixtures; its sample Instagram channel
-account is disconnected and holds no credentials. A second sign-in check passed
-on October 6, 2026. Its password and workspace ID are in Infisical's production
-environment at `/operations/openai-review` under `OPENAI_REVIEWER_PASSWORD` and
-`OPENAI_REVIEWER_WORKSPACE_ID`. Use this account for the portal's OAuth consent
-and secure reviewer access fields. Do not put its password in the ZIP or a ticket.
+Review Workspace**. It holds synthetic leads, conversations, a pending draft, a
+draft campaign and broadcast, and a past booking; its sample Instagram account
+is disconnected and holds no credentials. Its email, password, and workspace ID
+are in Infisical's production environment at `/operations/openai-review`. Enter
+them only in the portal's **Review details**, never in the ZIP or a ticket.
+
+On October 22, 2026 the account still signed in with no MFA or email code. A
+ChatGPT-style OAuth run with it passed end to end: dynamic registration with
+the `chatgpt.com` callback, PKCE, consent, an `iss` that matches the issuer, a
+token for the `mcp.setluca.com/mcp` audience, and a refresh. ChatGPT itself
+signs in with a client ID metadata document, and its October 6 connection was
+consented for `luca:read luca:draft` only, with no refresh token. From `0.5.2`
+the consent screen offers every permission, with read and draft ticked; a
+reviewer who keeps those defaults sees lead names and draft text redacted, and
+the test cases allow for either.
+
+## Resubmit
+
+1. Deploy the MCP release that `chatgpt-app-submission.json` matches, and
+   check `/.well-known/mcp/server-card.json` reports it.
+2. Build the ZIP above and upload it. The portal shows the package version.
+3. Under **MCPs**, run **Scan Tools** (or **Rescan**) and confirm it finds
+   every tool with the hints in the JSON.
+4. Import `chatgpt-app-submission.json` if the form offers it. Otherwise enter
+   each tool's three justifications from it.
+5. In **Review details**, confirm the reviewer credentials from Infisical.
+6. Confirm the attestations and submit.

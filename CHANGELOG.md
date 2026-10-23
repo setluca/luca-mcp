@@ -10,6 +10,57 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-23
+
+### Fixed
+
+- Connections keep working past their first hour. The 401 challenge now asks
+  for `offline_access` along with the luca scopes, and the authorization server
+  issues a refresh token only when the grant carries it. Claude and ChatGPT ask
+  for exactly what the challenge names, so until now neither got a refresh
+  token and each connection lapsed with its one-hour access token.
+- claude.ai can connect. `serverInfo` no longer carries `icons`, which makes
+  claude.ai abandon the session after `initialize`
+  ([anthropics/claude-ai-mcp#474](https://github.com/anthropics/claude-ai-mcp/issues/474)).
+  The server card at `/.well-known/mcp/server-card.json` still lists them.
+- `luca_conversations_media_retry` and `luca_review_queue_media_retry` set
+  `openWorldHint: true`. A retried transcription sends the voice note to
+  OpenRouter's speech-to-text. Neither reaches a lead, so neither needs
+  `confirm: true`.
+- `luca_analytics_rollup` returns per-campaign analytics. It looked for
+  campaigns under `items`, but the API lists them under `campaigns`, so its
+  `campaigns` section had always come back empty.
+- `luca_conversations_send_status`, `luca_bookings_managed_availability`, and
+  `luca_webhooks_events_list` require `query`. Each route has a required query
+  parameter, so a call without `query` already failed with the API's 400; the
+  tool schema now says so. No call that worked before is rejected.
+- `luca_leads_draft` and `luca_draft_reply` set `destructiveHint: true` and
+  `openWorldHint: true`. Drafting again replaces the lead's earlier unapproved
+  draft from these tools, and the drafter sends the conversation to
+  OpenRouter's language model, the same reach that makes a transcription
+  retry open-world. Neither sends to the lead, so neither needs
+  `confirm: true`.
+- Descriptions that said more than the API does:
+  - `luca_campaigns_generate` builds its plan with fixed rules, not an AI
+    model;
+  - `luca_leads_update` cannot set a score;
+  - `luca_reschedule_call`, `luca_bookings_update`, and `luca_bookings_cancel`
+    say that a Google Calendar booking's calendar emails the lead, and Cal.com
+    may too, where the reschedule tool had said no message is sent.
+
+### Changed
+
+- The 401 challenge asks for every scope instead of `luca:read luca:draft`.
+  Claude requests what the challenge names, and the consent screen offers only
+  what was requested, so a coach could not let Claude send or book. The consent
+  screen still starts at read and draft, with every higher scope unticked.
+- Built on Effect 4.0.6, up from 4.0.0. Its JSON Schema output flattens a
+  nested `anyOf`, which reshapes `luca_close_call_loop`'s output schema without
+  changing what it accepts. No other tool's schema changed.
+- `typecheck` and `build` run the Effect language service
+  ([`@effect/tsgo`](https://github.com/Effect-TS/tsgo)) and fail on any of its
+  errors, warnings, or suggestions.
+
 ## [0.5.1] - 2026-10-22
 
 ### Fixed

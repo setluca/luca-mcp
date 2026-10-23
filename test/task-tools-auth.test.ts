@@ -99,7 +99,7 @@ const DEEP_DIVE_REPORTS = {
 };
 
 const ROLLUP_REPORTS = {
-  "campaigns.list": ok({ items: [{ id: "c1" }] }),
+  "campaigns.list": ok({ campaigns: [{ id: "c1" }] }),
   "campaigns.analytics": ok({ sent: 3 }),
   "broadcasts.list": ok({ items: [] }),
 };

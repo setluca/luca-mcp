@@ -167,45 +167,6 @@ export function taskRequest(
 }
 
 /**
- * The only part of a listing page a composing tool reads for itself: the ids of
- * the items it then fans out over. Decoding that alone leaves the raw page
- * intact for the caller, returned exactly as the API sent it, while the ids the
- * tool acts on are validated rather than asserted.
- */
-const ListingIds = Schema.Struct({
-  items: Schema.optional(
-    Schema.Array(Schema.Struct({ id: Schema.optional(Schema.String) }))
-  ),
-});
-
-const decodeListingIds = Schema.decodeUnknownOption(ListingIds);
-
-/**
- * Ids of the first `limit` items on a listing page. A page whose fields we
- * cannot read, or whose items carry no id, contributes nothing. The tool still
- * returns the page itself rather than failing over a fan-out it cannot do.
- */
-export function listingIds(page: JsonValue, limit: number): readonly string[] {
-  // Both fallbacks below are empty arrays, and substituting a one-item array
-  // for either is an equivalent mutation rather than an untested branch: a
-  // substituted item carries no `id`, so the `filter` at the end of this
-  // function drops it and the result is the same empty id list. Substituting
-  // `undefined` for the outer fallback is a real change and is covered by the
-  // undecodable-page test.
-  const items = decodeListingIds(page).pipe(
-    // Stryker disable next-line ArrayDeclaration: a substituted item has no id and is filtered out below
-    Option.map((decoded) => decoded.items ?? []),
-    // Stryker disable next-line ArrayDeclaration: a substituted item has no id and is filtered out below
-    Option.getOrElse((): readonly { readonly id?: string }[] => [])
-  );
-
-  return items
-    .slice(0, limit)
-    .map((item) => item.id)
-    .filter((id): id is string => id !== undefined);
-}
-
-/**
  * A request body carrying a single text field, or no body at all when the input
  * is absent or blank. Sending an empty string would mean something different to
  * the API than leaving the field off.

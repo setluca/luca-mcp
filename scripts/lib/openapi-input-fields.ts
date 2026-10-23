@@ -28,7 +28,8 @@ function pathFields(path: JsonSchema | undefined): ToolFields {
  * The route-specific input fields of an operation tool: the path parameters,
  * then the route's query and body under `query` and `body`. The body is
  * required only when the route says so, as OpenAPI's `requestBody.required`
- * defaults to false.
+ * defaults to false. The query is required when it has a required parameter:
+ * left optional, a client could omit it and get the API's 400.
  *
  * `scripts/generate-openapi-inputs.ts` runs this once per route and writes the
  * result out as Effect Schema source, so the server never converts an input
@@ -38,7 +39,9 @@ export function openApiInputFields(spec: OpenApiInputSpec): ToolFields {
   return {
     ...pathFields(spec.path),
     ...optionalFields(spec.query, (query) => ({
-      query: Schema.optionalKey(schemaFromOpenApi(query)),
+      query: Arr.isReadonlyArrayNonEmpty(query.required ?? [])
+        ? schemaFromOpenApi(query)
+        : Schema.optionalKey(schemaFromOpenApi(query)),
     })),
     ...optionalFields(spec.body, (body) => ({
       body: spec.bodyRequired

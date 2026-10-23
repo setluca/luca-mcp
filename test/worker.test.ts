@@ -3,7 +3,7 @@ import { describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { LUCA_OPERATIONS } from "../src/operations.ts";
 import { resolveToolset } from "../src/remote.ts";
-import { LUCA_SERVER_INFO } from "../src/server.ts";
+import { LUCA_SERVER_ICONS, LUCA_SERVER_INFO } from "../src/server.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
 import worker, { parseAllowedOrigins } from "../src/worker.ts";
 import { jsonText } from "./helpers.ts";
@@ -487,7 +487,7 @@ describe("GET /.well-known/mcp/server-card.json", () => {
 
     const card = await response.json();
     expect(card).toEqual({
-      serverInfo: LUCA_SERVER_INFO,
+      serverInfo: { ...LUCA_SERVER_INFO, icons: LUCA_SERVER_ICONS },
       endpoint: "https://mcp.example.com/mcp",
       transport: "streamable-http",
       capabilities: {

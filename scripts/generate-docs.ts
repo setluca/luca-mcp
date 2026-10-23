@@ -39,10 +39,10 @@ import {
 import { exitWith, runScript, scriptMode } from "./lib/script.ts";
 
 /** The catalog cannot be documented as it stands: the message says why. */
-class DocsInputError extends Schema.TaggedError<DocsInputError>()(
-  "DocsInputError",
-  { message: Schema.String }
-) {}
+class DocsInputError extends Schema.TaggedError<
+  DocsInputError,
+  { readonly brand: unique symbol }
+>()("DocsInputError", { message: Schema.String }) {}
 
 /** One generated file: where it lands and the lines that make it up. */
 type GeneratedDoc = {
@@ -369,7 +369,7 @@ function renderScopes(): readonly string[] {
     "carrying every API scope that tier covers. A client never names an API",
     "scope itself.",
     "",
-    `New connections default to \`${OAUTH_DEFAULT_SCOPE}\`.`,
+    `New connections default to \`${OAUTH_DEFAULT_SCOPE}\`. The 401 challenge asks for every scope plus \`offline_access\`, which gets the connection a refresh token. The consent screen starts with read locked on, draft on, and everything higher unticked, so the coach chooses anything more.`,
     "",
     "## What each OAuth scope unlocks",
     "",

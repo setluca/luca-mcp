@@ -14,99 +14,103 @@ covered in [release.md](./release.md).
 
 These hold for both directories unless a row says otherwise.
 
-| Requirement                                               | How it is met                                                                                                                                                                                                            |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Tool names at most 64 characters                          | 224 tools, longest is 48                                                                                                                                                                                                 |
-| Every tool carries a `title`                              | `check-registry.ts` rejects missing or machine-shaped operation titles; the protocol test checks every title in `tools/list`                                                                                             |
-| Safety hints on every tool                                | `src/annotations.ts` derives the hints from the route and catalog; the protocol test checks their presence, read-only consistency, representative outside-world actions, and the values the October 2026 audit corrected |
-| Real-world side effects wait for the user                 | 36 operations and 5 task tools reject a call without `confirm: true`. See [security.md](./security.md#confirmation-gate-for-destructive-tools)                                                                           |
-| Server instructions                                       | `LUCA_SERVER_INSTRUCTIONS` in `src/server.ts` names the starting tools, the confirm rule, and that lead-authored text is untrusted                                                                                       |
-| Server name, title, website, and icons                    | `LUCA_SERVER_INFO` in `src/server.ts` carries the title, `https://setluca.com`, and SVG and 512px PNG icons. The server card at `/.well-known/mcp/server-card.json` repeats them                                         |
-| ChatGPT domain verification route                         | The Worker serves `OPENAI_APPS_CHALLENGE_TOKEN` at `/.well-known/openai-apps-challenge`. See [configuration.md](./configuration.md#remote-worker-settings)                                                               |
-| Narrow, accurate descriptions                             | One tool per API operation, generated from that route's own schema                                                                                                                                                       |
-| No catch-all HTTP tool                                    | Every tool is one fixed method against one closed path template. There is no tool that takes a URL or a method as an argument                                                                                            |
-| No prompt-injection phrasing in descriptions              | Descriptions state what the route does and nothing about how the model should behave                                                                                                                                     |
-| Every tool returns a successful response for valid input  | Covered by the operation and protocol suites                                                                                                                                                                             |
-| Actionable errors                                         | The API's error body names the missing scope or the failed field, and the server passes it through rather than flattening it                                                                                             |
-| Reasonably sized responses                                | List tools auto-paginate to a bounded guard and report `pagination.truncated` rather than returning an unbounded merge. See [pagination-and-tool-count.md](./pagination-and-tool-count.md)                               |
-| OAuth 2.0 for an authenticated service                    | Authorization-code flow with PKCE, dynamic client registration, and RFC 9728 protected-resource metadata. See [remote.md](./remote.md). The open auth items are listed below                                             |
-| Per-tool auth hints for ChatGPT                           | Every tool declares its least-privilege scope in `_meta.securitySchemes`, and a token or scope failure returns `_meta["mcp/www_authenticate"]`. See [remote.md](./remote.md#per-tool-scopes-and-re-authorization)        |
-| First-party API on a matching domain                      | `mcp.setluca.com` fronts `api.setluca.com`, and both are ours                                                                                                                                                            |
-| No money or financial-asset transfer                      | No tool moves funds. Billing routes are not on the public surface                                                                                                                                                        |
-| No AI image, video, or audio generation                   | None                                                                                                                                                                                                                     |
-| Does not read the client's memory, chat history, or files | The three `luca_memory_*` tools read and write Luca's own coach and lead memory, which lives behind the Luca API                                                                                                         |
-| Privacy policy                                            | https://setluca.com/privacy, covering collection, use, sharing, protection, retention, and choices, with an email and a postal address. Summarized for this server in the README                                         |
-| Public documentation by publish date                      | https://api.setluca.com/docs, https://setluca.com/developers, and this package's README                                                                                                                                  |
+| Requirement                                               | How it is met                                                                                                                                                                                                                                                                    |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tool names at most 64 characters                          | 224 tools, longest is 48                                                                                                                                                                                                                                                         |
+| Every tool carries a `title`                              | `check-registry.ts` rejects missing or machine-shaped operation titles; the protocol test checks every title in `tools/list`                                                                                                                                                     |
+| Safety hints on every tool                                | `src/annotations.ts` derives the hints from the route and catalog; the protocol test checks their presence, read-only consistency, representative outside-world actions, and the values the October 2026 audit corrected                                                         |
+| Real-world side effects wait for the user                 | 36 operations and 5 task tools reject a call without `confirm: true`. See [security.md](./security.md#confirmation-gate-for-destructive-tools)                                                                                                                                   |
+| Server instructions                                       | `LUCA_SERVER_INSTRUCTIONS` in `src/server.ts` names the starting tools, the confirm rule, and that lead-authored text is untrusted                                                                                                                                               |
+| Server name, title, website, and icons                    | `LUCA_SERVER_INFO` in `src/server.ts` carries the title and `https://setluca.com`. The SVG and 512px PNG icons are only in the server card at `/.well-known/mcp/server-card.json`, because claude.ai drops a session whose `serverInfo` has icons (anthropics/claude-ai-mcp#474) |
+| ChatGPT domain verification route                         | The Worker serves `OPENAI_APPS_CHALLENGE_TOKEN` at `/.well-known/openai-apps-challenge`. See [configuration.md](./configuration.md#remote-worker-settings)                                                                                                                       |
+| Narrow, accurate descriptions                             | One tool per API operation, generated from that route's own schema                                                                                                                                                                                                               |
+| No catch-all HTTP tool                                    | Every tool is one fixed method against one closed path template. There is no tool that takes a URL or a method as an argument                                                                                                                                                    |
+| No prompt-injection phrasing in descriptions              | Descriptions state what the route does and nothing about how the model should behave                                                                                                                                                                                             |
+| Every tool returns a successful response for valid input  | Covered by the operation and protocol suites, and a live sweep of the read tools. One exception is open: `luca_bookings_availability` without `start` and `end` gets a 400, because the API requires both while its OpenAPI marks them optional (LUC-513)                        |
+| Actionable errors                                         | The API's error body names the missing scope or the failed field, and the server passes it through rather than flattening it                                                                                                                                                     |
+| Reasonably sized responses                                | List tools auto-paginate to a bounded guard and report `pagination.truncated` rather than returning an unbounded merge. See [pagination-and-tool-count.md](./pagination-and-tool-count.md)                                                                                       |
+| OAuth 2.0 for an authenticated service                    | Authorization-code flow with PKCE, dynamic client registration, and RFC 9728 protected-resource metadata. See [remote.md](./remote.md). The open auth items are listed below                                                                                                     |
+| Per-tool auth hints for ChatGPT                           | Every tool declares its least-privilege scope in `_meta.securitySchemes`, and a token or scope failure returns `_meta["mcp/www_authenticate"]`. See [remote.md](./remote.md#per-tool-scopes-and-re-authorization)                                                                |
+| First-party API on a matching domain                      | `mcp.setluca.com` fronts `api.setluca.com`, and both are ours                                                                                                                                                                                                                    |
+| No money or financial-asset transfer                      | No tool moves funds. Billing routes are not on the public surface                                                                                                                                                                                                                |
+| No AI image, video, or audio generation                   | None                                                                                                                                                                                                                                                                             |
+| Does not read the client's memory, chat history, or files | The three `luca_memory_*` tools read and write Luca's own coach and lead memory, which lives behind the Luca API                                                                                                                                                                 |
+| Privacy policy                                            | https://setluca.com/privacy, covering collection, use, sharing, protection, retention, and choices, with an email and a postal address. Summarized for this server in the README                                                                                                 |
+| Public documentation by publish date                      | https://api.setluca.com/docs, https://setluca.com/developers, and this package's README                                                                                                                                                                                          |
 
 ## Remaining work
 
-### Auth work in the code
+### Auth in the authorization server
 
-None of these exist yet. Don't describe them as shipped in a submission.
-
-- **Audience check.** `/oauth/resolve` doesn't yet check that a token was issued
-  for the `https://mcp.setluca.com/mcp` resource.
-- **Client ID metadata documents (CIMD).** `packages/auth` doesn't accept a URL
-  as a client ID yet. Clients register through dynamic client registration.
+Both items this page once listed as missing are live in `apps/api` at Luca
+production `69bda66`: `/oauth/resolve` checks that a token was issued for the
+`https://mcp.setluca.com/mcp` audience, and the authorization server accepts a
+client ID metadata document (CIMD) URL as a client ID, with dynamic client
+registration as the fallback.
 
 ### Claude directory URL
 
-Submit the Claude set, not the full catalog:
+Claude gets the same server as ChatGPT, every tool included:
 
 ```text
-https://mcp.setluca.com/mcp?toolset=claude
+https://mcp.setluca.com/mcp
 ```
 
-It lists 43 tools, or 39 when the connection holds only the `luca:read` grant.
-It lists two prompts, `luca-api-planner` and `luca-morning-report`. The others
-plan campaigns and broadcasts or name tools the set leaves out. The list lives in `src/toolsets.ts` and a
-protocol test pins it.
+The 401 challenge asks for every scope plus `offline_access`, so Claude's
+consent screen can offer each tier and the connection gets a refresh token. The
+coach ticks anything past read and draft. Until the Luca API lifts its
+Claude-only cap (LUC-401, in setluca/luca#361, where ADR 0067 supersedes ADR
+0065), a claude.ai connection still holds read and draft at most, and the tools
+past that answer 403.
+
+`https://mcp.setluca.com/mcp?toolset=claude` stays available as a smaller,
+read and draft set of 43 tools for coaches who want Claude limited to that. It
+lists two prompts, `luca-api-planner` and `luca-morning-report`. The list lives
+in `src/toolsets.ts` and a protocol test pins it.
 
 ### Work outside the code
 
 - **OpenAI reviewer connection.** The dedicated
   `openai-reviewer@setluca.com` account and seeded OpenAI Review Workspace are
-  ready. Its credentials are in Infisical production at
-  `/operations/openai-review`. ChatGPT has a read and draft OAuth grant. The
-  `0.3.5` release is live. The portal's plugin package `0.1.3` selects Business
-  & Operations and passed its metadata check. A fresh authenticated MCP scan
-  discovered all 203 tools with no tool findings. Only a generic nonblocking
-  server-instructions review notice remains; OpenAI supplies no actionable
-  instruction-level finding. The existing confirmation and redaction guidance
-  remains in place for review.
-  Eight live ChatGPT reviewer cases passed. The reviewer grant redacts sample
-  lead names and draft text, and ChatGPT describes those fields as unavailable.
-  The publisher confirmed the required attestations, and OpenAI accepted plugin
-  package `0.1.3` for review on October 6, 2026. The portal displays **In
-  review** and **Not published**.
-  See `submission/openai/README.md`.
-- **Claude reviewer access.** Confirm the dedicated account and its fixtures
-  meet Claude's review requirements before using it there. See item 2 below.
+  ready, with credentials in Infisical production at
+  `/operations/openai-review`. ChatGPT holds a read and draft OAuth grant, which
+  redacts sample lead names and draft text. A ChatGPT-style sign-in with the
+  account passed end to end on October 22, 2026. OpenAI rejected package
+  `0.1.3` that day because tool annotations need explicit values with matching
+  justifications. Package `0.1.4` and `chatgpt-app-submission.json` are the
+  resubmission. See `submission/openai/README.md`.
+- **Claude reviewer connection.** The dedicated
+  `claude-reviewer@setluca.com` account owns **Claude Review Workspace**,
+  seeded on October 22, 2026 with the same synthetic fixtures as the OpenAI
+  workspace (lead Sam Demo). Its credentials are in Infisical production at
+  `/operations/claude-review`. A Claude Code sign-in passed that day, and a
+  sign-in with claude.ai's own client ID metadata document passed on October 23. See `submission/claude/README.md` for the portal fields.
 - **Final icon.** The current icons point at the site favicon and app icon
   with a `wordmark-1` version tag. The listing icon isn't final.
 - **OpenAI domain verification.** Completed October 6, 2026. The production
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.
-- **Portal submissions.** The OpenAI plugin is in review, pending OpenAI's
-  decision. No Claude submission has been filed.
+- **Portal submissions.** The OpenAI plugin is to be resubmitted as package
+  `0.1.4` once MCP `0.5.2` is deployed. No Claude submission has been filed;
+  it waits on the Luca API lifting its Claude cap (setluca/luca#361) and a
+  real claude.ai test (LUC-411).
 
 ## What a human has to do in the Claude portal
 
-None of this can be done from the repo. Each one is a rejection risk on its
-own, and an incomplete test account is the one Anthropic calls out by name.
+None of this can be done from the repo. `submission/claude/README.md` has the
+text for each field.
 
-1. **A Team or Enterprise organization**, and an account in it with Owner or
-   Directory permission. The submission form is not visible otherwise.
-2. **Test credentials that actually work.** A Luca workspace with leads,
-   conversations, bookings, and campaign data in it, plus a key or an OAuth
-   login the reviewer can use. A reviewer who lands in an empty workspace
-   cannot exercise a single tool and will not guess why.
-3. **Listing copy.** An icon, a tagline of at most 55 characters, a description
-   of at most 2,000 characters, one to five categories, a support contact, and
-   the permanent URL slug. The slug does not change later.
+1. **A paid Claude plan** (Pro, Max, Team, or Enterprise). On Team or
+   Enterprise the account needs Owner or Directory permission. The submitting
+   organization owns the listing.
+2. **Test credentials that actually work.** The Claude reviewer account above,
+   entered only in the portal's Test & launch field.
+3. **Listing copy.** Server name (100 characters), one-liner (200),
+   description (2,000), one to five categories, documentation and privacy
+   URLs, a support contact, an icon, and the URL slug, which can never change
+   after publishing.
 4. **Seven compliance acknowledgments** at the end of the form.
-5. **Screenshots**, only if this is submitted as an MCP App: three to five
-   PNGs, each at least 1,000px wide.
+5. **Screenshots** only for an MCP App with UI. This server has none.
 
 ## Things worth re-checking before each submission
 

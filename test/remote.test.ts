@@ -6,7 +6,6 @@ import { McpServer } from "@modelcontextprotocol/server";
 import type { Transport } from "@modelcontextprotocol/server";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
-import * as Option from "effect/Option";
 import * as R from "effect/Record";
 import * as Redacted from "effect/Redacted";
 import { assert, describe, expect, it, onTestFinished, vi } from "vitest";
@@ -20,7 +19,7 @@ import {
   createRemoteHandler,
   type TokenResolver,
 } from "../src/remote.ts";
-import { OAUTH_DEFAULT_SCOPE } from "../src/scopes.ts";
+import { OAUTH_CHALLENGE_SCOPE } from "../src/scopes.ts";
 import { type JsonValue, parseJson } from "../src/serialization.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
 import { jsonText } from "./helpers.ts";
@@ -37,7 +36,7 @@ function recordingResolver(seen: string[]): TokenResolver {
   return (token) => {
     seen.push(token);
 
-    return Effect.succeed(Option.none());
+    return Effect.succeedNone;
   };
 }
 
@@ -172,7 +171,7 @@ describe("remote transport", () => {
 
     const response = await handler(new Request(MCP_URL, { method: "POST" }));
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="luca-mcp", scope="${OAUTH_DEFAULT_SCOPE}"`
+      `Bearer realm="luca-mcp", scope="${OAUTH_CHALLENGE_SCOPE}"`
     );
   });
 
@@ -279,7 +278,7 @@ describe("remote transport", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      `Bearer realm="luca-mcp", resource_metadata="https://mcp.test/.well-known/oauth-protected-resource/mcp", scope="${OAUTH_DEFAULT_SCOPE}"`
+      `Bearer realm="luca-mcp", resource_metadata="https://mcp.test/.well-known/oauth-protected-resource/mcp", scope="${OAUTH_CHALLENGE_SCOPE}"`
     );
   });
 
@@ -501,13 +500,11 @@ describe("remote transport", () => {
       resolveToken: (token) => {
         seen.push(token);
 
-        return Effect.succeed(
-          Option.some<LucaConfig>({
-            apiBaseUrl: "https://api.example.com",
-            apiKey: Redacted.make(token),
-            authHeader: "x-api-key",
-          })
-        );
+        return Effect.succeedSome<LucaConfig>({
+          apiBaseUrl: "https://api.example.com",
+          apiKey: Redacted.make(token),
+          authHeader: "x-api-key",
+        });
       },
     });
 
@@ -561,13 +558,11 @@ describe("remote transport", () => {
     async (grant, count) => {
       const handler = createRemoteHandler({
         resolveToken: (token) =>
-          Effect.succeed(
-            Option.some<LucaConfig>({
-              ...DEFAULT_SETTINGS,
-              apiKey: Redacted.make(token),
-              ...optionalField("grant", grant),
-            })
-          ),
+          Effect.succeedSome<LucaConfig>({
+            ...DEFAULT_SETTINGS,
+            apiKey: Redacted.make(token),
+            ...optionalField("grant", grant),
+          }),
         toolset: "claude",
       });
 
@@ -609,13 +604,11 @@ describe("remote transport", () => {
 
     const handler = createRemoteHandler({
       resolveToken: () =>
-        Effect.succeed(
-          Option.some<LucaConfig>({
-            apiBaseUrl: "https://api.example.com",
-            apiKey: Redacted.make("luca_coach_a"),
-            authHeader: "x-api-key",
-          })
-        ),
+        Effect.succeedSome<LucaConfig>({
+          apiBaseUrl: "https://api.example.com",
+          apiKey: Redacted.make("luca_coach_a"),
+          authHeader: "x-api-key",
+        }),
       resourceMetadataUrl,
     });
 

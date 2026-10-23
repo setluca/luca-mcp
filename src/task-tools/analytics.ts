@@ -8,12 +8,12 @@ import * as Schema from "effect/Schema";
 import { formatError, type LucaError } from "../errors.ts";
 import { NonEmptyString, WORKSPACE_INPUT_FIELDS } from "../fields.ts";
 import type { LucaApi } from "../http.ts";
-import type { LucaOperationId } from "../operations.ts";
+import { type LucaOperationId, operationById } from "../operations.ts";
 import { optionalField } from "../optional-field.ts";
+import { recordIdsOf } from "../pagination.ts";
 import type { JsonValue } from "../serialization.ts";
 import {
   failureAsField,
-  listingIds,
   numberInput,
   operationResult,
   resultOrError,
@@ -25,6 +25,8 @@ import {
 const DEFAULT_CAMPAIGN_LIMIT = 5;
 
 const CAMPAIGN_BROADCAST_LIMIT = 10;
+
+const campaignIds = recordIdsOf(operationById("campaigns.list"));
 
 const ANALYTICS_PERIOD_VALUES = [
   "this_week",
@@ -206,7 +208,7 @@ function campaignAnalytics(
   limit: number
 ): Effect.Effect<JsonValue, LucaError, LucaApi> {
   return Effect.forEach(
-    listingIds(page, limit),
+    campaignIds(page, limit),
     (id) =>
       failureAsField(
         "analyticsError",

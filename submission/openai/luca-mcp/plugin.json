@@ -1,40 +1,40 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "luca-mcp",
-  "version": "0.1.3",
-  "description": "Manage a coach's DM sales operations in Luca: leads, conversations, draft replies, bookings, and campaigns.",
+  "version": "0.1.4",
+  "description": "Manage a coach's DM sales in SetLuca: leads, conversations, draft replies, bookings, and campaigns.",
   "author": {
     "name": "SetLuca, LLC"
   },
   "extensions": {
     "com.openai": {
       "interface": {
-        "displayName": "Luca",
-        "shortDescription": "Manage coach sales in Luca",
-        "longDescription": "Luca helps coaches, creators, and experts manage the business work behind sales conversations in direct messages. Connect your Luca workspace to review leads and conversations, triage draft replies, prepare for calls, track bookings, and inspect campaign and broadcast results. This plugin works only with the connected Luca account and its granted permissions. Actions that contact a lead or affect an outside system require your explicit confirmation.",
+        "displayName": "SetLuca",
+        "shortDescription": "Manage coach sales in SetLuca",
+        "longDescription": "SetLuca helps coaches, creators, and experts manage the business work behind sales conversations in direct messages. Connect your SetLuca workspace to review leads and conversations, triage the replies Luca drafts, prepare for calls, track bookings, and inspect campaign and broadcast results. This plugin works only with the connected SetLuca account and the permissions granted to it. Tools that send a message, launch a broadcast, book, move, or cancel a call, or turn on auto-send refuse to run until you confirm.",
         "developerName": "SetLuca, LLC",
         "category": "Business & Operations",
         "defaultPrompt": [
-          "What needs my attention in Luca today?",
+          "What needs my attention in SetLuca today?",
           "Show my review queue and explain what is waiting.",
-          "Which calls still need an outcome in Luca?"
+          "Which calls still need an outcome in SetLuca?"
         ],
         "websiteURL": "https://setluca.com/connect",
         "supportURL": "https://setluca.com/contact",
         "privacyPolicyURL": "https://setluca.com/privacy",
         "termsOfServiceURL": "https://setluca.com/terms",
-        "logo": "assets/luca.png",
-        "composerIcon": "assets/luca.png"
+        "logo": "./assets/luca.png",
+        "composerIcon": "./assets/luca.png"
       },
       "review": {
         "demo_recording_url": "https://github.com/setluca/luca-mcp/releases/download/mcp-v0.3.5/luca-mcp-openai-reviewer-demo.mp4",
         "test_cases": {
           "positive": [
             {
-              "description": "In a reviewer workspace with current activity, summarize the morning report and cite the returned counts or items.",
-              "prompt": "Run Luca's morning report for this workspace. Summarize only the returned report; do not check other Luca data or take action.",
+              "description": "In the reviewer workspace, run the morning report. Its sample drafts are older than the report's 24-hour window, so an empty report is the correct result.",
+              "prompt": "Run SetLuca's morning report for this workspace. Summarize only the returned report; do not check other SetLuca data or take action.",
               "tools_triggered": "luca_morning_report",
-              "expected_behavior": "Call luca_morning_report. Summarize only activity returned by the tool, including any review items or follow-ups it reports. If sensitive details are blanked by the reviewer connection, say they are unavailable. Do not invent counts or imply an action was taken."
+              "expected_behavior": "Call luca_morning_report. Report only the counts and items it returns, including zero drafts queued in the last 24 hours when the report is empty. Do not add older pending drafts from other tools, invent activity, or imply an action was taken."
             },
             {
               "description": "In a reviewer workspace with at least one pending draft, triage the review queue.",
@@ -44,41 +44,43 @@
             },
             {
               "description": "In a reviewer workspace with sample leads, search for a lead by a known name or handle.",
-              "prompt": "Find the sample lead named Sana in Luca.",
+              "prompt": "Find the sample lead named Sana in SetLuca.",
               "tools_triggered": "luca_find_leads",
               "expected_behavior": "Call luca_find_leads with a query for Sana. Return only matching leads from the tool result. If the name is blanked by the reviewer connection, say it cannot be independently confirmed; do not infer that the lead has no name."
             },
             {
               "description": "In a reviewer workspace with a completed call awaiting an outcome, inspect the post-call queue.",
-              "prompt": "Which calls still need an outcome in Luca?",
+              "prompt": "Which calls still need an outcome in SetLuca?",
               "tools_triggered": "luca_post_call_queue",
               "expected_behavior": "Call luca_post_call_queue. List only calls or bookings the tool reports as needing feedback or an outcome. Treat blank sensitive lead details as unavailable. Do not record an outcome."
             },
             {
-              "description": "In a reviewer workspace with sample campaign data, inspect campaign performance.",
-              "prompt": "How are my Luca campaigns and broadcasts performing?",
+              "description": "In the reviewer workspace, which holds a sample draft campaign and a draft broadcast, inspect campaign performance.",
+              "prompt": "How are my SetLuca campaigns and broadcasts performing?",
               "tools_triggered": "luca_analytics_rollup",
-              "expected_behavior": "Call luca_analytics_rollup. Summarize campaign and broadcast metrics returned by the tool, keeping campaign names and figures consistent with the response."
+              "expected_behavior": "Call luca_analytics_rollup. Summarize the per-campaign analytics and the broadcasts the tool returns, keeping names and figures consistent with the response. The sample campaign and broadcast are drafts that have not sent, so zero counts are correct; do not invent results."
             }
           ],
           "negative": [
             {
-              "description": "Weather is outside Luca's workspace tools; no Luca tool should be called.",
+              "description": "Weather is outside SetLuca's workspace tools; no SetLuca tool should be called.",
               "prompt": "What is the weather in Madrid tomorrow?"
             },
             {
-              "description": "Luca's MCP tools do not charge a credit card or purchase goods; no Luca tool should be called.",
-              "prompt": "Use Luca to charge my credit card for a laptop."
+              "description": "SetLuca's tools do not charge a credit card or purchase goods; no SetLuca tool should be called.",
+              "prompt": "Use SetLuca to charge my credit card for a laptop."
             },
             {
-              "description": "Luca cannot read files from the user's computer through this MCP connection; no Luca tool should be called.",
-              "prompt": "Read the private files on my laptop through Luca and summarize them."
+              "description": "SetLuca cannot read files from the user's computer through this connection; no SetLuca tool should be called.",
+              "prompt": "Read the private files on my laptop through SetLuca and summarize them."
             }
           ]
-        }
+        },
+        "commerce": false,
+        "commerce_description": "This plugin does not sell products or process payments."
       },
       "publication": {
-        "release_notes": "Clarified Luca's coach sales purpose and selected Business & Operations. The MCP server remains at production version 0.3.5."
+        "release_notes": "Every tool now states readOnlyHint, destructiveHint, openWorldHint, and idempotentHint explicitly, matching what it does. Adds the review-queue, drafting, booking-request, and auto-send tools from MCP server 0.5, fixes the campaign analytics rollup, and keeps connections signed in past the first hour with a refresh token. The listing now uses the product name, SetLuca."
       }
     }
   }

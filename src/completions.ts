@@ -1,14 +1,12 @@
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import type * as Layer from "effect/Layer";
-import * as Option from "effect/Option";
 import * as R from "effect/Record";
-import * as Schema from "effect/Schema";
 
 import type { LucaError } from "./errors.ts";
 import { LucaApi } from "./http.ts";
 import type { LucaOperation } from "./operations.ts";
-import type { JsonValue } from "./serialization.ts";
+import { recordIdsOf } from "./pagination.ts";
 
 /**
  * Argument completion for the two ids a coach types by hand. MCP completes
@@ -40,33 +38,6 @@ export type CompletionVariable = keyof typeof COMPLETION_SOURCES;
 const COMPLETION_PAGE_SIZE = 100;
 
 /**
- * Reads a list page down to the ids in one array field, ignoring every other
- * field on the page and every other field on a record. A page that arrives in
- * any other shape decodes to nothing, which the caller offers as no
- * suggestions.
- */
-function idsDecoder(itemsKey: string): (page: JsonValue) => readonly string[] {
-  const decode = Schema.decodeUnknownOption(
-    Schema.Struct({
-      [itemsKey]: Schema.Array(Schema.Struct({ id: Schema.String })),
-    })
-  );
-
-  return (page) =>
-    Option.match(decode(page), {
-      onNone: () => [],
-      // Read through the values rather than the key: the struct declares
-      // exactly one field, so a page that decoded carries that field's records
-      // and nothing else. Indexing by `itemsKey` would say the same thing while
-      // reading as though the key might be missing.
-      onSome: (decoded) =>
-        R.values(decoded)
-          .flat()
-          .map((record) => record.id),
-    });
-}
-
-/**
  * A callback shaped for both {@link ResourceTemplate}'s `complete` map and
  * `completable()`, which agree on this signature.
  */
@@ -96,18 +67,9 @@ export function completionCallbacks(
     const operation = operationById(operationId);
     // A completion source has to be a list route: the ids come out of the
     // page's own array field, and a route that does not paginate carries none.
-    // Naming one that cannot serve them is a wiring mistake, so it is refused
-    // while the server is being built rather than on a keystroke.
-    const itemsKey = operation.pageContract?.itemsKey;
-
-    if (itemsKey === undefined) {
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- raw failure on an invariant or interop path; not a caller-recoverable domain failure
-      throw new Error(
-        `Completion source ${operationId} carries no list of records to read ids from`
-      );
-    }
-
-    const idsOn = idsDecoder(itemsKey);
+    // `recordIdsOf` refuses any other while the server is being built rather
+    // than on a keystroke.
+    const idsOn = recordIdsOf(operation);
 
     return (value) =>
       Effect.runPromise(
@@ -125,7 +87,9 @@ export function completionCallbacks(
           // the capitals it copied from elsewhere.
           const typed = (value ?? "").toLowerCase();
 
-          return idsOn(page).filter((id) => id.toLowerCase().startsWith(typed));
+          return idsOn(page, COMPLETION_PAGE_SIZE).filter((id) =>
+            id.toLowerCase().startsWith(typed)
+          );
         }).pipe(
           Effect.provide(lucaLayer),
           // A failed read answers with no suggestions. A defect is left alone:

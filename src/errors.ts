@@ -6,43 +6,43 @@ import * as Schema from "effect/Schema";
 import { toJsonPayload } from "./serialization.ts";
 import type { JsonValue } from "./serialization.ts";
 
-export class LucaConfigError extends Schema.TaggedError<LucaConfigError>()(
-  "LucaConfigError",
-  {
-    message: Schema.String,
-  }
-) {}
+export class LucaConfigError extends Schema.TaggedError<
+  LucaConfigError,
+  { readonly brand: unique symbol }
+>()("LucaConfigError", {
+  message: Schema.String,
+}) {}
 
-export class LucaNetworkError extends Schema.TaggedError<LucaNetworkError>()(
-  "LucaNetworkError",
-  {
-    message: Schema.String,
-    cause: Schema.optionalKey(Schema.Unknown),
-  }
-) {}
+export class LucaNetworkError extends Schema.TaggedError<
+  LucaNetworkError,
+  { readonly brand: unique symbol }
+>()("LucaNetworkError", {
+  message: Schema.String,
+  cause: Schema.optionalKey(Schema.Unknown),
+}) {}
 
-export class LucaDecodeError extends Schema.TaggedError<LucaDecodeError>()(
-  "LucaDecodeError",
-  {
-    message: Schema.String,
-    body: Schema.String,
-  }
-) {}
+export class LucaDecodeError extends Schema.TaggedError<
+  LucaDecodeError,
+  { readonly brand: unique symbol }
+>()("LucaDecodeError", {
+  message: Schema.String,
+  body: Schema.String,
+}) {}
 
-export class LucaHttpError extends Schema.TaggedError<LucaHttpError>()(
-  "LucaHttpError",
-  {
-    status: Schema.Number,
-    statusText: Schema.String,
-    body: Schema.Json,
-    requestId: Schema.optionalKey(Schema.String),
-    /**
-     * How long the server asked us to wait, from its `Retry-After` header. Absent
-     * when the header was missing or unreadable.
-     */
-    retryAfterMs: Schema.optionalKey(Schema.Number),
-  }
-) {}
+export class LucaHttpError extends Schema.TaggedError<
+  LucaHttpError,
+  { readonly brand: unique symbol }
+>()("LucaHttpError", {
+  status: Schema.Int,
+  statusText: Schema.String,
+  body: Schema.Json,
+  requestId: Schema.optionalKey(Schema.String),
+  /**
+   * How long the server asked us to wait, from its `Retry-After` header. Absent
+   * when the header was missing or unreadable.
+   */
+  retryAfterMs: Schema.optionalKey(Schema.Finite),
+}) {}
 
 /**
  * One attempt ran past the request timeout and was cancelled. It is its own
@@ -50,12 +50,12 @@ export class LucaHttpError extends Schema.TaggedError<LucaHttpError>()(
  * the same rules but cannot tell from a network failure whether the request
  * reached the API.
  */
-export class LucaTimeoutError extends Schema.TaggedError<LucaTimeoutError>()(
-  "LucaTimeoutError",
-  {
-    message: Schema.String,
-  }
-) {}
+export class LucaTimeoutError extends Schema.TaggedError<
+  LucaTimeoutError,
+  { readonly brand: unique symbol }
+>()("LucaTimeoutError", {
+  message: Schema.String,
+}) {}
 
 /**
  * A tool was called with arguments that are not a JSON object. The MCP SDK
@@ -63,24 +63,24 @@ export class LucaTimeoutError extends Schema.TaggedError<LucaTimeoutError>()(
  * real client cannot reach this. It exists so no code ahead of `runPromise` can
  * throw where the error channel cannot see it.
  */
-export class LucaToolInputError extends Schema.TaggedError<LucaToolInputError>()(
-  "LucaToolInputError",
-  {
-    message: Schema.String,
-  }
-) {}
+export class LucaToolInputError extends Schema.TaggedError<
+  LucaToolInputError,
+  { readonly brand: unique symbol }
+>()("LucaToolInputError", {
+  message: Schema.String,
+}) {}
 
 /**
  * A gated tool was called without `confirm: true`. It stays out of
  * {@link LucaError} because no request was sent: the tool pipeline turns it
  * into its own result telling the agent which argument to add.
  */
-export class LucaConfirmationRequired extends Schema.TaggedError<LucaConfirmationRequired>()(
-  "LucaConfirmationRequired",
-  {
-    toolName: Schema.String,
-  }
-) {}
+export class LucaConfirmationRequired extends Schema.TaggedError<
+  LucaConfirmationRequired,
+  { readonly brand: unique symbol }
+>()("LucaConfirmationRequired", {
+  toolName: Schema.String,
+}) {}
 
 /**
  * The service that verifies bearer tokens could not give an answer: it was
@@ -88,13 +88,13 @@ export class LucaConfirmationRequired extends Schema.TaggedError<LucaConfirmatio
  * verdict on the token. The transport replies 503 so a client retries instead
  * of discarding a token that may be valid and starting a new sign-in.
  */
-export class TokenVerificationUnavailable extends Schema.TaggedError<TokenVerificationUnavailable>()(
-  "TokenVerificationUnavailable",
-  {
-    message: Schema.String,
-    cause: Schema.optionalKey(Schema.Unknown),
-  }
-) {}
+export class TokenVerificationUnavailable extends Schema.TaggedError<
+  TokenVerificationUnavailable,
+  { readonly brand: unique symbol }
+>()("TokenVerificationUnavailable", {
+  message: Schema.String,
+  cause: Schema.optionalKey(Schema.Unknown),
+}) {}
 
 export type LucaError =
   | LucaConfigError

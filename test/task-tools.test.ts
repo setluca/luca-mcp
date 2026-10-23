@@ -35,8 +35,7 @@ type JsonRecord = Readonly<Record<string, JsonValue>>;
 
 function accepts(field: ToolField | undefined, value: JsonValueInput) {
   return (
-    field !== undefined &&
-    Option.isSome(Schema.decodeUnknownOption(field)(value))
+    field !== undefined && Option.isSome(Schema.decodeOption(field)(value))
   );
 }
 
@@ -218,7 +217,7 @@ async function runTool(
 
   if (validateOutput) {
     // Throws with the decode issue when the result breaks the declared shape.
-    Schema.decodeUnknownSync(Schema.Struct(registered.outputSchema))({
+    Schema.decodeSync(Schema.Struct(registered.outputSchema))({
       result,
     });
 
@@ -1816,7 +1815,7 @@ describe("luca_analytics_rollup", () => {
   it("defaults campaignLimit to 5, fetches analytics per campaign id, skips id-less campaigns, and always lists 10 broadcasts", async () => {
     const { api, calls } = stubApi({
       "campaigns.list": ok({
-        items: [
+        campaigns: [
           { id: "c1" },
           {},
           { id: "c2" },
@@ -1869,7 +1868,7 @@ describe("luca_analytics_rollup", () => {
   it("honors an explicit campaignLimit for both the list query and the analytics window", async () => {
     const { api, calls } = stubApi({
       "campaigns.list": ok({
-        items: [{ id: "c1" }, { id: "c2" }, { id: "c3" }, { id: "c4" }],
+        campaigns: [{ id: "c1" }, { id: "c2" }, { id: "c3" }, { id: "c4" }],
       }),
       "campaigns.analytics": ok({ sent: 1 }),
       "broadcasts.list": ok({ items: [] }),
@@ -1884,7 +1883,25 @@ describe("luca_analytics_rollup", () => {
     expect(sorted(R.keys(result.campaigns))).toEqual(["c1", "c2"]);
   });
 
-  it("tolerates a campaigns.list response with no items field", async () => {
+  it("reads campaign ids from the campaigns field, not items", async () => {
+    // The API sends a campaign page as { campaigns, nextCursor }. Reading
+    // `items` there found no campaigns, so production rollups came back empty.
+    const { api, calls } = stubApi({
+      "campaigns.list": ok({ items: [{ id: "c1" }] }),
+      "broadcasts.list": ok({ items: [] }),
+    });
+
+    const result = (await runTool(tool(), api, {})) as {
+      campaigns: JsonRecord;
+    };
+
+    expect(result.campaigns).toEqual({});
+    expect(
+      calls.filter((c) => c.operation.id === "campaigns.analytics")
+    ).toHaveLength(0);
+  });
+
+  it("tolerates a campaigns.list response with no campaigns field", async () => {
     const { api, calls } = stubApi({
       "campaigns.list": ok({}),
       "broadcasts.list": ok({ items: [] }),
@@ -1903,7 +1920,7 @@ describe("luca_analytics_rollup", () => {
 
   it("converts a failed analytics call into a structured analyticsError", async () => {
     const { api } = stubApi({
-      "campaigns.list": ok({ items: [{ id: "c1" }] }),
+      "campaigns.list": ok({ campaigns: [{ id: "c1" }] }),
       "campaigns.analytics": bad("analytics down"),
       "broadcasts.list": ok({ items: [] }),
     });
@@ -1933,7 +1950,7 @@ describe("luca_analytics_rollup", () => {
 
   it("returns the campaigns and names broadcasts when the broadcast list fails", async () => {
     const { api } = stubApi({
-      "campaigns.list": ok({ items: [{ id: "c1" }] }),
+      "campaigns.list": ok({ campaigns: [{ id: "c1" }] }),
       "campaigns.analytics": ok({ sent: 3 }),
       "broadcasts.list": bad("broadcasts down"),
     });
@@ -1957,7 +1974,7 @@ describe("luca_analytics_rollup", () => {
 
   it("leaves failedSections off when everything loads", async () => {
     const { api } = stubApi({
-      "campaigns.list": ok({ items: [] }),
+      "campaigns.list": ok({ campaigns: [] }),
       "broadcasts.list": ok({ items: [] }),
     });
 
@@ -1968,7 +1985,7 @@ describe("luca_analytics_rollup", () => {
     const { api, calls, peak } = concurrencyTrackingApi((operationId) => {
       if (operationId === "campaigns.list") {
         return {
-          items: [
+          campaigns: [
             { id: "c1" },
             { id: "c2" },
             { id: "c3" },

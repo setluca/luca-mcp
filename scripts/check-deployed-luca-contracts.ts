@@ -14,7 +14,7 @@ import {
 const contracts = resolve(import.meta.dirname, "../contracts");
 
 function readJson(filename: string): JsonValue {
-  return Schema.decodeUnknownSync(Schema.fromJsonString(JsonValue))(
+  return Schema.decodeSync(Schema.fromJsonString(JsonValue))(
     readFileSync(resolve(contracts, filename), "utf-8")
   );
 }

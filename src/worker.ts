@@ -21,7 +21,7 @@ import { createRemoteResponder, resolveToolset } from "./remote.ts";
 import { apiKeyResolver, looksLikeDeveloperKey } from "./resolvers.ts";
 import { LUCA_RESOURCE_SCOPES } from "./scopes.ts";
 import { type JsonValue, toJsonPayload } from "./serialization.ts";
-import { LUCA_SERVER_INFO } from "./server.ts";
+import { LUCA_SERVER_ICONS, LUCA_SERVER_INFO } from "./server.ts";
 import { LUCA_TASK_TOOLS } from "./task-tools.ts";
 
 /**
@@ -159,7 +159,7 @@ function loadPublicOrigin(
   const value = env.MCP_PUBLIC_ORIGIN;
 
   if (value === undefined) {
-    return Effect.succeed(undefined);
+    return Effect.undefined;
   }
 
   const origin = withoutTrailingSlashes(value.trim());
@@ -238,8 +238,9 @@ function route(
       discoveryDocument(request, {
         // The same identity the MCP server announces over the wire, so a
         // client that reads the card and a client that connects can never
-        // be told two different things about this server.
-        serverInfo: LUCA_SERVER_INFO,
+        // be told two different things about this server. Only the card
+        // carries the icons; see LUCA_SERVER_ICONS for why.
+        serverInfo: { ...LUCA_SERVER_INFO, icons: LUCA_SERVER_ICONS },
         endpoint: `${origin}/mcp`,
         transport: "streamable-http",
         capabilities: {

@@ -770,6 +770,11 @@ describe("operation manifest", () => {
         "reviewQueue.reject",
         "reviewQueue.bulkReject",
         "broadcasts.pause",
+        // A voice note sent to OpenRouter's speech-to-text, and a
+        // conversation sent to OpenRouter's language model for a draft.
+        "conversations.media_retry",
+        "reviewQueue.media.retry",
+        "leads.draft",
         // These read outside Luca without changing the outside system.
         "integrations.crm.connections.schema",
         "integrations.crm.connections.health",
@@ -783,9 +788,10 @@ describe("operation manifest", () => {
     // lead's inbox, an outside URL, a connected calendar or CRM. CRM health,
     // knowledge sync, and calendar selection read an external system but do
     // not write to it, so they need no confirmation gate. A change the coach's
-    // own webhook subscribers hear about, and a summary that reaches the CRM
-    // only after its review window, are open-world without being a write Luca
-    // cannot take back.
+    // own webhook subscribers hear about, a summary that reaches the CRM only
+    // after its review window, a voice note sent for transcription, and a
+    // conversation sent to the drafting model are open-world without being a
+    // write Luca cannot take back.
     const ungated = LUCA_OPERATIONS.filter(
       (operation) =>
         operation.method !== "GET" &&
@@ -803,6 +809,9 @@ describe("operation manifest", () => {
             "broadcasts.pause",
             "callEvents.summary.generate",
             "callEvents.backfill",
+            "conversations.media_retry",
+            "reviewQueue.media.retry",
+            "leads.draft",
           ],
           operation.id
         ) &&

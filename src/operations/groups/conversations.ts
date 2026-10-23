@@ -75,6 +75,8 @@ export const conversationsOperations: readonly LucaOperation[] = [
     untrustedContent: false,
     title: "Retry a voice-note transcription",
     mutatesExisting: true,
+    // The retried job sends the voice note to OpenRouter's speech-to-text.
+    openWorld: true,
     description:
       "Queue another transcription attempt for a voice note in this conversation. Only re-transcribes; never drafts or sends. A refusal says why: a retry is already running, the limit is reached, or the audio is gone.",
   }),

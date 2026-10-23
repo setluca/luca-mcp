@@ -51,6 +51,9 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
     untrustedContent: false,
     title: "Retry a draft's failed media",
     mutatesExisting: true,
+    // The same transcription job as conversations.media_retry, so the voice
+    // note goes to OpenRouter's speech-to-text.
+    openWorld: true,
     description:
       "Retry a failed voice-note transcription so the draft can be reviewed. Only re-transcribes; never redrafts or sends.",
   }),

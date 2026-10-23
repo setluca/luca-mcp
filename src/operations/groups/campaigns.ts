@@ -23,7 +23,7 @@ export const campaignsOperations: readonly LucaOperation[] = [
     id: "campaigns.generate",
     title: "Generate a campaign draft",
     description:
-      "Generate a safe AI campaign plan without creating or publishing it.",
+      "Build a campaign plan from a brief with fixed rules, not an AI model. Nothing is created or published: create the draft from the plan, review it, and publish it yourself.",
   }),
   op({
     id: "campaigns.draft.update",
