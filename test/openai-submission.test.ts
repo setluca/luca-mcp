@@ -85,6 +85,28 @@ const Plugin = Schema.Struct({
   }),
 });
 
+/**
+ * The portal reads the server's authentication only from `mcp.json`. Without
+ * this declaration the connect drawer starts at "No authentication" and
+ * reconnecting only refreshes the tool list instead of signing in again.
+ */
+const PluginMcp = Schema.Struct({
+  mcpServers: Schema.Struct({
+    luca: Schema.Struct({
+      type: Schema.Literal("streamable-http"),
+      url: Schema.Literal("https://mcp.setluca.com/mcp"),
+      extensions: Schema.Struct({
+        "com.openai": Schema.Struct({
+          auth: Schema.Struct({
+            type: Schema.Literal("oauth"),
+            client: Schema.Struct({ mode: Schema.Literal("cimd") }),
+          }),
+        }),
+      }),
+    }),
+  }),
+});
+
 function readSubmissionFile(...path: string[]): string {
   return readFileSync(join(SUBMISSION, ...path), "utf-8");
 }
@@ -159,6 +181,14 @@ describe("OpenAI app submission", () => {
       .map(([name]) => name);
 
     expect(mismatched).toEqual([]);
+  });
+
+  it("declares the hosted server's OAuth for the portal scan", () => {
+    expect(() =>
+      Schema.decodeSync(Schema.fromJsonString(PluginMcp))(
+        readSubmissionFile("luca-mcp", "mcp.json")
+      )
+    ).not.toThrow();
   });
 
   it("repeats the listing and review cases from plugin.json", () => {

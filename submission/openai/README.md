@@ -4,7 +4,9 @@
 server. The ZIP holds that directory as its single root. From this directory,
 build it with `zip -r luca-mcp-0.1.4.zip luca-mcp`. The icon is the public
 SetLuca wordmark, the same file as `setluca.com/android-chrome-512x512.png`.
-No credentials or challenge token belong in the package.
+No credentials or challenge token belong in the package. `mcp.json` declares
+OAuth with a client ID metadata document (`extensions["com.openai"].auth`),
+because the portal reads a server's authentication only from that file.
 
 `chatgpt-app-submission.json` fills the review form, in the import format
 OpenAI publishes
