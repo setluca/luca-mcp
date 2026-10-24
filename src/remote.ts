@@ -37,7 +37,11 @@ export type {
 
 export { bindingRateLimits, createLocalRateLimits } from "./rate-limit.ts";
 
-export { apiKeyResolver, looksLikeDeveloperKey } from "./resolvers.ts";
+export {
+  apiKeyResolver,
+  bearerTokenResolver,
+  looksLikeDeveloperKey,
+} from "./resolvers.ts";
 
 export type { TokenResolver } from "./token-verification.ts";
 

@@ -14,7 +14,8 @@ import { TokenVerificationUnavailable } from "./errors.ts";
  *
  * This is the seam between the transport and the auth model: `apiKeyResolver`
  * reads the token as a Luca API key and `oauthResolver` asks the API about an
- * OAuth-issued one (see ADR 0006).
+ * OAuth-issued one (see ADR 0006). `bearerTokenResolver` picks between them by
+ * the token's shape, and is the one the Worker uses.
  *
  * The failure channel is for an outage, not a rejection. A verifier that
  * cannot answer fails with `TokenVerificationUnavailable`, and the handler

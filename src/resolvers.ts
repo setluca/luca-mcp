@@ -11,6 +11,7 @@ import {
   createFixedWindowTable,
   type FixedWindowTable,
 } from "./fixed-window.ts";
+import { oauthResolver } from "./oauth-resolver.ts";
 import {
   callApi,
   sha256Hex,
@@ -195,4 +196,22 @@ export function apiKeyResolver(
             : yield* verify(token, fingerprint);
         })
       : Effect.succeedNone;
+}
+
+/**
+ * The resolver for any bearer token, the one the hosted Worker uses. A
+ * developer key goes to {@link apiKeyResolver} and every other token to
+ * `oauthResolver`, by the shape {@link looksLikeDeveloperKey} reads, so a
+ * self-hosted handler built on this one answers each token exactly as
+ * `mcp.setluca.com` does. Both resolvers share the settings and the fetch.
+ */
+export function bearerTokenResolver(
+  settings: RemoteSettings,
+  fetchImpl: typeof fetch = fetch
+): TokenResolver {
+  const apiKey = apiKeyResolver(settings, fetchImpl);
+  const oauth = oauthResolver(settings, fetchImpl);
+
+  return (token) =>
+    looksLikeDeveloperKey(token) ? apiKey(token) : oauth(token);
 }
