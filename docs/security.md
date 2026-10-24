@@ -316,7 +316,7 @@ confirm gate or its method changes something that already exists, meaning
 qualify even though neither reaches a lead. A `POST` that creates a record does
 not: nothing it touches existed before the call.
 
-`src/annotations.ts` owns the rule and both kinds of Luca tool read it from
+`src/tool-profile.ts` owns the rule and both kinds of Luca tool read it from
 there. A catalog-wide test asserts that every `DELETE`, `PATCH`, and `PUT` tool
 reads destructive and every `GET` does not, so a new mutating route cannot ship
 announcing itself as safe.

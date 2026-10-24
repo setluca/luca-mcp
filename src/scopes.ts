@@ -194,8 +194,20 @@ export function tierGrants(
 }
 
 /** A capability scope's position on the ladder, `0` for `luca:read`. */
-export function capabilityRank(scope: LucaCapabilityScope): number {
+function capabilityRank(scope: LucaCapabilityScope): number {
   return CAPABILITY_LADDER.indexOf(scope);
+}
+
+/**
+ * Whether a connection holding `grant` can call a tool that needs `required`.
+ * The tiers nest, so comparing ranks is enough. The session's tool list and
+ * the docs' scope table both ask this, so the two cannot disagree.
+ */
+export function grantReaches(
+  grant: LucaCapabilityScope,
+  required: LucaCapabilityScope
+): boolean {
+  return capabilityRank(required) <= capabilityRank(grant);
 }
 
 /**
@@ -270,16 +282,6 @@ export function oauthScopeForOperation(
   operation: ScopedOperation
 ): LucaCapabilityScope {
   return scopeForTier(effectiveCapability(operation));
-}
-
-/**
- * The least-privilege capability scope for a task tool: the highest scope any
- * operation it composes needs, because the tool runs all of them.
- */
-export function oauthScopeForTool(
-  operations: readonly ScopedOperation[]
-): LucaCapabilityScope {
-  return highestCapabilityScope(Arr.map(operations, oauthScopeForOperation));
 }
 
 /**

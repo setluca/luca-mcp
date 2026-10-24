@@ -6,7 +6,6 @@ import * as Result from "effect/Result";
 import * as Schema from "effect/Schema";
 import * as Str from "effect/String";
 
-import { mutatesExisting } from "../annotations.ts";
 import {
   confirmInput,
   NonEmptyString,
@@ -176,6 +175,8 @@ export type LucaRequestContract = {
 };
 
 export type LucaOperation = {
+  /** Tells an operation from a task tool; see `tool-profile.ts`. */
+  readonly kind: "operation";
   readonly id: string;
   readonly group: LucaOperationGroup;
   readonly toolName: string;
@@ -316,6 +317,16 @@ const UNTRUSTED_CONTENT_GROUPS = HashSet.fromIterable<LucaOperationGroup>([
   "learning",
   "memory",
   "reviewQueue",
+]);
+
+/**
+ * The HTTP methods that change state a caller already had. POST is absent on
+ * purpose: it creates, and a create has nothing prior to overwrite.
+ */
+const MUTATING_METHODS = HashSet.fromIterable<LucaMethod>([
+  "DELETE",
+  "PATCH",
+  "PUT",
 ]);
 
 /** Server-side bounded auto-pagination guard for list tools. */
@@ -532,7 +543,10 @@ export function op(input: {
 }) {
   const route = ROUTE_CATALOG[input.id];
   const { method, path, scopes, idempotencyRequired } = route;
-  const mutatesExistingRoute = input.mutatesExisting ?? mutatesExisting(method);
+
+  const mutatesExistingRoute =
+    input.mutatesExisting ?? HashSet.has(MUTATING_METHODS, method);
+
   const pageContract = pageContractFor(method, path);
   const group = operationGroupForId(input.id);
 
@@ -542,6 +556,7 @@ export function op(input: {
   const readOnly = input.readOnly ?? method === "GET";
 
   const operation: LucaOperation = {
+    kind: "operation",
     id: input.id,
     group,
     toolName: toolNameFor(input.id),

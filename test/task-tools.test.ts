@@ -27,7 +27,8 @@ import type {
 import { toolSchema } from "../src/standard-schema.ts";
 import type { LucaTaskTool } from "../src/task-tools.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
-import { fromTaskTool } from "../src/tool.ts";
+import { toolProfile } from "../src/tool-profile.ts";
+import { toolProgram } from "../src/tool.ts";
 import { jsonText, parseJsonRecord, sorted } from "./helpers.ts";
 
 /** A JSON object a test reads keys from. */
@@ -41,7 +42,7 @@ function accepts(field: ToolField | undefined, value: JsonValueInput) {
 
 /** Each argument's description, read off the schema the tool registers. */
 function fieldDescriptions(tool: LucaTaskTool) {
-  return R.map(fromTaskTool(tool).inputSchema, (field) => ({
+  return R.map(toolProfile(tool).inputSchema, (field) => ({
     description: SchemaAST.resolveDescription(field.ast),
   }));
 }
@@ -177,7 +178,7 @@ const outputValidator = new AjvJsonSchemaValidator();
  * keys and cannot see that.
  */
 function expectMatchesOutputJsonSchema(
-  registered: ReturnType<typeof fromTaskTool>,
+  registered: ReturnType<typeof toolProfile>,
   result: JsonValue
 ) {
   const { $schema: _schema, ...jsonSchema } = toolSchema(
@@ -209,10 +210,10 @@ async function runTool(
   input: JsonObject,
   { validateOutput = true }: { readonly validateOutput?: boolean } = {}
 ): Promise<JsonValue> {
-  const registered = fromTaskTool(tool);
+  const registered = toolProfile(tool);
 
   const result = await Effect.runPromise(
-    registered.run(input).pipe(Effect.provideService(LucaApi, api))
+    toolProgram(tool, input).pipe(Effect.provideService(LucaApi, api))
   );
 
   if (validateOutput) {
@@ -271,7 +272,7 @@ describe("task tool registry", () => {
 
   it("confirm-gates exactly the tools that compose a gated operation or declare a condition", () => {
     const gated = LUCA_TASK_TOOLS.filter(
-      (tool) => fromTaskTool(tool).confirm !== undefined
+      (tool) => toolProfile(tool).confirm !== undefined
     ).map((tool) => tool.name);
 
     expect(sorted(gated)).toEqual(
@@ -285,7 +286,7 @@ describe("task tool registry", () => {
     );
 
     Arr.forEach(LUCA_TASK_TOOLS, (tool) => {
-      const registered = fromTaskTool(tool);
+      const registered = toolProfile(tool);
 
       expect("confirm" in registered.inputSchema).toBe(
         registered.confirm !== undefined
@@ -332,14 +333,14 @@ describe("luca_triage_inbox", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Triage the review queue");
-    expect(fromTaskTool(tool()).readOnly).toBe(true);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(true);
-    expect(fromTaskTool(tool()).confirm).toBeUndefined();
+    expect(toolProfile(tool()).readOnly).toBe(true);
+    expect(toolProfile(tool()).untrustedContent).toBe(true);
+    expect(toolProfile(tool()).confirm).toBeUndefined();
     expect(tool().composes).toEqual([
       "reviewQueue.list",
       "reviewQueue.explain",
     ]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted(["explainTop", "limit", "workspaceId", "workspaceSlug"])
     );
   });
@@ -755,11 +756,11 @@ describe("luca_find_leads", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Find leads");
-    expect(fromTaskTool(tool()).readOnly).toBe(true);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(true);
-    expect(fromTaskTool(tool()).confirm).toBeUndefined();
+    expect(toolProfile(tool()).readOnly).toBe(true);
+    expect(toolProfile(tool()).untrustedContent).toBe(true);
+    expect(toolProfile(tool()).confirm).toBeUndefined();
     expect(tool().composes).toEqual(["leads.list"]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted(["channel", "limit", "query", "workspaceId", "workspaceSlug"])
     );
   });
@@ -779,7 +780,7 @@ describe("luca_find_leads", () => {
 
     expect(route.properties.channel.enum).toEqual([...MESSAGING_CHANNELS]);
     expect(
-      Schema.is(Schema.Struct(fromTaskTool(tool()).inputSchema))({
+      Schema.is(Schema.Struct(toolProfile(tool()).inputSchema))({
         query: "maria",
         channel: "email",
       })
@@ -830,11 +831,11 @@ describe("luca_flag_for_human", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Flag a lead for human attention");
-    expect(fromTaskTool(tool()).readOnly).toBe(false);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(false);
-    expect(fromTaskTool(tool()).confirm).toBeUndefined();
+    expect(toolProfile(tool()).readOnly).toBe(false);
+    expect(toolProfile(tool()).untrustedContent).toBe(false);
+    expect(toolProfile(tool()).confirm).toBeUndefined();
     expect(tool().composes).toEqual(["leads.notes.add"]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted([
         "idempotencyKey",
         "leadId",
@@ -923,18 +924,18 @@ describe("luca_book_call", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Book a call with a lead");
-    expect(fromTaskTool(tool()).readOnly).toBe(false);
-    expect(fromTaskTool(tool()).confirm).toBe("always");
+    expect(toolProfile(tool()).readOnly).toBe(false);
+    expect(toolProfile(tool()).confirm).toBe("always");
     // It writes to the coach's calendar provider and invites the lead.
-    expect(fromTaskTool(tool()).openWorld).toBe(true);
+    expect(toolProfile(tool()).openWorld).toBe(true);
     // The receipt and the open slots carry no lead-authored text.
-    expect(fromTaskTool(tool()).untrustedContent).toBe(false);
-    expect(fromTaskTool(tool()).oauthScope).toBe("luca:queue_ops");
+    expect(toolProfile(tool()).untrustedContent).toBe(false);
+    expect(toolProfile(tool()).oauthScope).toBe("luca:queue_ops");
     expect(tool().composes).toEqual([
       "bookings.managedAvailability",
       "bookings.providerRequests.create",
     ]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted([
         "bookingTypeId",
         "confirm",
@@ -1346,9 +1347,9 @@ describe("luca_reschedule_call", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Move a call to a new time");
-    expect(fromTaskTool(tool()).readOnly).toBe(false);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(true);
-    expect(fromTaskTool(tool()).confirm).toBe("always");
+    expect(toolProfile(tool()).readOnly).toBe(false);
+    expect(toolProfile(tool()).untrustedContent).toBe(true);
+    expect(toolProfile(tool()).confirm).toBe("always");
     expect(tool().composes).toEqual([
       "bookings.get",
       "bookings.availability",
@@ -1356,7 +1357,7 @@ describe("luca_reschedule_call", () => {
       "bookings.update",
       "bookings.guestLinks.create",
     ]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted([
         "bookingId",
         "confirm",
@@ -1782,15 +1783,15 @@ describe("luca_analytics_rollup", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Get campaign and broadcast analytics");
-    expect(fromTaskTool(tool()).readOnly).toBe(true);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(false);
-    expect(fromTaskTool(tool()).confirm).toBeUndefined();
+    expect(toolProfile(tool()).readOnly).toBe(true);
+    expect(toolProfile(tool()).untrustedContent).toBe(false);
+    expect(toolProfile(tool()).confirm).toBeUndefined();
     expect(tool().composes).toEqual([
       "campaigns.list",
       "campaigns.analytics",
       "broadcasts.list",
     ]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted(["campaignLimit", "workspaceId", "workspaceSlug"])
     );
   });
@@ -2022,11 +2023,11 @@ describe("luca_draft_reply", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Draft a reply for a lead");
-    expect(fromTaskTool(tool()).readOnly).toBe(false);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(true);
-    expect(fromTaskTool(tool()).confirm).toBeUndefined();
+    expect(toolProfile(tool()).readOnly).toBe(false);
+    expect(toolProfile(tool()).untrustedContent).toBe(true);
+    expect(toolProfile(tool()).confirm).toBeUndefined();
     expect(tool().composes).toEqual(["leads.draft"]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted([
         "guidance",
         "idempotencyKey",
@@ -2082,11 +2083,11 @@ describe("luca_approve_and_send", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Approve a drafted reply and send it");
-    expect(fromTaskTool(tool()).readOnly).toBe(false);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(false);
-    expect(fromTaskTool(tool()).confirm).toBe("always");
+    expect(toolProfile(tool()).readOnly).toBe(false);
+    expect(toolProfile(tool()).untrustedContent).toBe(false);
+    expect(toolProfile(tool()).confirm).toBe("always");
     expect(tool().composes).toEqual(["reviewQueue.approve"]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted([
         "confirm",
         "finalBody",
@@ -2153,11 +2154,11 @@ describe("luca_rescue_silent_leads", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Enroll silent leads into the rescue cadence");
-    expect(fromTaskTool(tool()).readOnly).toBe(false);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(false);
-    expect(fromTaskTool(tool()).confirm).toBe("always");
+    expect(toolProfile(tool()).readOnly).toBe(false);
+    expect(toolProfile(tool()).untrustedContent).toBe(false);
+    expect(toolProfile(tool()).confirm).toBe("always");
     expect(tool().composes).toEqual(["cadences.rescueStart"]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted([
         "cadenceTemplate",
         "confirm",
@@ -2245,11 +2246,11 @@ describe("luca_pause_cadence", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Pause a lead's rescue cadence");
-    expect(fromTaskTool(tool()).readOnly).toBe(false);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(false);
-    expect(fromTaskTool(tool()).confirm).toBeUndefined();
+    expect(toolProfile(tool()).readOnly).toBe(false);
+    expect(toolProfile(tool()).untrustedContent).toBe(false);
+    expect(toolProfile(tool()).confirm).toBeUndefined();
     expect(tool().composes).toEqual(["cadences.pause"]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted([
         "idempotencyKey",
         "leadId",
@@ -2302,11 +2303,11 @@ describe("luca_morning_report", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Get the morning digest");
-    expect(fromTaskTool(tool()).readOnly).toBe(true);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(true);
-    expect(fromTaskTool(tool()).confirm).toBeUndefined();
+    expect(toolProfile(tool()).readOnly).toBe(true);
+    expect(toolProfile(tool()).untrustedContent).toBe(true);
+    expect(toolProfile(tool()).confirm).toBeUndefined();
     expect(tool().composes).toEqual(["reports.morning"]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual(
       sorted(["workspaceId", "workspaceSlug"])
     );
   });
@@ -2380,9 +2381,9 @@ describe("luca_analytics_magic_monday", () => {
     const tool = getTool("luca_analytics_magic_monday");
     expect(tool.name).toBe("luca_analytics_magic_monday");
     expect(tool.title).toBe("Read the weekly business report");
-    expect(fromTaskTool(tool).readOnly).toBe(true);
-    expect(fromTaskTool(tool).untrustedContent).toBe(false);
-    expect(fromTaskTool(tool).confirm).toBeUndefined();
+    expect(toolProfile(tool).readOnly).toBe(true);
+    expect(toolProfile(tool).untrustedContent).toBe(false);
+    expect(toolProfile(tool).confirm).toBeUndefined();
     expect(tool.composes).toEqual([
       "analytics.funnel",
       "analytics.revenue",
@@ -2390,7 +2391,7 @@ describe("luca_analytics_magic_monday", () => {
       "analytics.forecast",
       "analytics.callIntelligence",
     ]);
-    expect(sorted(R.keys(fromTaskTool(tool).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool).inputSchema))).toEqual(
       sorted(["workspaceId", "workspaceSlug"])
     );
   });
@@ -2497,9 +2498,9 @@ describe("luca_analytics_deep_dive", () => {
     const tool = getTool("luca_analytics_deep_dive");
     expect(tool.name).toBe("luca_analytics_deep_dive");
     expect(tool.title).toBe("Run a deep-dive analytics investigation");
-    expect(fromTaskTool(tool).readOnly).toBe(true);
-    expect(fromTaskTool(tool).untrustedContent).toBe(true);
-    expect(fromTaskTool(tool).confirm).toBeUndefined();
+    expect(toolProfile(tool).readOnly).toBe(true);
+    expect(toolProfile(tool).untrustedContent).toBe(true);
+    expect(toolProfile(tool).confirm).toBeUndefined();
     expect(tool.composes).toEqual([
       "analytics.funnel",
       "analytics.revenue",
@@ -2509,7 +2510,7 @@ describe("luca_analytics_deep_dive", () => {
       "analytics.ghostedLeads",
       "analytics.trustScore",
     ]);
-    expect(sorted(R.keys(fromTaskTool(tool).inputSchema))).toEqual(
+    expect(sorted(R.keys(toolProfile(tool).inputSchema))).toEqual(
       sorted(["period", "question", "workspaceId", "workspaceSlug"])
     );
   });
@@ -2711,14 +2712,14 @@ describe("luca_post_call_queue", () => {
       "Return everything waiting on the coach after a call: calls that still need a report on how they went, and attended calls with no revenue outcome recorded. The two halves are tracked separately by the API, so a call can sit on one list and not the other. An item leaves the list once the coach reports how the call went and what it was worth. Example: call with {} after a day of calls."
     );
     expect(tool().title).toBe("List the post-call work");
-    expect(fromTaskTool(tool()).readOnly).toBe(true);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(true);
-    expect(fromTaskTool(tool()).confirm).toBeUndefined();
+    expect(toolProfile(tool()).readOnly).toBe(true);
+    expect(toolProfile(tool()).untrustedContent).toBe(true);
+    expect(toolProfile(tool()).confirm).toBeUndefined();
     expect(tool().composes).toEqual([
       "callEvents.needingFeedback",
       "bookings.needsOutcome",
     ]);
-    expect(sorted(R.keys(fromTaskTool(tool()).inputSchema))).toEqual([
+    expect(sorted(R.keys(toolProfile(tool()).inputSchema))).toEqual([
       "workspaceId",
       "workspaceSlug",
     ]);
@@ -2749,10 +2750,10 @@ describe("luca_close_call_loop", () => {
   const CALL_EVENT = ok({ callEvent: { id: "call-1" } });
 
   it("requires confirm for no-show recovery and CRM deal outcomes", () => {
-    const { confirm } = fromTaskTool(tool());
+    const { confirm } = toolProfile(tool());
 
     expect("confirm" in tool().inputSchema).toBe(false);
-    expect("confirm" in fromTaskTool(tool()).inputSchema).toBe(true);
+    expect("confirm" in toolProfile(tool()).inputSchema).toBe(true);
     expect(needsConfirmation(confirm, { attendance: "no_show" })).toBe(true);
 
     for (const outcome of ["won", "lost"]) {
@@ -2771,10 +2772,10 @@ describe("luca_close_call_loop", () => {
 
   it("pins the exact metadata", () => {
     expect(tool().title).toBe("Close the loop on a call");
-    expect(fromTaskTool(tool()).readOnly).toBe(false);
-    expect(fromTaskTool(tool()).untrustedContent).toBe(true);
+    expect(toolProfile(tool()).readOnly).toBe(false);
+    expect(toolProfile(tool()).untrustedContent).toBe(true);
     // No-show recovery and won/lost CRM updates are conditional effects.
-    expect(fromTaskTool(tool()).confirm).toMatchObject({
+    expect(toolProfile(tool()).confirm).toMatchObject({
       description:
         "attendance is no_show or outcome is won or lost (can message a lead or update a connected CRM deal)",
     });

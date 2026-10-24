@@ -43,13 +43,17 @@ Registration:
 
 - `src/server.ts`: builds the `McpServer` and registers tools, resources,
   prompts, and completions.
-- `src/tool.ts`: the one pipeline every tool goes through. Operation tools and
-  task tools both project into `RegisterableTool` and register identically.
+- `src/tool-profile.ts`: decides what a client is told about a tool before it
+  calls it, for operations and task tools alike: its schemas, safety facts,
+  OAuth scope, and hints (`readOnlyHint`, `destructiveHint`, `idempotentHint`,
+  `openWorldHint`). A task tool's facts are folded from the operations it
+  composes, so it can never read safer than they do.
+- `src/tool.ts`: the one pipeline every tool goes through. It registers a
+  tool's profile and runs the call, with the confirmation gate, the
+  untrusted-content wrapper, and the error result applied once for both kinds.
+- `src/toolsets.ts`: which tools a session lists, by toolset and OAuth grant.
 - `src/tool-cache.ts`: memoizes the derived tool definitions so the Worker
   doesn't rebuild every Effect schema on each request.
-- `src/annotations.ts`: decides what a client is told about a tool before it
-  calls it (`readOnlyHint`, `destructiveHint`, `idempotentHint`,
-  `openWorldHint`).
 - `src/resources.ts`, `src/prompts.ts`, `src/completions.ts`: the non-tool MCP
   surfaces. Completions cover `leadId` and `conversationId`, read live from
   `leads.list` and `conversations.list`. MCP completes prompt arguments and

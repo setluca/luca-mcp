@@ -60,12 +60,13 @@ export type TaskCall<Id extends LucaOperationId> = (
 ) => Effect.Effect<JsonValue, LucaError, LucaApi>;
 
 /**
- * One intent-level tool. Whether it is read-only, needs `confirm: true`, or
- * returns untrusted text is derived from the operations in `composes`, so a
- * tool cannot claim to be safer than the routes it calls. The one stated flag,
- * `untrustedContent`, can only make a tool stricter.
+ * One intent-level tool, as a domain file declares it. Whether it is read-only,
+ * needs `confirm: true`, or returns untrusted text is derived from the
+ * operations in `composes` (see `tool-profile.ts`), so a tool cannot claim to
+ * be safer than the routes it calls. The one stated flag, `untrustedContent`,
+ * can only make a tool stricter.
  */
-export interface LucaTaskTool<Id extends LucaOperationId = LucaOperationId> {
+interface TaskToolDefinition<Id extends LucaOperationId> {
   readonly name: string;
   readonly title: string;
   readonly description: string;
@@ -98,14 +99,21 @@ export interface LucaTaskTool<Id extends LucaOperationId = LucaOperationId> {
   ) => Effect.Effect<JsonValue, LucaError, LucaApi>;
 }
 
+/** A declared task tool, tagged so it can be told from an operation. */
+export interface LucaTaskTool<
+  Id extends LucaOperationId = LucaOperationId,
+> extends TaskToolDefinition<Id> {
+  readonly kind: "task";
+}
+
 /**
  * Declares a task tool, inferring the id union from `composes` so `run` can
  * only call what the tool declares.
  */
 export function taskTool<const Id extends LucaOperationId>(
-  tool: LucaTaskTool<Id>
+  tool: TaskToolDefinition<Id>
 ): LucaTaskTool {
-  return tool;
+  return { ...tool, kind: "task" };
 }
 
 /**

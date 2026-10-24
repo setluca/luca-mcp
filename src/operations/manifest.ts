@@ -5,7 +5,7 @@ import * as Arr from "effect/Array";
 import * as Order from "effect/Order";
 import * as R from "effect/Record";
 
-import { operationAnnotations } from "../annotations.ts";
+import { toolProfile } from "../tool-profile.ts";
 import { LUCA_OPERATIONS } from "./catalog.ts";
 import { LUCA_OPERATION_GROUPS } from "./registry.ts";
 import type { LucaOperationGroup } from "./registry.ts";
@@ -23,7 +23,7 @@ export function operationManifest() {
     paginates: operation.pageContract !== undefined,
     untrustedContent: operation.untrustedContent,
     requiredScope: operation.requiredScope,
-    annotations: operationAnnotations(operation),
+    annotations: toolProfile(operation).annotations,
     description: operation.description,
   }));
 }
