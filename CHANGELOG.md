@@ -10,6 +10,8 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-24
+
 ### Breaking
 
 - `luca_knowledge_approve_suggestion` is gone, which leaves 223 tools. Luca
