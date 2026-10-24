@@ -1,7 +1,7 @@
 # MCP registry listing
 
-The official MCP registry reads `server.json`. Smithery and Glama
-mirror the same manifest. `registry:check`, which runs
+The official MCP registry reads `server.json`, and Glama mirrors the same
+manifest. `registry:check`, which runs
 inside `verify`, keeps its version, tool count, and declared environment
 variables matching the code, so the manifest cannot drift silently.
 
@@ -50,8 +50,12 @@ bunx @lobehub/market-cli plugin init --stdio "npx -y @setluca/mcp@<version>"
 bunx @lobehub/market-cli plugin update
 ```
 
-**Smithery** has no listing yet. Confirm its manifest requirements before
-submitting, since it may want metadata beyond `server.json`.
+**AllMCPs** lists the server as `allmcps.com/mcp/luca-mcp-2`. A DNS TXT record
+on `setluca.com` proves ownership, so keep it. Edit the copy from the owner's
+AllMCPs dashboard; AllMCPs reviews each edit before it goes live.
+
+**Smithery** is not a target. Since October 2026 it accepts no new listings and
+keeps only a curated set of verified servers.
 
 **The 0.1.1 listing under the old namespace.** `io.github.leonardomso/luca-mcp`
 is deprecated in the registry, with a message pointing at
