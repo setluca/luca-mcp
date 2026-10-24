@@ -50,6 +50,7 @@ export type Fixture =
   | "reviewMediaItem"
   | "reviewMediaId"
   | "draftingTurn"
+  | "dismissTurn"
   | "bookingUpcoming"
   | "bookingCompleted"
   | "bookingType"
@@ -59,6 +60,7 @@ export type Fixture =
   | "broadcast"
   | "lostReason"
   | "insight"
+  | "dismissInsight"
   | "learningProposal"
   | "abTest"
   | "knowledgeSource"
@@ -69,6 +71,9 @@ export type Fixture =
   | "recoveryCase"
   | "recoveryVersion"
   | "webhookEvent"
+  // Found once a Google calendar is connected to the sweep workspace.
+  | "calendar"
+  | "calendarId"
   // Made by the sweep.
   | "sweepLead"
   | "note"
@@ -82,7 +87,16 @@ export type Fixture =
   | "sweepBroadcast"
   | "previewVersion"
   | "webhookSubscription"
-  | "delivery";
+  | "delivery"
+  | "googleBookingType"
+  | "slotWindow"
+  | "slot"
+  | "bookCallSlot"
+  | "rescheduleSlot"
+  | "providerRequest"
+  | "providerBooking"
+  | "bookCallRequest"
+  | "bookCallBooking";
 
 export type Fixtures = Readonly<Record<Fixture, string>>;
 
@@ -195,6 +209,11 @@ function firstOf(
     });
 }
 
+/** `name` (default `id`) of the item at `index` in `body[key]`. */
+function nthOf(key: string, index: number, name = "id"): Capture {
+  return (body) => fixtureText(listAt(body, key)[index]?.[name]);
+}
+
 /** The value at `path` in the body. */
 function valueAt(...path: readonly string[]): Capture {
   return (body) => {
@@ -250,28 +269,97 @@ const decodeJsonText = Schema.decodeUnknownSync(
   Schema.fromJsonString(JsonValue)
 );
 
+/** A fixture kept as JSON object text, read back as that object. */
+function objectFrom(text: string): JsonObject {
+  const value = decodeJsonText(text);
+
+  return isJsonObject(value) ? value : {};
+}
+
+/**
+ * The connected calendar new bookings go to, kept as the selection
+ * `luca_bookings_calendars_select` takes.
+ */
+const destinationCalendar: Capture = (body) =>
+  Option.match(
+    Arr.findFirst(
+      listAt(body, "calendars"),
+      (item) => item.defaultDestination === true
+    ),
+    {
+      onNone: () => undefined,
+      onSome: (item) =>
+        JSON.stringify({
+          provider: item.provider,
+          calendarId: item.calendarId,
+          name: item.name,
+          timezone: item.timezone,
+          accessRole: item.accessRole,
+        }),
+    }
+  );
+
+/** The open slot at `index`, kept as the fields a provider booking takes. */
+function slotFields(index: number): Capture {
+  return (body) => {
+    const slot = listAt(body, "slots")[index];
+
+    return slot === undefined
+      ? undefined
+      : JSON.stringify({
+          slotId: slot.id,
+          startsAt: slot.startsAt,
+          endsAt: slot.endsAt,
+          timezone: slot.timezone,
+        });
+  };
+}
+
+/** When the open slot at `index` starts. */
+function slotStart(index: number): Capture {
+  return (body) => fixtureText(listAt(body, "slots")[index]?.startsAt);
+}
+
 // ---------------------------------------------------------------------------
 // Expectations shared by many steps.
 
 const CHANNEL_REFUSAL: Expectation = {
   kind: "refused",
   because:
-    "The sweep workspace's only channel is a disconnected sample account, so a send is refused and nothing reaches a lead.",
+    "The sweep workspace's only channel is a disconnected sample account and its leads last wrote a month ago, so the reply window is closed, a send is refused, and nothing reaches a lead.",
   match: /channel|connect|account|unavailable|not available|cannot send/i,
 };
 
 const CRM_REFUSAL: Expectation = {
   kind: "refused",
   because:
-    "The sweep workspace's CRM connection has no real credentials, so anything that calls the CRM is refused.",
+    "The sweep workspace's CRM connection is disabled and holds no credentials, so anything that has to call the CRM is refused.",
   match: /crm|provider|credential|connect|token|unauthori[sz]ed/i,
 };
 
-const CALENDAR_PENDING: Expectation = {
-  kind: "pending",
-  because:
-    "No calendar is connected to the sweep workspace yet; booking on a provider needs one (LUC-515).",
-};
+/**
+ * Every calendar booking the sweep makes invites this SetLuca-owned mailbox,
+ * never a real lead.
+ */
+const SWEEP_INVITEE = "sweep+lead@setluca.com";
+
+/** A Google call type open 09:00 to 17:00 UTC every day, so it has slots. */
+const OPEN_EVERY_DAY = Arr.map(Arr.range(0, 6), (weekday) => ({
+  weekday,
+  startMinute: 540,
+  endMinute: 1020,
+}));
+
+/** The selection of the connected calendar as the bookings' destination. */
+function calendarSelection(fx: Fixtures): JsonObject {
+  return {
+    body: {
+      ...objectFrom(fx.calendar),
+      conflictEnabled: true,
+      defaultDestination: true,
+    },
+  };
+}
 
 /** An ISO time `days` from now at 10:00 UTC, for bookings the sweep makes. */
 function daysAhead(ctx: SweepContext, days: number): string {
@@ -352,7 +440,12 @@ const discover: readonly SweepStep[] = [
   {
     tool: "luca_review_queue_drafting",
     phase: "discover",
-    provides: { draftingTurn: firstOf("items", () => true, "turnId") },
+    // The seed leaves two cancelled turns: the first is cancelled and retried,
+    // and the second is dismissed, since a retried turn is open again.
+    provides: {
+      draftingTurn: nthOf("items", 0, "turnId"),
+      dismissTurn: nthOf("items", 1, "turnId"),
+    },
   },
   {
     tool: "luca_bookings_list",
@@ -366,6 +459,20 @@ const discover: readonly SweepStep[] = [
     tool: "luca_bookings_types_list",
     phase: "discover",
     provides: { bookingType: firstOf("bookingTypes") },
+  },
+  {
+    tool: "luca_bookings_calendars_list",
+    phase: "discover",
+    provides: {
+      // Kept as JSON text, because fixtures are strings; the select steps
+      // read it back.
+      calendar: destinationCalendar,
+      calendarId: firstOf(
+        "calendars",
+        (item) => item.defaultDestination === true,
+        "calendarId"
+      ),
+    },
   },
   {
     tool: "luca_channels_list",
@@ -404,7 +511,12 @@ const discover: readonly SweepStep[] = [
   {
     tool: "luca_analytics_insights",
     phase: "discover",
-    provides: { insight: firstOf("items") },
+    // The first is read and actioned, the second dismissed: an actioned
+    // insight can no longer be dismissed.
+    provides: {
+      insight: nthOf("items", 0),
+      dismissInsight: nthOf("items", 1),
+    },
   },
   {
     tool: "luca_learning_proposals_list",
@@ -492,11 +604,6 @@ const read: readonly SweepStep[] = [
     args: () => ({ query: { provider: "manual", timezone: "UTC" } }),
   },
   {
-    tool: "luca_bookings_managed_availability",
-    phase: "read",
-    expect: CALENDAR_PENDING,
-  },
-  {
     tool: "luca_bookings_types_schedule",
     phase: "read",
     ...idFrom("bookingType"),
@@ -512,7 +619,6 @@ const read: readonly SweepStep[] = [
     phase: "read",
     args: () => ({ provider: "google_calendar" }),
   },
-  { tool: "luca_bookings_calendars_list", phase: "read" },
   {
     tool: "luca_bookings_outcome_get",
     phase: "read",
@@ -526,11 +632,6 @@ const read: readonly SweepStep[] = [
   { tool: "luca_bookings_needs_outcome", phase: "read" },
   { tool: "luca_bookings_lifecycle_attention", phase: "read" },
   { tool: "luca_bookings_brief", phase: "read", ...idFrom("bookingUpcoming") },
-  {
-    tool: "luca_bookings_provider_requests_get",
-    phase: "read",
-    expect: CALENDAR_PENDING,
-  },
   { tool: "luca_call_events_needing_feedback", phase: "read" },
   { tool: "luca_call_events_get", phase: "read", ...idFrom("callEvent") },
   {
@@ -770,6 +871,105 @@ const create: readonly SweepStep[] = [
     provides: { sweepBookingType: valueAt("bookingType", "id") },
   },
   {
+    tool: "luca_bookings_calendars_select",
+    phase: "create",
+    needs: ["calendar"],
+    args: calendarSelection,
+  },
+  {
+    tool: "luca_bookings_types_create",
+    phase: "create",
+    extra: "makes a Google Calendar call type for the provider bookings",
+    needs: ["calendarId"],
+    args: (fx, ctx) => ({
+      body: {
+        provider: "google_calendar",
+        name: `Sweep Google call ${ctx.runId}`,
+        timezone: "UTC",
+        durationMinutes: 30,
+        destinationCalendarId: fx.calendarId,
+      },
+    }),
+    provides: { googleBookingType: valueAt("bookingType", "id") },
+  },
+  {
+    tool: "luca_bookings_types_schedule_replace",
+    phase: "create",
+    extra: "opens the Google call type every day, so it has slots to book",
+    ...idFrom("googleBookingType", () => ({
+      body: { rules: OPEN_EVERY_DAY, overrides: [] },
+    })),
+  },
+  {
+    tool: "luca_bookings_managed_availability",
+    phase: "create",
+    needs: ["googleBookingType"],
+    args: (fx, ctx) => ({
+      query: {
+        bookingTypeId: fx.googleBookingType,
+        timezone: "UTC",
+        start: daysAhead(ctx, 14),
+        end: daysAhead(ctx, 21),
+      },
+    }),
+    provides: {
+      slotWindow: slotFields(0),
+      bookCallSlot: slotStart(1),
+      rescheduleSlot: slotStart(2),
+    },
+  },
+  {
+    tool: "luca_bookings_managed_availability",
+    phase: "create",
+    extra:
+      "reads the first slot's own window, since a slot id is tied to the window it was read in",
+    needs: ["googleBookingType", "slotWindow"],
+    args: (fx) => {
+      const window = objectFrom(fx.slotWindow);
+
+      return {
+        query: {
+          bookingTypeId: fx.googleBookingType,
+          timezone: "UTC",
+          start: String(window.startsAt),
+          end: String(window.endsAt),
+        },
+      };
+    },
+    provides: { slot: slotFields(0) },
+  },
+  {
+    tool: "luca_bookings_provider_requests_create",
+    phase: "create",
+    gated: true,
+    needs: ["sweepLead", "googleBookingType", "slot"],
+    args: (fx) => ({
+      body: {
+        ...objectFrom(fx.slot),
+        leadId: fx.sweepLead,
+        bookingTypeId: fx.googleBookingType,
+        inviteeEmail: SWEEP_INVITEE,
+        inviteeName: "Sweep Lead",
+      },
+    }),
+    provides: { providerRequest: valueAt("id") },
+  },
+  {
+    tool: "luca_book_call",
+    phase: "create",
+    gated: true,
+    needs: ["sweepLead", "googleBookingType", "bookCallSlot"],
+    args: (fx) => ({
+      leadId: fx.sweepLead,
+      bookingTypeId: fx.googleBookingType,
+      slotAt: fx.bookCallSlot,
+      inviteeEmail: SWEEP_INVITEE,
+      inviteeName: "Sweep Lead",
+      timezone: "UTC",
+    }),
+    provides: { bookCallRequest: valueAt("id") },
+  },
+  {
     tool: "luca_bookings_types_attendees_add",
     phase: "create",
     ...idFrom("sweepBookingType", () => ({
@@ -869,13 +1069,11 @@ const create: readonly SweepStep[] = [
     tool: "luca_integrations_crm_mappings_suggest",
     phase: "create",
     ...idFrom("crmConnection"),
-    expect: CRM_REFUSAL,
   },
   {
     tool: "luca_integrations_crm_sync_runs_create",
     phase: "create",
     ...idFrom("crmConnection", () => ({ body: { mode: "dry_run" } })),
-    expect: CRM_REFUSAL,
   },
 ];
 
@@ -926,7 +1124,12 @@ const change: readonly SweepStep[] = [
     gated: true,
     needs: ["conversation", "partialMessage"],
     args: (fx) => ({ id: fx.conversation, messageId: fx.partialMessage }),
-    expect: CHANNEL_REFUSAL,
+    expect: {
+      kind: "refused",
+      because:
+        "The seeded reply's second part may already have reached the lead, so sending it again is refused rather than risking a duplicate.",
+      match: /provider acceptance is unknown|cannot safely retry/i,
+    },
   },
   {
     tool: "luca_conversations_reply_failure_retry",
@@ -945,7 +1148,6 @@ const change: readonly SweepStep[] = [
       messageId: fx.mediaMessage,
       mediaId: fx.mediaId,
     }),
-    expect: CHANNEL_REFUSAL,
   },
   {
     tool: "luca_review_queue_approve",
@@ -967,15 +1169,15 @@ const change: readonly SweepStep[] = [
     phase: "change",
     gated: true,
     needs: ["reviewItem"],
+    // A bulk call answers 200 and reports each item's outcome, so the closed
+    // reply window shows up as that item's failure, not as a tool error.
     args: (fx) => ({ body: { ids: [fx.reviewItem] } }),
-    expect: CHANNEL_REFUSAL,
   },
   {
     tool: "luca_review_queue_media_retry",
     phase: "change",
     needs: ["reviewMediaItem", "reviewMediaId"],
     args: (fx) => ({ id: fx.reviewMediaItem, mediaId: fx.reviewMediaId }),
-    expect: CHANNEL_REFUSAL,
   },
   {
     tool: "luca_review_queue_reject",
@@ -1064,7 +1266,13 @@ const change: readonly SweepStep[] = [
     tool: "luca_bookings_provider_sync_retry",
     phase: "change",
     gated: true,
-    expect: CALENDAR_PENDING,
+    ...idFrom("sweepBooking"),
+    expect: {
+      kind: "refused",
+      because:
+        "The sweep's booking has no failed provider update, so there is nothing to retry.",
+      match: /no failed provider update|provider_sync_not_retryable/i,
+    },
   },
   {
     tool: "luca_bookings_outcome_reasons_update",
@@ -1091,9 +1299,28 @@ const change: readonly SweepStep[] = [
     })),
   },
   {
-    tool: "luca_bookings_calendars_select",
+    tool: "luca_bookings_provider_requests_get",
     phase: "change",
-    expect: CALENDAR_PENDING,
+    ...idFrom("providerRequest"),
+    provides: { providerBooking: valueAt("bookingId") },
+  },
+  {
+    tool: "luca_bookings_provider_requests_get",
+    phase: "change",
+    extra: "reads the booking luca_book_call made, so the sweep can cancel it",
+    ...idFrom("bookCallRequest"),
+    provides: { bookCallBooking: valueAt("bookingId") },
+  },
+  {
+    tool: "luca_reschedule_call",
+    phase: "change",
+    extra: "moves the Google Calendar booking, so its calendar event moves",
+    gated: true,
+    needs: ["providerBooking", "rescheduleSlot"],
+    args: (fx) => ({
+      bookingId: fx.providerBooking,
+      slotAt: fx.rescheduleSlot,
+    }),
   },
   {
     tool: "luca_bookings_recovery_stop",
@@ -1106,18 +1333,6 @@ const change: readonly SweepStep[] = [
         outcomeVersion: Number(fx.recoveryVersion),
       },
     }),
-  },
-  {
-    tool: "luca_bookings_provider_requests_create",
-    phase: "change",
-    gated: true,
-    expect: CALENDAR_PENDING,
-  },
-  {
-    tool: "luca_book_call",
-    phase: "change",
-    gated: true,
-    expect: CALENDAR_PENDING,
   },
   {
     tool: "luca_call_events_feedback",
@@ -1147,8 +1362,8 @@ const change: readonly SweepStep[] = [
     tool: "luca_call_events_push_to_crm",
     phase: "change",
     gated: true,
+    // It queues the push and answers at once; the CRM is reached later.
     ...idFrom("callEvent"),
-    expect: CRM_REFUSAL,
   },
   {
     tool: "luca_campaigns_draft_update",
@@ -1268,7 +1483,6 @@ const change: readonly SweepStep[] = [
     phase: "change",
     gated: true,
     ...idFrom("crmConnection"),
-    expect: CRM_REFUSAL,
   },
   {
     tool: "luca_integrations_crm_mappings_confirm",
@@ -1410,9 +1624,34 @@ const remove: readonly SweepStep[] = [
     ...idFrom("sweepBookingType"),
   },
   {
+    tool: "luca_bookings_cancel",
+    phase: "remove",
+    extra: "cancels the Google Calendar booking, so its event is removed",
+    gated: true,
+    ...idFrom("providerBooking"),
+  },
+  {
+    tool: "luca_bookings_cancel",
+    phase: "remove",
+    extra:
+      "cancels the booking luca_book_call made, leaving the calendar clean",
+    gated: true,
+    ...idFrom("bookCallBooking"),
+  },
+  {
     tool: "luca_bookings_calendars_remove",
     phase: "remove",
-    expect: CALENDAR_PENDING,
+    needs: ["calendarId"],
+    args: (fx) => ({
+      body: { provider: "google_calendar", calendarId: fx.calendarId },
+    }),
+  },
+  {
+    tool: "luca_bookings_calendars_select",
+    phase: "remove",
+    extra: "selects the calendar again, so the next sweep finds it",
+    needs: ["calendar"],
+    args: calendarSelection,
   },
   {
     tool: "luca_broadcasts_cancel",
@@ -1424,7 +1663,11 @@ const remove: readonly SweepStep[] = [
     phase: "remove",
     ...idFrom("webhookSubscription"),
   },
-  { tool: "luca_insights_dismiss", phase: "remove", ...idFrom("insight") },
+  {
+    tool: "luca_insights_dismiss",
+    phase: "remove",
+    ...idFrom("dismissInsight"),
+  },
   {
     tool: "luca_knowledge_reject_suggestion",
     phase: "remove",
@@ -1444,8 +1687,8 @@ const remove: readonly SweepStep[] = [
   {
     tool: "luca_review_queue_drafting_dismiss",
     phase: "remove",
-    needs: ["draftingTurn"],
-    args: (fx) => ({ turnId: fx.draftingTurn }),
+    needs: ["dismissTurn"],
+    args: (fx) => ({ turnId: fx.dismissTurn }),
   },
   {
     tool: "luca_integrations_crm_connections_disconnect",
