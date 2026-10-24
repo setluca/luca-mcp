@@ -1820,18 +1820,6 @@
         "destructive_justification": "Only reads the integration event log; it overwrites and deletes nothing."
       }
     },
-    "luca_knowledge_approve_suggestion": {
-      "annotations": {
-        "readOnlyHint": false,
-        "openWorldHint": false,
-        "destructiveHint": true
-      },
-      "justifications": {
-        "read_only_justification": "Approves a profile suggestion and writes it into the coach's profile in the SetLuca workspace.",
-        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service. It sends nothing.",
-        "destructive_justification": "Overwrites the matching profile field with the suggested value, and every later draft Luca writes reads it. The earlier value is not kept, though the coach can edit the profile back. Refuses to run without confirm: true."
-      }
-    },
     "luca_knowledge_reject_suggestion": {
       "annotations": {
         "readOnlyHint": false,
