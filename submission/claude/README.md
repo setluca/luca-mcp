@@ -9,11 +9,12 @@ criteria beside it. No credentials belong in this file.
 
 ## Status
 
-Submitted on October 24, 2026 from the owner's personal Claude account, slug
-`setluca`, against MCP server `0.6.0`; the portal shows **In review**.
-Approval does not publish the listing: someone on that account has to select
-**Publish**. Until there is a decision, keep the reviewer login unchanged and
-re-run the claude.ai checks after any MCP release or auth change.
+Published on October 24, 2026, the day it was submitted, from the owner's
+personal Claude account against MCP server `0.6.0`. The listing is live at
+<https://claude.ai/directory/connectors/setluca> as a Community connector,
+lists all 223 tools, and answers live calls. Reviewers can come back at any
+time, so keep the reviewer login unchanged, accept each new legal edition on
+it, and re-run the claude.ai checks after any MCP release or auth change.
 
 ## Before submitting
 
