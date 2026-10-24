@@ -7,3 +7,6 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Tool sweep reports (scripts/sweep): they hold workspace record IDs.
+sweep-reports/
