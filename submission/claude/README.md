@@ -25,8 +25,11 @@ criteria beside it. No credentials belong in this file.
 - A real claude.ai connection has been tested (LUC-411): it lists the tools,
   a send-tier tool answers once granted, and it still works after the first
   hour.
-- Two calls only the owner can make: the submitting account, which owns the
-  listing, and the URL slug, which can never change after publishing.
+- The owner chose both calls that are theirs to make. The listing is submitted
+  from the owner's personal Claude account (Max plan), which owns it. Managing
+  it needs that account to stay on a paid plan, and moving it to an
+  organization later means asking Anthropic. The URL slug is `setluca`; it
+  can never change after publishing.
 - Whether reviewers should try a send. What a send on the disconnected sample
   account returns has not been checked, and trying it uses up the pending
   draft that the review queue prompts rely on.
@@ -35,7 +38,7 @@ criteria beside it. No credentials belong in this file.
 
 - URL: `https://mcp.setluca.com/mcp`, Streamable HTTP, universal URL.
 - Tools: all of them, the same set as the ChatGPT submission. Claude asks
-  before every tool marked `destructiveHint: true`, and 41 tools, including
+  before every tool marked `destructiveHint: true`, and 40 tools, including
   every one that sends a message, launches a broadcast, or books, moves, or
   cancels a call, also refuse to run without `confirm: true`.
 - `?toolset=claude` is a smaller read and draft set for coaches who want it. It
@@ -67,14 +70,14 @@ criteria beside it. No credentials belong in this file.
   > to tick. Lead names and message text stay redacted unless you also grant
   > full content.
 
-- **Categories:** Sales, Communication, Productivity (pick the closest names
-  the portal offers).
+- **Categories:** Sales and marketing, Communication, Productivity, as the
+  portal names them.
 - **Documentation URL:** <https://setluca.com/connect>
 - **Privacy policy URL:** <https://setluca.com/privacy>
 - **Support contact:** support@setluca.com
 - **Icon:** `submission/openai/luca-mcp/assets/luca.png`, the 512px SetLuca
   wordmark served at `setluca.com/android-chrome-512x512.png`.
-- **URL slug:** the owner's call. It is permanent once published.
+- **URL slug:** `setluca`. It is permanent once published.
 - **Screenshots:** none. The server returns no UI.
 
 ## 3. Use cases
