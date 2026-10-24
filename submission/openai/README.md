@@ -44,6 +44,17 @@ the version, it:
 Luca v0.4.0 made approving a profile suggestion session-only, and the tool
 could only get 403 from then on.
 
+Package `0.1.4` went into review on October 24, 2026 against MCP server
+`0.6.0` (submission `appsub_6adc60f672408191ba38e8949499f3a4`; the portal
+labels the release 1.0.0). One finding stays open and the portal marks it
+non-blocking: the MCP scan reports `authorization_required`. The connection
+itself works: Workers logs show OpenAI's discovery, token exchange, and
+`tools/list` all answering 200. The scan runs never reach `mcp.setluca.com` or
+`api.setluca.com`; each ends within seconds. Declaring OAuth in `mcp.json`,
+signing in again, and moving `0.1.4` into review did not clear it, so it is
+OpenAI's to explain. If review raises it, give OpenAI support the app ID
+`asdk_app_6ac4983d2bd08191a746893a52c91ef9` and the failed run IDs on LUC-319.
+
 OpenAI verified `mcp.setluca.com` on October 6, 2026. The business publisher is
 `SetLuca, LLC`, status Approved.
 
