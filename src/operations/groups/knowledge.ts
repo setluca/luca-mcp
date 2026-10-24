@@ -6,15 +6,7 @@ export const knowledgeOperations: readonly LucaOperation[] = [
     id: "knowledge.suggestions",
     title: "List knowledge suggestions",
     description:
-      "List profile changes proposed from the coach's own knowledge sources, each with the excerpt it was drawn from and the value it would replace.",
-  }),
-  op({
-    id: "knowledge.approveSuggestion",
-    title: "Approve a knowledge suggestion",
-    mutatesExisting: true,
-    confirm: "always",
-    description:
-      "Approve a profile suggestion and write it into the coach's profile. Every later draft reads the result, so check the excerpt supports the change before approving.",
+      "List profile changes proposed from the coach's own knowledge sources, each with the excerpt it was drawn from and the value it would replace. Approving one is app-only, so a person checks each change before it reaches the profile; this lists them and luca_knowledge_reject_suggestion turns one down.",
   }),
   op({
     id: "knowledge.rejectSuggestion",

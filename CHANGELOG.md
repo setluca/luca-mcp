@@ -10,6 +10,24 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-24
+
+### Breaking
+
+- `luca_knowledge_approve_suggestion` is gone, which leaves 223 tools. Luca
+  made approving a profile suggestion session-only, because approval writes
+  the coach profile that every later draft reads and needs a person in the
+  loop. Since that release, every call from an API key or OAuth token got 403,
+  so no call that worked is lost. Coaches approve suggestions in the app;
+  `luca_knowledge_suggestions` lists them and
+  `luca_knowledge_reject_suggestion` still turns one down.
+
+### Changed
+
+- Contracts are pinned to Luca `621b92a`, the v0.4.0 production release.
+  `luca_bookings_availability` and `luca_bookings_managed_availability`
+  document that `start` defaults to now and `end` to seven days after `start`.
+
 ## [0.5.2] - 2026-10-23
 
 ### Fixed

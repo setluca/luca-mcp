@@ -256,7 +256,6 @@ These 36 operations carry the gate:
 - `luca_integrations_crm_connections_webhooks_setup`
 - `luca_integrations_crm_connections_disconnect`
 - `luca_channels_set_ai_dm_auto_send`, only when `enabled` is `true`
-- `luca_knowledge_approve_suggestion`
 - `luca_cadences_rescue_start`
 
 `luca_campaigns_set_status`, `luca_call_events_feedback`,

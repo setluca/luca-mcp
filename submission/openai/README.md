@@ -38,6 +38,10 @@ the version, it:
   than the report's 24-hour window;
 - expects the per-campaign analytics that `0.5.2` now returns.
 
+`0.6.0` drops `luca_knowledge_approve_suggestion`, so the JSON lists 223 tools.
+Luca v0.4.0 made approving a profile suggestion session-only, and the tool
+could only get 403 from then on.
+
 OpenAI verified `mcp.setluca.com` on October 6, 2026. The business publisher is
 `SetLuca, LLC`, status Approved.
 
@@ -49,6 +53,12 @@ draft campaign and broadcast, and a past booking; its sample Instagram account
 is disconnected and holds no credentials. Its email, password, and workspace ID
 are in Infisical's production environment at `/operations/openai-review`. Enter
 them only in the portal's **Review details**, never in the ZIP or a ticket.
+
+Since Luca v0.4.0 (October 23, 2026), an account must accept the current Terms
+and Privacy Policy before business requests succeed, and its OAuth tokens and
+API keys inherit that. After each new legal edition, sign in as the reviewer
+and accept at `app.setluca.com/agreements`, or every tool call returns 403
+`terms_acceptance_required`.
 
 On October 22, 2026 the account still signed in with no MFA or email code. A
 ChatGPT-style OAuth run with it passed end to end: dynamic registration with

@@ -55396,7 +55396,7 @@
           "Knowledge"
         ],
         "summary": "Approve a profile suggestion and apply it to the coach profile",
-        "description": "The human approval that lets ingested content reach the profile. It writes through the same path a direct profile edit uses, and re-checks the field against the allowlist instead of trusting the stored row. Approving a suggestion that's already resolved returns 409.\n\n**API key scopes:** `knowledge:write`. You also need an `Idempotency-Key` header.",
+        "description": "The human approval that lets ingested content reach the profile. It writes through the same path a direct profile edit uses, and re-checks the field against the allowlist instead of trusting the stored row. Approving a suggestion that's already resolved returns 409.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
         "parameters": [
           {
             "schema": {
@@ -55435,6 +55435,16 @@
           },
           "401": {
             "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "forbidden",
             "content": {
               "application/json": {
                 "schema": {
@@ -55497,16 +55507,6 @@
         "security": [
           {
             "sessionCookie": []
-          },
-          {
-            "apiKey": [
-              "knowledge:write"
-            ]
-          },
-          {
-            "bearerAuth": [
-              "knowledge:write"
-            ]
           }
         ],
         "operationId": "postKnowledgeSuggestionsByIdApprove"
@@ -59624,7 +59624,7 @@
           "Booking providers"
         ],
         "summary": "List normalized availability for an active booking type",
-        "description": "Real bookable slots for one of Luca's own booking types, with the schedule applied and calendar conflicts already taken out. Times come back in the timezone you ask for.\n\n**API key scopes:** `bookings:read`.",
+        "description": "Real bookable slots for one of Luca's own booking types, with the schedule applied and calendar conflicts already taken out. Times come back in the timezone you ask for. Without `start` and `end`, it reads the coming week.\n\n**API key scopes:** `bookings:read`.",
         "parameters": [
           {
             "schema": {
@@ -59652,12 +59652,13 @@
                 "string",
                 "null"
               ],
-              "format": "date-time"
+              "format": "date-time",
+              "description": "Start of the time range, inclusive. Defaults to now."
             },
             "required": false,
+            "description": "Start of the time range, inclusive. Defaults to now.",
             "name": "start",
-            "in": "query",
-            "description": "Start of the time range, inclusive."
+            "in": "query"
           },
           {
             "schema": {
@@ -59665,12 +59666,13 @@
                 "string",
                 "null"
               ],
-              "format": "date-time"
+              "format": "date-time",
+              "description": "End of the time range, exclusive. Defaults to 7 days after start."
             },
             "required": false,
+            "description": "End of the time range, exclusive. Defaults to 7 days after start.",
             "name": "end",
-            "in": "query",
-            "description": "End of the time range, exclusive."
+            "in": "query"
           },
           {
             "$ref": "#/components/parameters/LucaApiVersion"
@@ -59782,7 +59784,7 @@
           "Bookings"
         ],
         "summary": "Preview provider-backed booking availability",
-        "description": "Availability read live from an external booking provider, so you can preview a connection before leads see it. `end` has to be after `start`.\n\n**API key scopes:** `bookings:read`.",
+        "description": "Availability read live from an external booking provider, so you can preview a connection before leads see it. `start` defaults to now and `end` to seven days after `start`; `end` has to be after `start`.\n\n**API key scopes:** `bookings:read`.",
         "parameters": [
           {
             "schema": {
@@ -59839,12 +59841,13 @@
                 "string",
                 "null"
               ],
-              "format": "date-time"
+              "format": "date-time",
+              "description": "Start of the time range, inclusive. Defaults to now."
             },
             "required": false,
+            "description": "Start of the time range, inclusive. Defaults to now.",
             "name": "start",
-            "in": "query",
-            "description": "Start of the time range, inclusive."
+            "in": "query"
           },
           {
             "schema": {
@@ -59852,12 +59855,13 @@
                 "string",
                 "null"
               ],
-              "format": "date-time"
+              "format": "date-time",
+              "description": "End of the time range, exclusive. Defaults to 7 days after start."
             },
             "required": false,
+            "description": "End of the time range, exclusive. Defaults to 7 days after start.",
             "name": "end",
-            "in": "query",
-            "description": "End of the time range, exclusive."
+            "in": "query"
           },
           {
             "schema": {

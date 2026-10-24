@@ -104,8 +104,9 @@ Anthropic-held credentials. Checked live with the Claude reviewer account:
   no MFA, a consent screen naming Claude and offering every scope, an `iss`
   that matches the issuer, a token for the `https://mcp.setluca.com/mcp`
   audience, and a refresh token that rotates. The grant came back capped at
-  read and draft, as LUC-401 still does. Dynamic registration with the same
-  callback passed on October 22.
+  read and draft by LUC-401; Luca v0.4.0, deployed that evening, removes the
+  cap (luca#361). Dynamic registration with the same callback passed on
+  October 22.
 - **Claude Code:** its published CIMD (`https://claude.ai/oauth/claude-code-client-metadata`)
   passed with `http://localhost:<port>/callback` and
   `http://127.0.0.1:<port>/callback`, and received every scope it was granted.
@@ -123,6 +124,12 @@ Enter these steps with the credentials, which only reviewers see. The
 credentials are in Infisical production at `/operations/claude-review`
 (`CLAUDE_REVIEWER_EMAIL`, `CLAUDE_REVIEWER_PASSWORD`). Never paste them
 anywhere else.
+
+Since Luca v0.4.0 (October 23, 2026), an account must accept the current Terms
+and Privacy Policy before business requests succeed, and its OAuth tokens
+inherit that. After each new legal edition, sign in as the reviewer and accept
+at `app.setluca.com/agreements`, or every tool call returns 403
+`terms_acceptance_required`.
 
 1. In Claude, open **Customize → Connectors → Add custom connector** and enter
    `https://mcp.setluca.com/mcp`.
@@ -176,8 +183,9 @@ against Claude Review Workspace:
 - 6 answered a clear 404 for a record the workspace lacks.
 - 3 showed that a required query was not marked required. `0.5.2` fixes them.
 - `luca_bookings_availability` without `start` and `end` gets a 400 from the
-  API, although its OpenAPI marks both optional. With them it answers. The API
-  fix is LUC-513; it should be live before a reviewer tries the tool.
+  API, although its OpenAPI marks both optional. With them it answers. Luca
+  v0.4.0 ships the fix (LUC-513): `start` defaults to now and `end` to seven
+  days after it.
 
 Write tools were not swept, because they change the reviewer fixtures. The
 operation and protocol suites cover them.

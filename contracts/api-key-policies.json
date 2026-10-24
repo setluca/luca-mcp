@@ -1551,15 +1551,6 @@
     ]
   },
   {
-    "id": "knowledge.approveSuggestion",
-    "method": "POST",
-    "path": "/api/knowledge/suggestions/{id}/approve",
-    "scopes": [
-      "knowledge:write"
-    ],
-    "requireIdempotency": true
-  },
-  {
     "id": "knowledge.rejectSuggestion",
     "method": "POST",
     "path": "/api/knowledge/suggestions/{id}/reject",
