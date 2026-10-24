@@ -153,7 +153,6 @@ exports[`tool auth metadata > pins the OAuth scope every tool asks for 1`] = `
   "luca_integrations_crm_sync_runs_create": "luca:full",
   "luca_integrations_crm_sync_runs_list": "luca:read",
   "luca_integrations_events_list": "luca:read",
-  "luca_knowledge_approve_suggestion": "luca:queue_ops",
   "luca_knowledge_reject_suggestion": "luca:queue_ops",
   "luca_knowledge_sources_disconnect": "luca:queue_ops",
   "luca_knowledge_sources_list": "luca:read",

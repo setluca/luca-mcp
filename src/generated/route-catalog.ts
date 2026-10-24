@@ -1470,14 +1470,6 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": false
   },
-  "knowledge.approveSuggestion": {
-    "method": "POST",
-    "path": "/api/knowledge/suggestions/{id}/approve",
-    "scopes": [
-      "knowledge:write"
-    ],
-    "idempotencyRequired": true
-  },
   "knowledge.rejectSuggestion": {
     "method": "POST",
     "path": "/api/knowledge/suggestions/{id}/reject",

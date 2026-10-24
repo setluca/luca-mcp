@@ -2343,14 +2343,16 @@ export const OPENAPI_INPUT_SPECS = {
             "string",
             "null"
           ],
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Start of the time range, inclusive. Defaults to now."
         },
         "end": {
           "type": [
             "string",
             "null"
           ],
-          "format": "date-time"
+          "format": "date-time",
+          "description": "End of the time range, exclusive. Defaults to 7 days after start."
         },
         "leadId": {
           "type": "string",
@@ -2376,14 +2378,16 @@ export const OPENAPI_INPUT_SPECS = {
             "string",
             "null"
           ],
-          "format": "date-time"
+          "format": "date-time",
+          "description": "Start of the time range, inclusive. Defaults to now."
         },
         "end": {
           "type": [
             "string",
             "null"
           ],
-          "format": "date-time"
+          "format": "date-time",
+          "description": "End of the time range, exclusive. Defaults to 7 days after start."
         }
       },
       "required": [
@@ -6941,20 +6945,6 @@ export const OPENAPI_INPUT_SPECS = {
           ]
         }
       }
-    }
-  },
-  "POST /api/knowledge/suggestions/{id}/approve": {
-    "path": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      "required": [
-        "id"
-      ]
     }
   },
   "POST /api/knowledge/suggestions/{id}/reject": {

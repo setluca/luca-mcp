@@ -487,7 +487,6 @@ describe("operation manifest", () => {
         "webhooks.events.bulkReplay",
         "reviewQueue.approve",
         "cadences.rescueStart",
-        "knowledge.approveSuggestion",
         "campaigns.publish",
         "conversations.partial_send_retry",
         "conversations.send",
