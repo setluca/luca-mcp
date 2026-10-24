@@ -4,7 +4,11 @@ import * as Option from "effect/Option";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { loadRemoteSettings, type RemoteSettings } from "../src/config.ts";
-import { apiKeyResolver, looksLikeDeveloperKey } from "../src/remote.ts";
+import {
+  apiKeyResolver,
+  bearerTokenResolver,
+  looksLikeDeveloperKey,
+} from "../src/remote.ts";
 import { createKeyCheckCache } from "../src/resolvers.ts";
 import type { TokenResolver } from "../src/token-verification.ts";
 import { revealApiKey } from "./helpers.ts";
@@ -416,4 +420,62 @@ describe("looksLikeDeveloperKey", () => {
       expect(looksLikeDeveloperKey(token)).toBe(false);
     }
   );
+});
+
+describe("bearerTokenResolver", () => {
+  const resolve = (resolver: TokenResolver, token: string) =>
+    Effect.runPromise(
+      resolver(token).pipe(
+        Effect.map((config) =>
+          Option.getOrNull(Option.map(config, revealApiKey))
+        )
+      )
+    );
+
+  const calledUrls = (fetchMock: ReturnType<typeof vi.fn<typeof fetch>>) =>
+    fetchMock.mock.calls.map(([input]) => String(input));
+
+  it("checks a developer key against the API, not the OAuth resolver", async () => {
+    // A key of its own, so the isolate's check cache holds no earlier pass.
+    const key = `luca_${"b".repeat(64)}`;
+    const fetchMock = vi.fn<typeof fetch>(acceptingFetch);
+
+    const config = await resolve(
+      bearerTokenResolver(DEFAULT_SETTINGS, fetchMock),
+      key
+    );
+
+    expect(config?.apiKey).toBe(key);
+    expect(calledUrls(fetchMock)).toEqual([
+      `${DEFAULT_SETTINGS.apiBaseUrl}/api/capabilities`,
+    ]);
+  });
+
+  it("resolves an OAuth access token through POST /oauth/resolve", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () =>
+      Response.json({ apiKey: "luca_vended", scopes: ["luca:read"] })
+    );
+
+    const config = await resolve(
+      bearerTokenResolver(DEFAULT_SETTINGS, fetchMock),
+      "some.jwt.token"
+    );
+
+    expect(config?.apiKey).toBe("luca_vended");
+    expect(calledUrls(fetchMock)).toEqual([
+      `${DEFAULT_SETTINGS.apiBaseUrl}/oauth/resolve`,
+    ]);
+  });
+
+  it("refuses a refresh token without calling the API", async () => {
+    const fetchMock = vi.fn<typeof fetch>(acceptingFetch);
+
+    expect(
+      await resolve(
+        bearerTokenResolver(DEFAULT_SETTINGS, fetchMock),
+        "luca_ort_refresh"
+      )
+    ).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

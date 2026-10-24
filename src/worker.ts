@@ -9,7 +9,6 @@ import {
   withoutTrailingSlashes,
 } from "./config.ts";
 import { LucaConfigError } from "./errors.ts";
-import { oauthResolver } from "./oauth-resolver.ts";
 import { LUCA_OPERATIONS } from "./operations.ts";
 import {
   bindingRateLimits,
@@ -18,7 +17,7 @@ import {
   type RemoteRateLimiter,
 } from "./rate-limit.ts";
 import { createRemoteResponder, resolveToolset } from "./remote.ts";
-import { apiKeyResolver, looksLikeDeveloperKey } from "./resolvers.ts";
+import { bearerTokenResolver } from "./resolvers.ts";
 import { LUCA_RESOURCE_SCOPES } from "./scopes.ts";
 import { type JsonValue, toJsonPayload } from "./serialization.ts";
 import { LUCA_SERVER_ICONS, LUCA_SERVER_INFO } from "./server.ts";
@@ -297,12 +296,8 @@ function route(
     );
   }
 
-  const apiKey = apiKeyResolver(settings, apiFetch);
-  const oauth = oauthResolver(settings, apiFetch);
-
   const respond = createRemoteResponder({
-    resolveToken: (token) =>
-      looksLikeDeveloperKey(token) ? apiKey(token) : oauth(token),
+    resolveToken: bearerTokenResolver(settings, apiFetch),
     apiFetch,
     resourceMetadataUrl,
     toolset: resolveToolset(new URL(request.url), env),

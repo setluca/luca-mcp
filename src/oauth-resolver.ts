@@ -111,7 +111,7 @@ const JWT_ACCESS_TOKEN = /^[\w-]+\.[\w-]+\.[\w-]+$/;
  * verifies the JWT and returns the hidden vended key for the token's own
  * grant. The config it returns carries the same settings the stdio path reads,
  * so the vended key reaches the API with the same base URL, auth header, and
- * timeout. Developer keys never come here: the Worker sends them to
+ * timeout. Developer keys never come here: `bearerTokenResolver` sends them to
  * `apiKeyResolver` by shape (see `looksLikeDeveloperKey`). A token that is not
  * JWT-shaped is refused without calling the API.
  */

@@ -10,6 +10,14 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Added
+
+- `@setluca/mcp/remote` exports `bearerTokenResolver`, which reads a developer
+  key as one and any other bearer token as an OAuth access token, the way the
+  hosted Worker always has. A self-hosted handler built on it now accepts the
+  same tokens `mcp.setluca.com` does, OAuth included, instead of developer keys
+  only.
+
 ### Fixed
 
 - Tool schemas no longer contain fields that constrain nothing. The MCP

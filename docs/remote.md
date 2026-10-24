@@ -12,10 +12,10 @@ The deployed Worker is `setluca-mcp` at `https://mcp.setluca.com/mcp`.
 Workers, Deno, Bun, and Node 18 or newer:
 
 ```ts
-import { apiKeyResolver, createRemoteHandler } from "@setluca/mcp/remote";
+import { bearerTokenResolver, createRemoteHandler } from "@setluca/mcp/remote";
 
 const handler = createRemoteHandler({
-  resolveToken: apiKeyResolver({
+  resolveToken: bearerTokenResolver({
     apiBaseUrl: "https://api.setluca.com",
     authHeader: "x-api-key",
   }),
@@ -110,10 +110,12 @@ authorization server in `apps/api`.
 
 The transport itself did not change to gain this. `createRemoteHandler` takes a
 `TokenResolver`, a function from a token to the coach's API config.
-`apiKeyResolver` and `oauthResolver` are both resolvers. The Worker picks one
-by the token's shape: a token starting with `luca_`, other than a `luca_ort_`
-refresh token, goes to `apiKeyResolver`, and everything else goes to
-`oauthResolver`. A malformed `luca_` token is refused without a network call.
+`apiKeyResolver` and `oauthResolver` are both resolvers, and
+`bearerTokenResolver` picks one by the token's shape. It is what the Worker
+uses, and what the example above uses, so a self-hosted handler answers each
+token as the hosted one does: a token starting with `luca_`, other than a
+`luca_ort_` refresh token, goes to `apiKeyResolver`, and everything else goes
+to `oauthResolver`. A malformed `luca_` token is refused without a network call.
 Both resolvers take the settings the Worker read once, so a vended key reaches
 the API with the same base URL, auth header, and timeout as a developer key.
 
