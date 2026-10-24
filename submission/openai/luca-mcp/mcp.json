@@ -3,7 +3,17 @@
   "mcpServers": {
     "luca": {
       "type": "streamable-http",
-      "url": "https://mcp.setluca.com/mcp"
+      "url": "https://mcp.setluca.com/mcp",
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "oauth",
+            "client": {
+              "mode": "cimd"
+            }
+          }
+        }
+      }
     }
   }
 }
