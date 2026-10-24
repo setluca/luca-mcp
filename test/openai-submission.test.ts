@@ -185,7 +185,7 @@ describe("OpenAI app submission", () => {
 
   it("declares the hosted server's OAuth for the portal scan", () => {
     expect(() =>
-      Schema.decodeUnknownSync(Schema.fromJsonString(PluginMcp))(
+      Schema.decodeSync(Schema.fromJsonString(PluginMcp))(
         readSubmissionFile("luca-mcp", "mcp.json")
       )
     ).not.toThrow();
