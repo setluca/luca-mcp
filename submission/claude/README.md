@@ -107,6 +107,11 @@ Anthropic-held credentials. Checked live with the Claude reviewer account:
   read and draft by LUC-401; Luca v0.4.0, deployed that evening, removes the
   cap (luca#361). Dynamic registration with the same callback passed on
   October 22.
+- **claude.ai chat (October 24):** a custom connector added in claude.ai
+  detected OAuth and Claude's published identity on its own, signed in,
+  loaded all 223 tools, and answered the read prompts in §7 with real tool
+  calls. The grant kept `luca:queue_ops`, so the cap is gone in production.
+  The transcript is on LUC-83.
 - **Claude Code:** its published CIMD (`https://claude.ai/oauth/claude-code-client-metadata`)
   passed with `http://localhost:<port>/callback` and
   `http://127.0.0.1:<port>/callback`, and received every scope it was granted.
