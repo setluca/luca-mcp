@@ -171,6 +171,62 @@ function closeObject(node: Node): Node {
     : { ...node, additionalProperties: false };
 }
 
+/**
+ * The keywords that make a node check something. A node with none of them,
+ * such as `{}` or one carrying only a description or an `x-luca-*` marker,
+ * accepts any value.
+ */
+const VALIDATION_KEYWORDS: readonly string[] = [
+  "type",
+  "enum",
+  "const",
+  "anyOf",
+  "oneOf",
+  "allOf",
+  "not",
+  "$ref",
+  "properties",
+  "patternProperties",
+  "additionalProperties",
+  "items",
+  "prefixItems",
+  "required",
+  "format",
+  "pattern",
+  "minLength",
+  "maxLength",
+  "minimum",
+  "maximum",
+  "exclusiveMinimum",
+  "exclusiveMaximum",
+  "multipleOf",
+  "minItems",
+  "maxItems",
+  "uniqueItems",
+  "contains",
+  "minProperties",
+  "maxProperties",
+];
+
+/** Every JSON type, one per branch of a node that accepts any value. */
+const ANY_JSON_BRANCHES: readonly Node[] = Arr.map(
+  ["string", "number", "boolean", "object", "array", "null"],
+  (type) => ({ type })
+);
+
+/**
+ * A node with no validation keyword, written out as any JSON value with one
+ * branch per type. Both accept the same values, and a tool's result is always
+ * JSON (an empty response body arrives as null), but a client's schema check
+ * reads a keyword-less node as an unconstrained `true` and flags it as
+ * unportable. The node's description and markers stay.
+ */
+function spellOutAnyValue(node: Node): Node {
+  return Arr.some(VALIDATION_KEYWORDS, (keyword) => node[keyword] !== undefined)
+    ? node
+    : { ...node, anyOf: ANY_JSON_BRANCHES };
+}
+
 function formatPattern(node: Node): Node {
   const format = node.format;
 
@@ -191,6 +247,8 @@ function formatPattern(node: Node): Node {
  * - An object that declares properties and says nothing about others is
  *   closed, and so is one with a malformed `additionalProperties`.
  * - The enforced formats gain the pattern from {@link FORMAT_PATTERNS}.
+ * - A node with no validation keyword is written out as any JSON value
+ *   ({@link spellOutAnyValue}).
  *
  * A node using a shape {@link unsupportedKeywords} names throws instead.
  * Every step leaves its own output alone, so running it twice on a node is the
@@ -209,7 +267,9 @@ function tightenNode(node: Node): Node {
   const { oneOf, ...rest } = node;
 
   return formatPattern(
-    closeObject(oneOf === undefined ? rest : { ...rest, anyOf: oneOf })
+    closeObject(
+      spellOutAnyValue(oneOf === undefined ? rest : { ...rest, anyOf: oneOf })
+    )
   );
 }
 
@@ -284,9 +344,11 @@ export function openApiToolOutputFields(input: {
   readonly body: JsonSchema | null | undefined;
   readonly untrustedContent: boolean;
 }): ToolFields {
-  const result = input.body
-    ? schemaFromOpenApi(relaxJsonSchema(input.body))
-    : Schema.Unknown;
+  // A route whose response declares no body still answers JSON, so its result
+  // is any JSON value rather than an unconstrained one.
+  const result = schemaFromOpenApi(
+    input.body ? relaxJsonSchema(input.body) : {}
+  );
 
   return input.untrustedContent
     ? { result, provenance: Schema.optionalKey(UntrustedProvenance) }

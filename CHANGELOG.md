@@ -10,6 +10,16 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Fixed
+
+- Tool schemas no longer contain fields that constrain nothing. The MCP
+  Inspector's `tools/list --strict` reported 25 of them across 18 tools: free
+  form fields such as `customFields` and `qualification`, nine results whose
+  route declares no body, and the segment rule `value` in
+  `luca_broadcasts_create`. Each is now spelled out as any JSON value, one
+  branch per type, which accepts exactly what it accepted before, so no call
+  that worked is refused.
+
 ## [0.6.0] - 2026-10-24
 
 ### Breaking

@@ -1,9 +1,10 @@
 import * as Arr from "effect/Array";
+import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as R from "effect/Record";
 import * as Schema from "effect/Schema";
 import * as SchemaAST from "effect/SchemaAST";
-import { assert, describe, expect, it } from "vitest";
+import { assert, describe, expect, it, onTestFinished } from "vitest";
 
 import { openApiInputFields } from "../scripts/lib/openapi-input-fields.ts";
 import { OPENAPI_INPUT_SPECS } from "../src/generated/openapi-input-specs.ts";
@@ -15,6 +16,8 @@ import {
   type ToolField,
   type ToolFields,
 } from "../src/openapi-schema.ts";
+import { isJsonArray, isJsonObject, JsonValue } from "../src/serialization.ts";
+import { connect } from "./helpers.ts";
 
 function schema(spec: OpenApiInputSpec) {
   return Schema.Struct(openApiInputFields(spec));
@@ -738,5 +741,87 @@ describe("generated input fields", () => {
         route
       ).toEqual(Schema.toJsonSchemaDocument(schema(spec)));
     });
+  });
+});
+
+/**
+ * The keywords that make a listed JSON Schema node check something. A node with
+ * none of them is an unconstrained `true` to a client, which the MCP Inspector's
+ * `tools/list --strict` reports as a portability warning (LUC-515).
+ */
+const CONSTRAINING_KEYWORDS = [
+  "type",
+  "enum",
+  "const",
+  "anyOf",
+  "oneOf",
+  "allOf",
+  "not",
+  "$ref",
+] as const;
+
+/** The paths of every node under `node` that constrains nothing. */
+function unconstrainedNodes(node: JsonValue, path: string): readonly string[] {
+  if (!isJsonObject(node)) {
+    return [];
+  }
+
+  const here = Arr.some(CONSTRAINING_KEYWORDS, (key) => node[key] !== undefined)
+    ? []
+    : [path];
+
+  const children: (readonly [string, JsonValue])[] = [];
+  const properties = node.properties;
+
+  const branches = [
+    ...(isJsonArray(node.anyOf) ? node.anyOf : []),
+    ...(isJsonArray(node.oneOf) ? node.oneOf : []),
+  ];
+
+  if (isJsonObject(properties)) {
+    for (const [key, child] of R.toEntries(properties)) {
+      children.push([`${path}.properties.${key}`, child]);
+    }
+  }
+
+  if (node.items !== undefined) {
+    children.push([`${path}.items`, node.items]);
+  }
+
+  if (isJsonObject(node.additionalProperties)) {
+    children.push([`${path}.additionalProperties`, node.additionalProperties]);
+  }
+
+  for (const [index, branch] of branches.entries()) {
+    children.push([`${path}.anyOf[${index}]`, branch]);
+  }
+
+  return [
+    ...here,
+    ...Arr.flatMap(children, ([childPath, child]) =>
+      unconstrainedNodes(child, childPath)
+    ),
+  ];
+}
+
+/** A listed schema as JSON, which every JSON Schema the SDK lists is. */
+const asJson = Schema.decodeUnknownSync(JsonValue);
+
+describe("listed tool schemas", () => {
+  it("leave no field unconstrained", async () => {
+    const { client, close } = await connect(() => Effect.succeed({}));
+
+    onTestFinished(close);
+
+    const { tools } = await client.listTools();
+
+    const unconstrained = Arr.flatMap(tools, (tool) => [
+      ...unconstrainedNodes(asJson(tool.inputSchema), `${tool.name} input`),
+      ...(tool.outputSchema === undefined
+        ? []
+        : unconstrainedNodes(asJson(tool.outputSchema), `${tool.name} output`)),
+    ]);
+
+    expect(unconstrained).toEqual([]);
   });
 });
