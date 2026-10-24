@@ -11,12 +11,8 @@ import type { LucaOperation } from "../src/operations.ts";
 import { LUCA_OPERATIONS, operationById } from "../src/operations.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
 import { clearToolBuildCache } from "../src/tool-cache.ts";
-import {
-  fromOperation,
-  fromTaskTool,
-  registerTool,
-  type ToolSurface,
-} from "../src/tool.ts";
+import { toolProfile } from "../src/tool-profile.ts";
+import { registerTool, type ToolSurface } from "../src/tool.ts";
 import { parseJsonRecord } from "./helpers.ts";
 
 const stubLayer = Layer.succeed(LucaApi, {
@@ -107,8 +103,7 @@ function captureHandler(
   layer: Layer.Layer<LucaApi, never, never> = stubLayer,
   surface: ToolSurface = { toolset: "full" }
 ) {
-  return capture(fromOperation(operationByToolName(toolName)), layer, surface)
-    .handler;
+  return capture(operationByToolName(toolName), layer, surface).handler;
 }
 
 describe("registerTool", () => {
@@ -174,23 +169,22 @@ describe("registerTool", () => {
   it("builds a tool once per catalog entry, and again after the cache is cleared", () => {
     const operation = operationByToolName("luca_leads_list");
 
-    const first = fromOperation(operation);
-    expect(fromOperation(operation)).toBe(first);
+    const first = toolProfile(operation);
+    expect(toolProfile(operation)).toBe(first);
 
     clearToolBuildCache();
-    expect(fromOperation(operation)).not.toBe(first);
+    expect(toolProfile(operation)).not.toBe(first);
 
     const task = taskToolByName("luca_triage_inbox");
-    const builtTask = fromTaskTool(task);
-    expect(fromTaskTool(task)).toBe(builtTask);
+    const builtTask = toolProfile(task);
+    expect(toolProfile(task)).toBe(builtTask);
   });
 
   it("calls a DELETE and an existing-resource POST destructive", () => {
     // Destructive describes the effect rather than the verb: an upsert can
     // overwrite an existing lead, and a client must see that before calling.
     expect(
-      capture(fromOperation(operationByToolName("luca_leads_notes_delete")))
-        .config.annotations
+      capture(operationByToolName("luca_leads_notes_delete")).config.annotations
     ).toEqual({
       title: "Delete a lead note",
       readOnlyHint: false,
@@ -199,16 +193,15 @@ describe("registerTool", () => {
       openWorldHint: false,
     });
     expect(
-      capture(fromOperation(operationByToolName("luca_leads_create"))).config
-        .annotations
+      capture(operationByToolName("luca_leads_create")).config.annotations
     ).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: false,
     });
     expect(
-      capture(fromOperation(operationByToolName("luca_review_queue_reject")))
-        .config.annotations
+      capture(operationByToolName("luca_review_queue_reject")).config
+        .annotations
     ).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
@@ -218,7 +211,7 @@ describe("registerTool", () => {
 
   it("marks a task tool open-world when any operation it composes is", () => {
     const annotations = (name: string) =>
-      capture(fromTaskTool(taskToolByName(name))).config.annotations;
+      capture(taskToolByName(name)).config.annotations;
 
     expect(annotations("luca_approve_and_send")).toMatchObject({
       openWorldHint: true,
@@ -232,7 +225,7 @@ describe("registerTool", () => {
     // Booking composes a create that books again on a repeat, and a gated
     // write, so the tool is destructive too.
     expect(
-      capture(fromTaskTool(taskToolByName("luca_book_call"))).config.annotations
+      capture(taskToolByName("luca_book_call")).config.annotations
     ).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
@@ -240,8 +233,7 @@ describe("registerTool", () => {
     });
     // Pausing a cadence that is already paused changes nothing.
     expect(
-      capture(fromTaskTool(taskToolByName("luca_pause_cadence"))).config
-        .annotations
+      capture(taskToolByName("luca_pause_cadence")).config.annotations
     ).toMatchObject({ readOnlyHint: false, idempotentHint: true });
   });
 
@@ -249,15 +241,12 @@ describe("registerTool", () => {
     // Pausing a cadence needs no confirm, but it stops one already running,
     // so the hint has to say so.
     expect(
-      capture(fromTaskTool(taskToolByName("luca_pause_cadence"))).config
-        .annotations
+      capture(taskToolByName("luca_pause_cadence")).config.annotations
     ).toMatchObject({ readOnlyHint: false, destructiveHint: true });
   });
 
   it("marks a task tool untrusted when its composed operation returns lead-derived text", async () => {
-    const registration = capture(
-      fromTaskTool(taskToolByName("luca_draft_reply"))
-    );
+    const registration = capture(taskToolByName("luca_draft_reply"));
 
     const result = await registration.handler({
       leadId: "00000000-0000-0000-0000-000000000000",
@@ -275,13 +264,11 @@ describe("registerTool", () => {
   });
 
   it("sends an outputSchema for task tools and operations alike", () => {
-    const task = capture(fromTaskTool(taskToolByName("luca_book_call")));
+    const task = capture(taskToolByName("luca_book_call"));
 
     expect(task.config.outputSchema).toBeDefined();
 
-    const operation = capture(
-      fromOperation(operationByToolName("luca_leads_list"))
-    );
+    const operation = capture(operationByToolName("luca_leads_list"));
 
     expect(operation.config.outputSchema).toBeDefined();
   });
@@ -317,9 +304,7 @@ describe("registerTool", () => {
   });
 
   it("names the condition in a conditionally gated tool's description", () => {
-    const { config } = capture(
-      fromOperation(operationById("campaigns.setStatus"))
-    );
+    const { config } = capture(operationById("campaigns.setStatus"));
 
     expect(String(config.description)).toContain(
       "Destructive when status is published (resuming sends):"
@@ -375,7 +360,7 @@ describe("registerTool", () => {
     });
 
     const { handler } = capture(
-      fromOperation(operationByToolName("luca_leads_get")),
+      operationByToolName("luca_leads_get"),
       hangingLayer,
       { toolset: "full" },
       controller.signal
@@ -425,10 +410,9 @@ describe("tool auth metadata", () => {
     // A scope change alters what a coach must grant before a tool works, so
     // it has to show up in review as a deliberate snapshot update.
     const scopes = R.fromEntries(
-      [
-        ...LUCA_OPERATIONS.map(fromOperation),
-        ...LUCA_TASK_TOOLS.map(fromTaskTool),
-      ].map((tool) => [tool.name, tool.oauthScope])
+      [...LUCA_OPERATIONS, ...LUCA_TASK_TOOLS]
+        .map(toolProfile)
+        .map((tool) => [tool.name, tool.oauthScope])
     );
 
     expect(scopes).toMatchSnapshot();
@@ -438,33 +422,27 @@ describe("tool auth metadata", () => {
     const scopesOf = (tool: Parameters<typeof registerTool>[1]) =>
       capture(tool).config._meta;
 
-    expect(
-      scopesOf(fromOperation(operationByToolName("luca_leads_get")))
-    ).toEqual({ securitySchemes: [{ type: "oauth2", scopes: ["luca:read"] }] });
-    expect(
-      scopesOf(fromOperation(operationByToolName("luca_leads_notes_add")))
-    ).toEqual({
+    expect(scopesOf(operationByToolName("luca_leads_get"))).toEqual({
+      securitySchemes: [{ type: "oauth2", scopes: ["luca:read"] }],
+    });
+    expect(scopesOf(operationByToolName("luca_leads_notes_add"))).toEqual({
       securitySchemes: [{ type: "oauth2", scopes: ["luca:draft"] }],
     });
-    expect(
-      scopesOf(fromOperation(operationByToolName("luca_conversations_send")))
-    ).toEqual({
+    expect(scopesOf(operationByToolName("luca_conversations_send"))).toEqual({
       securitySchemes: [{ type: "oauth2", scopes: ["luca:queue_ops"] }],
     });
     // Webhook writes need webhooks:write, which only luca:full grants, even
     // though the capability tier alone would allow queue_ops.
     expect(
-      scopesOf(
-        fromOperation(operationByToolName("luca_webhooks_subscriptions_create"))
-      )
+      scopesOf(operationByToolName("luca_webhooks_subscriptions_create"))
     ).toEqual({ securitySchemes: [{ type: "oauth2", scopes: ["luca:full"] }] });
   });
 
   it("gives a task tool the highest scope among the operations it composes", () => {
-    const tool = fromTaskTool(taskToolByName("luca_approve_and_send"));
+    const tool = toolProfile(taskToolByName("luca_approve_and_send"));
 
     expect(tool.oauthScope).toBe("luca:queue_ops");
-    expect(fromTaskTool(taskToolByName("luca_find_leads")).oauthScope).toBe(
+    expect(toolProfile(taskToolByName("luca_find_leads")).oauthScope).toBe(
       "luca:read"
     );
   });

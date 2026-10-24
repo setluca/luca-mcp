@@ -32,7 +32,6 @@ import { LucaApi, LucaApiLive } from "./http.ts";
 import { authChallengeMeta } from "./oauth-challenge.ts";
 import { logAgentSurfaceEvent } from "./observability.ts";
 import {
-  LUCA_OPERATIONS,
   type LucaOperation,
   operationById,
   operationGroups,
@@ -51,23 +50,12 @@ import {
   LUCA_RESOURCES,
   type LucaResourceDef,
 } from "./resources.ts";
-import {
-  capabilityRank,
-  type LucaCapabilityScope,
-  oauthScopeForOperation,
-} from "./scopes.ts";
+import { type LucaCapabilityScope, oauthScopeForOperation } from "./scopes.ts";
 import { type JsonValue, toJsonText } from "./serialization.ts";
 import { toolSchema } from "./standard-schema.ts";
-import { LUCA_TASK_TOOLS } from "./task-tools.ts";
 import { buildCache } from "./tool-cache.ts";
-import {
-  fromOperation,
-  fromTaskTool,
-  operationProgram,
-  type RegisterableTool,
-  registerTool,
-} from "./tool.ts";
-import { type LucaToolset, TOOLSETS } from "./toolsets.ts";
+import { operationProgram, registerTool } from "./tool.ts";
+import { type LucaToolset, sessionTools, TOOLSETS } from "./toolsets.ts";
 import { LUCA_MCP_VERSION } from "./version.ts";
 
 const LucaLive = LucaApiLive.pipe(Layer.provide(LucaConfigLive));
@@ -510,7 +498,6 @@ function registerPrompt(
 export function createLucaServer(options: CreateLucaServerOptions = {}) {
   const lucaLayer = options.lucaLayer ?? LucaLive;
   const toolset = options.toolset ?? "full";
-  const definition = TOOLSETS[toolset];
 
   const surface = {
     toolset,
@@ -522,20 +509,10 @@ export function createLucaServer(options: CreateLucaServerOptions = {}) {
     instructions: LUCA_SERVER_INSTRUCTIONS,
   });
 
-  const listed = (tool: RegisterableTool) =>
-    !definition.grantFiltered ||
-    options.grant === undefined ||
-    capabilityRank(tool.oauthScope) <= capabilityRank(options.grant);
-
-  const inToolset = (name: string) =>
-    definition.tools === undefined || Arr.contains(definition.tools, name);
-
-  const tools = [
-    ...LUCA_OPERATIONS.filter((operation) => inToolset(operation.toolName)).map(
-      fromOperation
-    ),
-    ...LUCA_TASK_TOOLS.filter((tool) => inToolset(tool.name)).map(fromTaskTool),
-  ].filter(listed);
+  const tools = sessionTools({
+    toolset,
+    ...optionalField("grant", options.grant),
+  });
 
   Arr.forEach(tools, (tool) => {
     registerTool(server, tool, lucaLayer, surface);
@@ -552,7 +529,7 @@ export function createLucaServer(options: CreateLucaServerOptions = {}) {
   registerPrompts(
     server,
     LUCA_PROMPTS.filter(
-      (prompt) => !Arr.contains(definition.hiddenPrompts, prompt.name)
+      (prompt) => !Arr.contains(TOOLSETS[toolset].hiddenPrompts, prompt.name)
     ),
     completions
   );

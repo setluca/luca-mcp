@@ -18,19 +18,16 @@ import {
 } from "../src/resources.ts";
 import {
   CAPABILITY_LADDER,
-  capabilityRank,
+  grantReaches,
   lowestCapabilityScopeFor,
-  type LucaCapabilityScope,
   NON_TIER_OAUTH_SCOPES,
   OAUTH_CAPABILITY_SCOPES,
   OAUTH_DEFAULT_SCOPE,
-  oauthScopeForOperation,
-  oauthScopeForTool,
   tierGrants,
   unknownApiScopes,
 } from "../src/scopes.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
-import { fromTaskTool } from "../src/tool.ts";
+import { toolProfile } from "../src/tool-profile.ts";
 import {
   packagePath,
   readCurrent,
@@ -95,7 +92,7 @@ function renderTaskToolRows() {
     [
       `\`${tool.name}\``,
       tool.composes.map((id) => `\`${id}\``).join(", "),
-      fromTaskTool(tool).readOnly ? "read-only" : "write",
+      toolProfile(tool).readOnly ? "read-only" : "write",
       markdownTableCell(firstSentence(tool.description)),
     ].join(" | ")
   );
@@ -242,49 +239,11 @@ function renderPromptsAndResources(): readonly string[] {
   ];
 }
 
-const OPERATIONS_BY_ID = R.fromEntries(
-  LUCA_OPERATIONS.map((operation) => [operation.id, operation] as const)
-);
-
-/** The operations a task tool runs, in the order it declares them. */
-function composedOperations(tool: (typeof LUCA_TASK_TOOLS)[number]) {
-  return tool.composes.map((id) => {
-    const operation = OPERATIONS_BY_ID[id];
-
-    // Skipping an unresolved id would quietly understate what the tool needs,
-    // and an under-stated scope table is worse than no table.
-    if (!operation) {
-      throw new DocsInputError({
-        message: `${tool.name} composes ${id}, which is not an operation id.`,
-      });
-    }
-
-    return operation;
-  });
-}
-
-/** Every API scope a task tool's operations declare, sorted. */
-function taskToolScopes(tool: (typeof LUCA_TASK_TOOLS)[number]) {
-  return Arr.sort(
-    Arr.dedupe(composedOperations(tool).flatMap((op) => op.scopes)),
-    Order.String
-  );
-}
-
-function taskToolScope(tool: (typeof LUCA_TASK_TOOLS)[number]) {
-  return oauthScopeForTool(composedOperations(tool));
-}
-
 /**
- * Whether a connection holding `granted` can call a tool that needs
- * `required`. The tiers nest, so comparing ranks is enough. Counting from the
- * same `oauthScopeForOperation` that fills `securitySchemes` keeps this table
- * equal to what a client is told per tool.
+ * Counted from the same profile scope that fills `securitySchemes`, through the
+ * same check that filters a grant-filtered session, so this table equals what
+ * a client is told per tool.
  */
-function reaches(granted: LucaCapabilityScope, required: LucaCapabilityScope) {
-  return capabilityRank(required) <= capabilityRank(granted);
-}
-
 function renderCapabilityRows() {
   return CAPABILITY_LADDER.map((scope, index) => {
     const below = CAPABILITY_LADDER[index - 1];
@@ -294,11 +253,11 @@ function renderCapabilityRows() {
     );
 
     const operations = LUCA_OPERATIONS.filter((operation) =>
-      reaches(scope, oauthScopeForOperation(operation))
+      grantReaches(scope, toolProfile(operation).oauthScope)
     );
 
     const tasks = LUCA_TASK_TOOLS.filter((tool) =>
-      reaches(scope, taskToolScope(tool))
+      grantReaches(scope, toolProfile(tool).oauthScope)
     );
 
     return [
@@ -332,15 +291,15 @@ function renderApiScopeRows() {
 }
 
 function renderTaskToolScopeRows() {
-  return LUCA_TASK_TOOLS.map((tool) =>
-    [
+  return LUCA_TASK_TOOLS.map((tool) => {
+    const { oauthScope, apiScopes } = toolProfile(tool);
+
+    return [
       `\`${tool.name}\``,
-      `\`${taskToolScope(tool)}\``,
-      taskToolScopes(tool)
-        .map((scope) => `\`${scope}\``)
-        .join(", "),
-    ].join(" | ")
-  );
+      `\`${oauthScope}\``,
+      apiScopes.map((scope) => `\`${scope}\``).join(", "),
+    ].join(" | ");
+  });
 }
 
 function renderNonTierRows() {

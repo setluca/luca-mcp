@@ -6,7 +6,6 @@ import * as SchemaAST from "effect/SchemaAST";
 import { assert, describe, expect, it } from "vitest";
 
 import { checkOperationTitles } from "../scripts/check-registry.ts";
-import { operationAnnotations } from "../src/annotations.ts";
 import { WORKSPACE_INPUT_FIELDS } from "../src/fields.ts";
 import { OPENAPI_INPUT_SPECS } from "../src/generated/openapi-input-specs.ts";
 import { OPENAPI_OUTPUTS } from "../src/generated/openapi-outputs.ts";
@@ -19,6 +18,7 @@ import type {
 import {
   DEFAULT_MAX_PAGES,
   LUCA_OPERATIONS,
+  type LucaOperation,
   operationGroups,
   needsConfirmation,
   operationManifest,
@@ -29,6 +29,7 @@ import { oauthScopeForOperation } from "../src/scopes.ts";
 import { JsonObject } from "../src/serialization.ts";
 import { toStandardSchema } from "../src/standard-schema.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
+import { toolProfile } from "../src/tool-profile.ts";
 import { sorted } from "./helpers.ts";
 
 const OPENAPI_INPUT_SPECS_BY_KEY = OPENAPI_INPUT_SPECS as Record<
@@ -38,6 +39,11 @@ const OPENAPI_INPUT_SPECS_BY_KEY = OPENAPI_INPUT_SPECS as Record<
 
 const OPENAPI_OUTPUTS_BY_ROUTE: Readonly<Record<string, unknown>> =
   OPENAPI_OUTPUTS;
+
+/** The MCP annotations an operation's tool is registered with. */
+function annotationsOf(operation: LucaOperation) {
+  return toolProfile(operation).annotations;
+}
 
 function getOperation(operationId: string) {
   const operation = LUCA_OPERATIONS.find((item) => item.id === operationId);
@@ -224,7 +230,7 @@ describe("operation manifest", () => {
     // Its response carries no cursor, so there is nothing to walk and the tool
     // ships without the pagination controls.
     expect(operation.pageContract).toBeUndefined();
-    expect(operationAnnotations(operation)).toMatchObject({
+    expect(annotationsOf(operation)).toMatchObject({
       readOnlyHint: true,
       destructiveHint: false,
     });
@@ -250,7 +256,7 @@ describe("operation manifest", () => {
     });
     expect(operation.confirm).toBeUndefined();
     // A DELETE is inherently destructive even without a confirm gate.
-    expect(operationAnnotations(operation)).toMatchObject({
+    expect(annotationsOf(operation)).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
     });
@@ -576,7 +582,7 @@ describe("operation manifest", () => {
     // that can start recovery messages as one it is allowed to call.
     expect(operation.requiredScope.capability).toBe("queue_ops");
     expect(oauthScopeForOperation(operation)).toBe("luca:queue_ops");
-    expect(operationAnnotations(operation).openWorldHint).toBe(true);
+    expect(annotationsOf(operation).openWorldHint).toBe(true);
   });
 
   it("treats a stated capability as a floor that never lowers the tier", () => {
@@ -684,7 +690,7 @@ describe("operation manifest", () => {
   });
 
   it("derives read-only annotations for GET tools", () => {
-    const list = operationAnnotations(getOperation("leads.list"));
+    const list = annotationsOf(getOperation("leads.list"));
     expect(list).toMatchObject({
       readOnlyHint: true,
       destructiveHint: false,
@@ -693,9 +699,7 @@ describe("operation manifest", () => {
     });
 
     // Returns the defaults without writing a row before the first change.
-    expect(
-      operationAnnotations(getOperation("insights.settings.get"))
-    ).toMatchObject({
+    expect(annotationsOf(getOperation("insights.settings.get"))).toMatchObject({
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: true,
@@ -703,7 +707,7 @@ describe("operation manifest", () => {
 
     // This GET stores a fresh OAuth state record for the callback.
     expect(
-      operationAnnotations(getOperation("integrations.crm.oauthUrl"))
+      annotationsOf(getOperation("integrations.crm.oauthUrl"))
     ).toMatchObject({
       readOnlyHint: false,
       destructiveHint: false,
@@ -713,7 +717,7 @@ describe("operation manifest", () => {
 
   it("marks open-world only the calls that reach past the workspace", () => {
     const openWorld = LUCA_OPERATIONS.filter(
-      (operation) => operationAnnotations(operation).openWorldHint
+      (operation) => annotationsOf(operation).openWorldHint
     ).map((operation) => operation.id);
 
     expect(sorted(Arr.dedupe(openWorld))).toEqual(
@@ -794,7 +798,7 @@ describe("operation manifest", () => {
     const ungated = LUCA_OPERATIONS.filter(
       (operation) =>
         operation.method !== "GET" &&
-        operationAnnotations(operation).openWorldHint &&
+        annotationsOf(operation).openWorldHint &&
         !Arr.contains(
           [
             "integrations.crm.connections.health",
@@ -821,40 +825,34 @@ describe("operation manifest", () => {
   });
 
   it("marks confirm-gated, delete, and overwriting tools destructive", () => {
-    expect(
-      operationAnnotations(getOperation("broadcasts.launch"))
-    ).toMatchObject({
+    expect(annotationsOf(getOperation("broadcasts.launch"))).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
     });
-    expect(operationAnnotations(getOperation("bookings.cancel"))).toMatchObject(
-      {
-        readOnlyHint: false,
-        destructiveHint: true,
-      }
-    );
+    expect(annotationsOf(getOperation("bookings.cancel"))).toMatchObject({
+      readOnlyHint: false,
+      destructiveHint: true,
+    });
     // MCP calls the non-destructive half additive-only, so a PATCH that
     // overwrites a field and a PUT that replaces a whole resource both read
     // destructive even without a confirm gate.
-    expect(operationAnnotations(getOperation("leads.update"))).toMatchObject({
+    expect(annotationsOf(getOperation("leads.update"))).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
     });
     expect(
-      operationAnnotations(getOperation("bookings.types.schedule.replace"))
+      annotationsOf(getOperation("bookings.types.schedule.replace"))
     ).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
     });
     // This route is an upsert, so its POST can overwrite an existing lead.
-    expect(operationAnnotations(getOperation("leads.create"))).toMatchObject({
+    expect(annotationsOf(getOperation("leads.create"))).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: false,
     });
-    expect(
-      operationAnnotations(getOperation("reviewQueue.reject"))
-    ).toMatchObject({
+    expect(annotationsOf(getOperation("reviewQueue.reject"))).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
     });
@@ -864,7 +862,7 @@ describe("operation manifest", () => {
     // The whole point of the hint is that a client can auto-approve what it
     // reads as safe. A silent gap here hands it a write it will not ask about.
     const hints = LUCA_OPERATIONS.map((operation) => ({
-      destructiveHint: operationAnnotations(operation).destructiveHint,
+      destructiveHint: annotationsOf(operation).destructiveHint,
       operation,
     }));
 
@@ -1235,7 +1233,7 @@ describe("operation manifest", () => {
   });
 
   it("annotates every tool and mirrors it in the manifest", () => {
-    const annotated = LUCA_OPERATIONS.map(operationAnnotations);
+    const annotated = LUCA_OPERATIONS.map(annotationsOf);
 
     Arr.forEach(annotated, (annotations) => {
       expect(annotations.title).toEqual(expect.any(String));
@@ -1334,7 +1332,7 @@ describe("operation manifest", () => {
     // it again with the same input changes nothing more.
     const idempotentWrites = LUCA_OPERATIONS.filter(
       (operation) =>
-        !operation.readOnly && operationAnnotations(operation).idempotentHint
+        !operation.readOnly && annotationsOf(operation).idempotentHint
     ).map((operation) => operation.id);
 
     expect(sorted(idempotentWrites)).toEqual(
@@ -1381,22 +1379,18 @@ describe("operation manifest", () => {
     );
 
     // A preview is a POST only so the CSV fits in a body.
-    expect(
-      operationAnnotations(getOperation("leads.importPreview"))
-    ).toMatchObject({
+    expect(annotationsOf(getOperation("leads.importPreview"))).toMatchObject({
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: true,
     });
-    expect(operationAnnotations(getOperation("leads.create"))).toMatchObject({
+    expect(annotationsOf(getOperation("leads.create"))).toMatchObject({
       idempotentHint: false,
     });
     expect(
-      operationAnnotations(getOperation("conversations.send")).idempotentHint
+      annotationsOf(getOperation("conversations.send")).idempotentHint
     ).toBe(false);
-    expect(
-      operationAnnotations(getOperation("leads.list")).idempotentHint
-    ).toBe(true);
+    expect(annotationsOf(getOperation("leads.list")).idempotentHint).toBe(true);
   });
 
   it("gives every operation a hand-written title, distinct and not the tool id", () => {
@@ -1461,7 +1455,7 @@ describe("operation manifest", () => {
       // carries no confirm gate.
     });
     expect(operation.confirm).toBeUndefined();
-    expect(operationAnnotations(operation)).toMatchObject({
+    expect(annotationsOf(operation)).toMatchObject({
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: false,

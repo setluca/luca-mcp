@@ -9,6 +9,7 @@ import { LUCA_OPERATIONS } from "../src/operations.ts";
 import {
   allGrantedApiScopes,
   CAPABILITY_LADDER,
+  grantReaches,
   type LucaCapabilityScope,
   lowestCapabilityScopeFor,
   LUCA_OAUTH_SCOPES,
@@ -18,7 +19,6 @@ import {
   OAUTH_CHALLENGE_SCOPE,
   OAUTH_DEFAULT_SCOPE,
   oauthScopeForOperation,
-  oauthScopeForTool,
   unknownApiScopes,
 } from "../src/scopes.ts";
 import { sorted } from "./helpers.ts";
@@ -448,18 +448,12 @@ describe("oauthScopeForOperation", () => {
   });
 });
 
-describe("oauthScopeForTool", () => {
-  it("needs the highest scope among the operations it composes", () => {
-    expect(
-      oauthScopeForTool([
-        { scopes: ["leads:read"], requiredScope: { capability: "read" } },
-        { scopes: ["bookings:write"], requiredScope: { capability: "draft" } },
-        { scopes: ["leads:write"], requiredScope: { capability: "draft" } },
-      ])
-    ).toBe("luca:queue_ops");
-  });
-
-  it("needs only luca:read when it composes nothing", () => {
-    expect(oauthScopeForTool([])).toBe("luca:read");
+describe("grantReaches", () => {
+  it("reaches every tier at or below the grant, and none above it", () => {
+    Arr.forEach(LADDER, (grant, grantRank) => {
+      Arr.forEach(LADDER, (required, requiredRank) => {
+        expect(grantReaches(grant, required)).toBe(requiredRank <= grantRank);
+      });
+    });
   });
 });

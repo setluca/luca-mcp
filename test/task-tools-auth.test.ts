@@ -12,7 +12,8 @@ import {
 import { LucaApi, type LucaRequest } from "../src/http.ts";
 import type { JsonObject, JsonValue } from "../src/serialization.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
-import { fromTaskTool } from "../src/tool.ts";
+import { toolProfile } from "../src/tool-profile.ts";
+import { toolProgram } from "../src/tool.ts";
 
 type Handler = () => Effect.Effect<JsonValue, LucaError, never>;
 
@@ -21,7 +22,7 @@ function getTool(name: string) {
 
   assert(tool, `unknown task tool: ${name}`);
 
-  return fromTaskTool(tool);
+  return tool;
 }
 
 function stubApi(handlers: Record<string, Handler>): LucaApi {
@@ -41,7 +42,7 @@ function stubApi(handlers: Record<string, Handler>): LucaApi {
 
 function runTool(name: string, api: LucaApi, input: JsonObject) {
   return Effect.runPromise(
-    getTool(name).run(input).pipe(Effect.provideService(LucaApi, api))
+    toolProgram(getTool(name), input).pipe(Effect.provideService(LucaApi, api))
   );
 }
 
@@ -187,7 +188,7 @@ describe("partial-result task tools", () => {
 });
 
 describe("idempotencyKey", () => {
-  const keyed = LUCA_TASK_TOOLS.map((tool) => fromTaskTool(tool)).filter(
+  const keyed = LUCA_TASK_TOOLS.map((tool) => toolProfile(tool)).filter(
     (tool) => "idempotencyKey" in tool.inputSchema
   );
 

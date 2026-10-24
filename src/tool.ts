@@ -7,20 +7,17 @@ import type * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
-import { operationAnnotationSource, toolAnnotations } from "./annotations.ts";
 import {
   formatError,
   LucaConfirmationRequired,
   type LucaError,
   LucaToolInputError,
 } from "./errors.ts";
-import { confirmInput } from "./fields.ts";
 import { LucaApi } from "./http.ts";
 import { authChallengeMeta } from "./oauth-challenge.ts";
 import { logAgentSurfaceEvent } from "./observability.ts";
-import { openApiToolOutputFields, type ToolFields } from "./openapi-schema.ts";
+import type { ToolFields } from "./openapi-schema.ts";
 import {
-  type ConfirmGate,
   type LucaOperation,
   type LucaToolInput,
   needsConfirmation,
@@ -29,63 +26,31 @@ import {
 import { optionalField } from "./optional-field.ts";
 import { paginatedProgram } from "./pagination.ts";
 import { provenanceFields, UNTRUSTED_CONTENT_NOTE } from "./provenance.ts";
-import {
-  type LucaCapabilityScope,
-  oauthScopeForOperation,
-  oauthScopeForTool,
-} from "./scopes.ts";
 import { JsonObject, type JsonValue, toJsonText } from "./serialization.ts";
 import { toolInputSchema, toolSchema } from "./standard-schema.ts";
-import type { LucaTaskTool } from "./task-tools.ts";
 import { taskRequest } from "./task-tools/runtime.ts";
 import { buildCache } from "./tool-cache.ts";
+import {
+  type ToolProfile,
+  toolProfile,
+  type ToolSource,
+} from "./tool-profile.ts";
 
 /**
- * How a tool reaches an MCP client, for both kinds of Luca tool.
+ * How a tool reaches an MCP client and runs, for both kinds of Luca tool.
  *
- * A `LucaOperation` is one REST route; a task tool composes several behind one
- * intent-level call. That difference ends at the projections below. Everything
- * after it is the same work on both, so it happens once here: the confirmation
- * gate, the untrusted-content wrapper, the error result, the annotations.
+ * What a client is told about a tool comes from `tool-profile.ts`. What
+ * happens here is the same work on both kinds, so it happens once: the
+ * confirmation gate, the untrusted-content wrapper, the error result, the call
+ * log. Only {@link toolProgram} tells the two kinds apart, because only the
+ * call itself differs.
  */
-export type RegisterableTool = {
-  readonly name: string;
-  readonly title: string;
-  readonly description: string;
-  readonly inputSchema: ToolFields;
-  readonly outputSchema: ToolFields;
-  readonly readOnly: boolean;
-  readonly mutatesExisting: boolean;
-  readonly idempotent: boolean;
-  /** Absent when no call needs `confirm: true`. */
-  readonly confirm?: ConfirmGate;
-  readonly untrustedContent: boolean;
-  readonly openWorld: boolean;
-  /**
-   * The least-privilege OAuth scope that lets a connection call this tool. It
-   * is what the tool declares in `securitySchemes` and what an auth error asks
-   * the client to request.
-   */
-  readonly oauthScope: LucaCapabilityScope;
-  /**
-   * The call itself, with the `LucaApi` requirement still open. The pipeline
-   * provides the layer in one place, so a tool body never carries a client.
-   */
-  readonly run: (
-    input: JsonObject
-  ) => Effect.Effect<JsonValue, LucaError, LucaApi>;
-};
 
 /**
- * Each derivation below is cached on the identity of the catalog entry it comes
- * from, because nothing in a `RegisterableTool` varies by caller and the Worker
- * builds a fresh server per request. See `tool-cache.ts` for what that buys and
- * how a test empties it.
+ * The Standard Schema objects are cached on the identity of the fields they
+ * render, because the Worker builds a fresh server per request. See
+ * `tool-cache.ts` for what that buys and how a test empties it.
  */
-const operationTools = buildCache<LucaOperation, RegisterableTool>();
-
-const taskTools = buildCache<LucaTaskTool, RegisterableTool>();
-
 const inputSchemas = buildCache<
   ToolFields,
   ReturnType<typeof toolInputSchema>
@@ -106,93 +71,26 @@ function outputObjectSchema(fields: ToolFields) {
   return outputSchemas.get(fields, () => toolSchema(fields));
 }
 
-export function fromOperation(operation: LucaOperation): RegisterableTool {
-  return operationTools.get(operation, () => buildFromOperation(operation));
-}
-
-function buildFromOperation(operation: LucaOperation): RegisterableTool {
-  return {
-    ...operationAnnotationSource(operation),
-    name: operation.toolName,
-    description: operationDescription(operation),
-    inputSchema: operation.inputSchema,
-    outputSchema: operation.outputSchema,
-    untrustedContent: operation.untrustedContent,
-    oauthScope: oauthScopeForOperation(operation),
-    run: (input) => operationProgram(operation, input),
-  };
-}
-
-export function fromTaskTool(tool: LucaTaskTool): RegisterableTool {
-  return taskTools.get(tool, () => buildFromTaskTool(tool));
-}
-
-function confirmFor(
-  tool: LucaTaskTool,
-  composed: readonly LucaOperation[]
-): ConfirmGate | undefined {
-  if (composed.some((operation) => operation.confirm === "always")) {
-    return "always";
+/**
+ * The Effect program one call to a tool runs, with the `LucaApi` requirement
+ * still open. The pipeline provides the layer in one place, so a tool body
+ * never carries a client.
+ */
+export function toolProgram(
+  source: ToolSource,
+  input: JsonObject
+): Effect.Effect<JsonValue, LucaError, LucaApi> {
+  if (source.kind === "operation") {
+    return operationProgram(source, input);
   }
 
-  const conditional = composed.some(
-    (operation) => operation.confirm !== undefined
-  );
-
-  return conditional ? (tool.confirm ?? "always") : tool.confirm;
-}
-
-/**
- * Every safety flag on a task tool comes from the operations it composes, so a
- * tool cannot claim to be safer than the routes it calls.
- */
-function buildFromTaskTool(tool: LucaTaskTool): RegisterableTool {
-  const composed = tool.composes.map(operationById);
-
-  const untrustedContent =
-    tool.untrustedContent === true ||
-    composed.some((operation) => operation.untrustedContent);
-
-  // One approval covers the whole call. A composed write gated for every call
-  // gates the task tool every time. A composed write gated only for some inputs
-  // cannot be evaluated here, because the tool's own input is not the input
-  // that write receives. The tool then has to name its own narrower gate, and
-  // without one it is gated every time.
-  const confirm = confirmFor(tool, composed);
-
-  return {
-    name: tool.name,
-    title: tool.title,
-    description: tool.description,
-    inputSchema:
-      confirm === undefined
-        ? tool.inputSchema
-        : { ...tool.inputSchema, ...confirmInput },
-    outputSchema: {
-      ...openApiToolOutputFields({ body: null, untrustedContent }),
-      result: tool.outputSchema,
-    },
-    readOnly: composed.every((operation) => operation.readOnly),
-    // A task tool overwrites or removes existing state when any write it
-    // composes does.
-    mutatesExisting: composed.some((operation) => operation.mutatesExisting),
-    // Repeating a task tool has no further effect only when that holds for
-    // every operation it composes.
-    idempotent: composed.every((operation) => operation.idempotent),
-    ...optionalField("confirm", confirm),
-    untrustedContent,
-    // A task tool reaches as far as the furthest operation it composes.
-    openWorld: composed.some((operation) => operation.openWorld),
-    oauthScope: oauthScopeForTool(composed),
-    run: (input) =>
-      tool.run(
-        (id, parts) =>
-          Effect.flatMap(LucaApi, (api) =>
-            api.request(taskRequest(operationById(id), input, parts))
-          ),
-        input
+  return source.run(
+    (id, parts) =>
+      Effect.flatMap(LucaApi, (api) =>
+        api.request(taskRequest(operationById(id), input, parts))
       ),
-  };
+    input
+  );
 }
 
 /**
@@ -213,10 +111,12 @@ export type ToolSurface = {
 
 export function registerTool(
   server: McpServer,
-  tool: RegisterableTool,
+  source: ToolSource,
   lucaLayer: Layer.Layer<LucaApi, LucaError, never>,
   surface: ToolSurface
 ) {
+  const tool = toolProfile(source);
+
   server.registerTool(
     tool.name,
     {
@@ -224,7 +124,7 @@ export function registerTool(
       description: tool.description,
       inputSchema: inputObjectSchema(tool.inputSchema),
       outputSchema: outputObjectSchema(tool.outputSchema),
-      annotations: toolAnnotations(tool),
+      annotations: tool.annotations,
       // ChatGPT reads this to know a tool needs a linked account, and which
       // scope to ask for when it does.
       _meta: {
@@ -234,7 +134,7 @@ export function registerTool(
     // The client's cancellation interrupts the program, which aborts the
     // request it has in flight.
     (input, ctx) =>
-      Effect.runPromise(toolResult(tool, lucaLayer, surface, input), {
+      Effect.runPromise(toolResult(source, lucaLayer, surface, input), {
         signal: ctx.mcpReq.signal,
       })
   );
@@ -275,12 +175,14 @@ type ToolOutcome = "success" | "error" | "defect" | "interrupted";
  * rejection, and every way logs exactly one line.
  */
 function toolResult(
-  tool: RegisterableTool,
+  source: ToolSource,
   lucaLayer: Layer.Layer<LucaApi, LucaError, never>,
   surface: ToolSurface,
   // oxlint-disable-next-line anti-slop/no-unknown-parameters -- input is the same raw MCP JSON-RPC tool-call arguments registerTool's server.registerTool callback hands in; parseToolInput below is what actually validates it.
   input: unknown
 ) {
+  const tool = toolProfile(source);
+
   const logCall = (outcome: ToolOutcome, elapsed?: Duration.Duration) =>
     // A defect's own message never lands here or in the tool result: it can
     // carry arbitrary thrown text derived from the call's input.
@@ -305,7 +207,7 @@ function toolResult(
       > =>
         needsConfirmation(tool.confirm, parsed) && parsed.confirm !== true
           ? Effect.fail(new LucaConfirmationRequired({ toolName: tool.name }))
-          : tool.run(parsed)
+          : toolProgram(source, parsed)
     ),
     Effect.provide(lucaLayer),
     Effect.exit,
@@ -324,7 +226,7 @@ function toolResult(
 
 /** A finished call as the outcome it logs and the result the client gets. */
 function settle(
-  tool: RegisterableTool,
+  tool: ToolProfile,
   surface: ToolSurface,
   exit: Exit.Exit<JsonValue, LucaError | LucaConfirmationRequired>
 ): readonly [ToolOutcome, ToolCallResult] {
@@ -405,7 +307,7 @@ export function operationProgram(
  * reads in `server.ts`.
  */
 function asSuccessResult(
-  tool: Pick<RegisterableTool, "untrustedContent">,
+  tool: Pick<ToolProfile, "untrustedContent">,
   result: JsonValue
 ) {
   const text = toJsonText(result);
@@ -450,36 +352,6 @@ function asErrorResult(
     ],
     ...optionalField("_meta", meta),
   };
-}
-
-function operationDescription(operation: LucaOperation) {
-  const lines = [
-    operation.description,
-    "",
-    `Luca operation: ${operation.method} ${operation.path}`,
-    `Required scopes: ${operation.scopes.join(", ")}`,
-    `Required OAuth scope: ${oauthScopeForOperation(operation)}; data sensitivity: ${operation.requiredScope.dataSensitivity}`,
-    operation.idempotencyRequired
-      ? "Requires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one."
-      : "Does not require idempotency.",
-  ];
-
-  if (operation.confirm !== undefined) {
-    const when =
-      operation.confirm === "always"
-        ? ""
-        : ` when ${operation.confirm.description}`;
-
-    lines.push(
-      `Destructive${when}: has a real-world side effect. You must pass confirm: true; the call is rejected without it.`
-    );
-  }
-
-  lines.push(
-    "Use workspaceId or workspaceSlug to override the default workspace configured by environment."
-  );
-
-  return lines.join("\n");
 }
 
 function confirmationError(toolName: string) {

@@ -1,4 +1,9 @@
+import * as Arr from "effect/Array";
+
+import { LUCA_OPERATIONS } from "./operations.ts";
+import { grantReaches, type LucaCapabilityScope } from "./scopes.ts";
 import { LUCA_TASK_TOOLS } from "./task-tools.ts";
+import { toolProfile, type ToolSource } from "./tool-profile.ts";
 
 /**
  * Which tool surface a server session exposes.
@@ -101,6 +106,41 @@ export const TOOLSETS: Readonly<Record<LucaToolset, ToolsetDefinition>> = {
     grantFiltered: true,
   },
 };
+
+/** Who one server session is for. */
+export type ToolSession = {
+  readonly toolset: LucaToolset;
+  /**
+   * The capability tier the connection's OAuth grant holds. Absent for a
+   * developer key, which has no grant to read.
+   */
+  readonly grant?: LucaCapabilityScope;
+};
+
+/**
+ * The tools one session lists, operations first and then task tools, each in
+ * catalog order. A toolset with an allowlist keeps only the tools it names. A
+ * grant-filtered toolset also drops every tool the grant does not reach, so a
+ * read-only grant never lists a tool it cannot call; a session with no grant
+ * keeps them all.
+ */
+export function sessionTools(session: ToolSession): readonly ToolSource[] {
+  const { tools, grantFiltered } = TOOLSETS[session.toolset];
+  const { grant } = session;
+
+  const inToolset = (source: ToolSource) =>
+    tools === undefined || Arr.contains(tools, toolProfile(source).name);
+
+  const reachable = (source: ToolSource) =>
+    !grantFiltered ||
+    grant === undefined ||
+    grantReaches(grant, toolProfile(source).oauthScope);
+
+  return Arr.filter(
+    [...LUCA_OPERATIONS, ...LUCA_TASK_TOOLS],
+    (source) => inToolset(source) && reachable(source)
+  );
+}
 
 // Only "tasks" and "claude" select a trimmed surface; every other value,
 // including an unset query param, takes the full-surface branch.
