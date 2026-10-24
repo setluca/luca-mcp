@@ -64,10 +64,13 @@ tools reach real leads, and Inspector will happily send `confirm: true` for you.
 through the Inspector CLI and reports each one against the outcome
 `scripts/sweep/plan.ts` expects. It is how we prove the server works tool by
 tool before a directory reviewer tests it (LUC-515). Run it only against the
-**sweep workspace**: a production workspace seeded with synthetic records and
-no connected channel, calendar, or CRM. Never run it against a coach's
-workspace or the reviewer workspaces, because write tools change what they
-touch.
+**sweep workspace**: a production workspace seeded with synthetic records, with
+a Google calendar connected on a SetLuca-owned account and no connected channel
+or CRM. Never run it against a coach's workspace or the reviewer workspaces,
+because write tools change what they touch.
+
+The seed lives in setluca/luca (`scripts/seed-sweep-workspace.ts`). Run it
+again after a sweep to put back what the sweep used up.
 
 1. Sign in once. Start the web Inspector (`bunx mcp-inspector`), connect to
    `https://mcp.setluca.com/mcp` over Streamable HTTP, sign in as the sweep
@@ -86,7 +89,7 @@ IDs), as JSON and as a Markdown table. Each check is one of:
 | pass    | The call did what the plan expects.                                           |
 | fail    | It didn't, it took over 30 seconds, or the server answered an internal error. |
 | blocked | A record the step needs isn't there: the seed has to add it.                  |
-| pending | The step needs an outside system the sweep workspace doesn't connect yet.     |
+| pending | The step needs an outside system the sweep workspace doesn't connect.         |
 | skipped | `--scope-check` couldn't reach the step without a write.                      |
 
 The command exits non-zero when anything fails or is blocked.
@@ -100,6 +103,12 @@ What the plan checks beyond "it answered":
 - **Refusals.** Sends answer the documented "channel not connected" refusal,
   because the sample channel is disconnected, and CRM calls are refused for lack
   of credentials. Nothing reaches a real lead or an outside account.
+- **Calendar.** The sweep books the connected Google calendar twice, once
+  through `luca_bookings_provider_requests_create` and once through
+  `luca_book_call`, reschedules one booking, and cancels both. Every invite goes
+  to `sweep+lead@setluca.com`, a SetLuca-owned mailbox. The step that removes
+  the calendar selection is followed by one that selects it again, so the next
+  run finds it.
 - **Listings.** `tools/list`, `prompts/list`, `resources/list`, and
   `resources/templates/list` have to list exactly what the registry declares.
 
