@@ -28,21 +28,34 @@ ownership is proven and what the workflow does.
   Directories such as Glama and LibHunt read the description from there too, so
   keep the GitHub repo description in the same SetLuca wording as `server.json`.
 
-## Still open
+## Other directories
 
-**Smithery and Glama.** Glama lists the server from this manifest as
-`io.github.setluca/luca-mcp`. Its health check calls `/mcp` without a token
-and gets the 401, so it shows the server as unhealthy until its test profile
-holds a read-only key; [remote.md](./remote.md#other-public-routes) explains
-why the 401 stays. Smithery has no listing yet. Confirm its manifest
-requirements before submitting, since it may want metadata beyond
-`server.json`.
+**Glama** lists the server from this manifest as `io.github.setluca/luca-mcp`.
+Because the repo belongs to an organization, Glama takes its maintainers from
+`glama.json` at the repo root. A maintainer signed in to Glama with that GitHub
+account can edit the listing's name, description, and categories, and request a
+re-sync, from the listing's Admin tab. Its health check calls `/mcp` without a
+token and gets the 401, so it shows the server as unhealthy until its test
+profile holds a read-only key; [remote.md](./remote.md#other-public-routes)
+explains why the 401 stays.
+
+**LobeHub** lists the server as `setluca-luca-mcp`, claimed by the owner's
+LobeHub account. It does not re-read the repo, so after a release regenerate
+its manifest from the published package and push it:
+
+```sh
+bunx @lobehub/market-cli login
+bunx @lobehub/market-cli plugin init --stdio "npx -y @setluca/mcp@<version>"
+# set "identifier" in lhm.plugin.json to "setluca-luca-mcp"
+bunx @lobehub/market-cli plugin update
+```
+
+**Smithery** has no listing yet. Confirm its manifest requirements before
+submitting, since it may want metadata beyond `server.json`.
 
 **The 0.1.1 listing under the old namespace.** `io.github.leonardomso/luca-mcp`
-is still `active` in the registry and still resolves to 0.1.1. Retiring it needs
-`mcp-publisher login github` from that personal account, which no workflow can
-do. Until then a client that added the server before the namespace move keeps
-seeing the old version.
+is deprecated in the registry, with a message pointing at
+`io.github.setluca/luca-mcp`.
 
 `registry:check` covers the version, the tool count, the environment variables,
 and the shape of every `remotes` entry. What it cannot check is whether the url
