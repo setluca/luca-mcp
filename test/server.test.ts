@@ -599,7 +599,6 @@ describe("task tool defects", () => {
       // A synchronous throw is a defect, not a typed failure: it bypasses the
       // error channel entirely and would otherwise escape as a transport-level
       // crash rather than a tool result the client can read.
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- a synchronous plain throw is the defect under test
       throw new Error("api client blew up");
     });
 

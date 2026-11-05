@@ -59,7 +59,7 @@ function fakeAuthRequest(authorization: string | null): Request {
 // exactOptionalPropertyTypes rejects against Transport's `string`. Runtime is
 // fine; narrow the SDK's own type friction at the connect boundary.
 function asTransport(transport: StreamableHTTPClientTransport): Transport {
-  return transport as Transport;
+  return transport;
 }
 
 /**
@@ -670,7 +670,7 @@ describe("remote transport", () => {
     // Each request builds its own server and connects it to that request's
     // transport, so recording `this` on connect counts the instances the
     // handler built.
-    // oxlint-disable-next-line effect/avoid-native-object-helpers -- Tracks and closes the original McpServer SDK instances by reference identity.
+    // Tracks and closes the original McpServer SDK instances by reference identity.
     const built = new Set<McpServer>();
     const originalConnect = McpServer.prototype.connect;
 

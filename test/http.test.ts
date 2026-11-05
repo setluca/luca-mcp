@@ -452,7 +452,6 @@ describe("createLucaApi", () => {
   it("fails with LucaNetworkError when fetch rejects", async () => {
     vi.stubGlobal(
       "fetch",
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
       vi.fn(() => Promise.reject(new Error("network down")))
     );
 
@@ -469,7 +468,6 @@ describe("createLucaApi", () => {
 
   it("fails with LucaNetworkError when response body cannot be read", async () => {
     class BrokenBodyResponse extends Response {
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- a failed body read rejects with a plain Error, and this stub reproduces it
       override text = () => Promise.reject(new Error("read failed"));
     }
 
@@ -695,7 +693,6 @@ describe("createLucaApi", () => {
 
   it("reports the exact message when the response body cannot be read", async () => {
     class BrokenBodyResponse extends Response {
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- a failed body read rejects with a plain Error, and this stub reproduces it
       override text = () => Promise.reject(new Error("read failed"));
     }
 
@@ -722,7 +719,6 @@ describe("createLucaApi", () => {
 
   it("keeps the status and Retry-After when an error body cannot be read", async () => {
     class BrokenBodyResponse extends Response {
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- a failed body read rejects with a plain Error, and this stub reproduces it
       override text = () => Promise.reject(new Error("read failed"));
     }
 
@@ -784,7 +780,6 @@ describe("createLucaApi", () => {
   it("leaves the query string out of a network error", async () => {
     vi.stubGlobal(
       "fetch",
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
       vi.fn(() => Promise.reject(new Error("network down")))
     );
 
@@ -810,7 +805,6 @@ describe("createLucaApi", () => {
   it("reports the exact message including the URL when fetch rejects", async () => {
     vi.stubGlobal(
       "fetch",
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
       vi.fn(() => Promise.reject(new Error("network down")))
     );
 

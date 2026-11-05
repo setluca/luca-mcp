@@ -8,7 +8,6 @@ import * as R from "effect/Record";
 import { toolProfile } from "../tool-profile.ts";
 import { LUCA_OPERATIONS } from "./catalog.ts";
 import { LUCA_OPERATION_GROUPS } from "./registry.ts";
-import type { LucaOperationGroup } from "./registry.ts";
 
 export function operationManifest() {
   return LUCA_OPERATIONS.map((operation) => ({
@@ -35,9 +34,7 @@ export function operationGroups() {
     );
 
     return {
-      // SAFETY: Object.entries widens the key to `string`; the cast recovers
-      // what TypeScript already knows about LUCA_OPERATION_GROUPS's own keys.
-      id: id as LucaOperationGroup,
+      id,
       title: metadata.title,
       description: metadata.description,
       toolCount: operations.length,

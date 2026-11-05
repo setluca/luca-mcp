@@ -281,7 +281,6 @@ describe("remote transport rate limits", () => {
 
     const unavailable = {
       limit: async (): Promise<{ success: boolean }> => {
-        // oxlint-disable-next-line effect/avoid-untagged-errors -- a failing rate-limit binding throws a plain Error, the case under test
         throw new Error("binding unavailable");
       },
     };
@@ -325,7 +324,7 @@ describe("remote transport rate limits", () => {
       const send = sendFrom(createRemoteHandler({ resolveToken: declines }));
       const statuses: number[] = [];
 
-      // oxlint-disable-next-line effect/imperative-loops -- the requests run one at a time so the limiter counts them in order
+      // The requests run one at a time so the limiter counts them in order.
       for (let attempt = 0; attempt < 601; attempt += 1) {
         statuses.push((await send("198.51.100.1")).status);
       }
@@ -354,7 +353,7 @@ describe("remote transport rate limits", () => {
       const send = sendToken(createRemoteHandler({ resolveToken: declines }));
       const statuses: number[] = [];
 
-      // oxlint-disable-next-line effect/imperative-loops -- the requests run one at a time so the limiter counts them in order
+      // The requests run one at a time so the limiter counts them in order.
       for (let attempt = 0; attempt < 61; attempt += 1) {
         statuses.push((await send(VALID_API_KEY)).status);
       }
@@ -371,7 +370,7 @@ describe("remote transport rate limits", () => {
       const send = sendToken(createRemoteHandler({ resolveToken: declines }));
       const statuses: number[] = [];
 
-      // oxlint-disable-next-line effect/imperative-loops -- the requests run one at a time so the limiter counts them in order
+      // The requests run one at a time so the limiter counts them in order.
       for (let attempt = 0; attempt < 601; attempt += 1) {
         statuses.push((await send(`fresh-${attempt}`)).status);
       }
@@ -387,7 +386,7 @@ describe("remote transport rate limits", () => {
       const first = sendFrom(createRemoteHandler({ resolveToken: declines }));
       const second = sendFrom(createRemoteHandler({ resolveToken: declines }));
 
-      // oxlint-disable-next-line effect/imperative-loops -- the requests run one at a time so the limiter counts them in order
+      // The requests run one at a time so the limiter counts them in order.
       for (let attempt = 0; attempt < 601; attempt += 1) {
         await first("198.51.100.1");
       }
@@ -399,7 +398,7 @@ describe("remote transport rate limits", () => {
     it("rejects a new key instead of evicting a live one when the table is full", async () => {
       const send = sendFrom(createRemoteHandler({ resolveToken: declines }));
 
-      // oxlint-disable-next-line effect/imperative-loops -- the requests run one at a time so the limiter counts them in order
+      // The requests run one at a time so the limiter counts them in order.
       for (let key = 0; key < 10_000; key += 1) {
         await send(`key-${key}`);
       }
@@ -417,7 +416,7 @@ describe("remote transport rate limits", () => {
 
       const send = sendFrom(createRemoteHandler({ resolveToken: declines }));
 
-      // oxlint-disable-next-line effect/imperative-loops -- the requests run one at a time so the limiter counts them in order
+      // The requests run one at a time so the limiter counts them in order.
       for (let key = 0; key < 10_000; key += 1) {
         await send(`key-${key}`);
       }

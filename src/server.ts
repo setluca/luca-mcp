@@ -247,8 +247,10 @@ function readResource(
     operationProgram(operation, resourceReadInput(resource, variables))
   ).pipe(
     Effect.provide(lucaLayer),
-    Effect.mapError((error) => readError(read, uri, error)),
-    Effect.map((result) => readResult(operation, uri, result))
+    Effect.mapBoth({
+      onFailure: (error) => readError(read, uri, error),
+      onSuccess: (result) => readResult(operation, uri, result),
+    })
   );
 }
 

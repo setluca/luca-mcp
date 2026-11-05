@@ -2320,7 +2320,7 @@ describe("luca_morning_report", () => {
     const result = await runTool(tool(), api, {});
 
     expect(result).toEqual({ queued: 3, byStatus: { pending: 3 } });
-    // oxlint-disable-next-line effect/avoid-native-object-helpers -- `R.keys` takes an index-signature record, and `LucaRequest` is a closed object type
+    // `R.keys` takes an index-signature record, and `LucaRequest` is a closed object type.
     expect(sorted(Object.keys(nth(calls, 0)))).toEqual(["operation"]);
   });
 

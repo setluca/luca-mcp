@@ -1,7 +1,6 @@
 import * as Arr from "effect/Array";
 import * as Clock from "effect/Clock";
 import * as Context from "effect/Context";
-// oxlint-disable effect/avoid-native-fetch -- MCP remote API transport; its tests assert the native fetch request shape
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Match from "effect/Match";
@@ -222,21 +221,23 @@ function buildRequestInit(
 const MAX_RAW_ERROR_BODY_LENGTH = 500;
 
 /**
+ * A response body as JSON. An empty body is not a decode failure: several
+ * endpoints answer with no content at all, and null is the JSON value that
+ * stands for it.
+ */
+function parseBody(text: string): Effect.Effect<JsonValue, Schema.SchemaError> {
+  return Str.isNonEmpty(text) ? parseJson(text) : Effect.succeed(null);
+}
+
+/**
  * The body of an error response: its JSON when it parses, else the raw text
- * cut to {@link MAX_RAW_ERROR_BODY_LENGTH} characters. An empty body is null,
- * as it is on success.
+ * cut to {@link MAX_RAW_ERROR_BODY_LENGTH} characters.
  */
 function errorBody(text: string) {
-  return Option.liftPredicate(text, (raw) => Str.isNonEmpty(raw)).pipe(
-    Option.match({
-      onNone: () => Effect.succeed<JsonValue>(null),
-      onSome: (raw) =>
-        parseJson(raw).pipe(
-          Effect.orElseSucceed((): JsonValue =>
-            raw.slice(0, MAX_RAW_ERROR_BODY_LENGTH)
-          )
-        ),
-    })
+  return parseBody(text).pipe(
+    Effect.orElseSucceed((): JsonValue =>
+      text.slice(0, MAX_RAW_ERROR_BODY_LENGTH)
+    )
   );
 }
 
@@ -304,22 +305,14 @@ function sendOnce(
 
     const text = yield* readText;
 
-    // An empty body is not a decode failure. Several endpoints answer with
-    // no content at all, and null is the JSON value that stands for it.
-    return yield* Option.liftPredicate(text, (raw) => Str.isNonEmpty(raw)).pipe(
-      Option.match({
-        onNone: () => Effect.succeed(null),
-        onSome: (raw) =>
-          parseJson(raw).pipe(
-            Effect.mapError(
-              () =>
-                new LucaDecodeError({
-                  message: "Luca API returned non-JSON content",
-                  body: raw,
-                })
-            )
-          ),
-      })
+    return yield* parseBody(text).pipe(
+      Effect.mapError(
+        () =>
+          new LucaDecodeError({
+            message: "Luca API returned non-JSON content",
+            body: text,
+          })
+      )
     );
   });
 }

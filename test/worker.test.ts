@@ -197,7 +197,7 @@ describe("worker fetch handler", () => {
 
     const statuses: number[] = [];
 
-    // oxlint-disable-next-line effect/imperative-loops -- the requests run one at a time so the limiter counts them in order
+    // The requests run one at a time so the limiter counts them in order.
     for (let attempt = 0; attempt < 601; attempt += 1) {
       statuses.push((await send()).status);
     }

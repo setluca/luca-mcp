@@ -1,6 +1,7 @@
 import {
   ProtocolError,
   ResourceNotFoundError,
+  type Tool,
 } from "@modelcontextprotocol/server";
 import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
@@ -44,6 +45,29 @@ function bookingPage(
 import { optionalField } from "../src/optional-field.ts";
 import { LUCA_TASK_TOOLS } from "../src/task-tools.ts";
 import { CLAUDE_TOOL_NAMES } from "../src/toolsets.ts";
+
+/** A directory listing needs a title and all four hints on every tool. */
+function expectDirectoryReady(tool: Tool) {
+  expect(
+    tool.title?.trim().length,
+    `${tool.name} is missing a title`
+  ).toBeGreaterThan(0);
+  expect(
+    tool.annotations?.title?.trim(),
+    `${tool.name} is missing an annotation title`
+  ).toBe(tool.title);
+
+  for (const hint of [
+    "readOnlyHint",
+    "destructiveHint",
+    "idempotentHint",
+    "openWorldHint",
+  ] as const) {
+    expect([true, false], `${tool.name} is missing ${hint}`).toContain(
+      tool.annotations?.[hint]
+    );
+  }
+}
 
 describe("MCP protocol", () => {
   it("lists Luca tools, resources, and prompts", async () => {
@@ -117,26 +141,11 @@ describe("MCP protocol", () => {
 
     const { tools } = await client.listTools();
 
-    for (const tool of tools) {
-      expect(
-        tool.title?.trim().length,
-        `${tool.name} is missing a title`
-      ).toBeGreaterThan(0);
-      expect(
-        tool.annotations?.title?.trim(),
-        `${tool.name} is missing an annotation title`
-      ).toBe(tool.title);
+    const hintsOf = (name: string) =>
+      tools.find((tool) => tool.name === name)?.annotations;
 
-      for (const hint of [
-        "readOnlyHint",
-        "destructiveHint",
-        "idempotentHint",
-        "openWorldHint",
-      ] as const) {
-        expect([true, false], `${tool.name} is missing ${hint}`).toContain(
-          tool.annotations?.[hint]
-        );
-      }
+    for (const tool of tools) {
+      expectDirectoryReady(tool);
     }
 
     const unsafeReads = tools
@@ -149,6 +158,11 @@ describe("MCP protocol", () => {
 
     expect(unsafeReads).toEqual([]);
 
+    expect(hintsOf("luca_insights_settings_get")?.readOnlyHint).toBe(true);
+    expect(hintsOf("luca_integrations_crm_oauth_url")?.readOnlyHint).toBe(
+      false
+    );
+
     for (const name of [
       "luca_bookings_availability",
       "luca_bookings_managed_availability",
@@ -156,21 +170,6 @@ describe("MCP protocol", () => {
       "luca_integrations_crm_connections_schema",
       "luca_integrations_crm_connections_health",
       "luca_knowledge_sources_sync",
-    ]) {
-      const tool = tools.find((candidate) => candidate.name === name);
-      expect(tool?.annotations?.openWorldHint, name).toBe(true);
-    }
-
-    expect(
-      tools.find((tool) => tool.name === "luca_insights_settings_get")
-        ?.annotations?.readOnlyHint
-    ).toBe(true);
-    expect(
-      tools.find((tool) => tool.name === "luca_integrations_crm_oauth_url")
-        ?.annotations?.readOnlyHint
-    ).toBe(false);
-
-    for (const name of [
       "luca_conversations_send",
       "luca_review_queue_approve",
       "luca_campaigns_publish",
@@ -182,10 +181,7 @@ describe("MCP protocol", () => {
       "luca_approve_and_send",
       "luca_book_call",
     ]) {
-      const tool = tools.find((candidate) => candidate.name === name);
-
-      expect(tool, `${name} is missing from tools/list`).toBeDefined();
-      expect(tool?.annotations?.openWorldHint, name).toBe(true);
+      expect(hintsOf(name)?.openWorldHint, name).toBe(true);
     }
   }, 15_000);
 
@@ -407,7 +403,7 @@ describe("MCP protocol", () => {
 
     assert(ResourceNotFoundError.isInstance(failure));
     expect(failure).toMatchObject({ code: -32602, data: { uri } });
-    expect(String(failure.message)).toContain("lead_not_found");
+    expect(failure.message).toContain("lead_not_found");
   });
 
   it.each([
@@ -478,7 +474,7 @@ describe("MCP protocol", () => {
 
     assert(ProtocolError.isInstance(failure));
     expect(failure).toMatchObject({ code: -32603 });
-    expect(String(failure.message)).toContain("boom");
+    expect(failure.message).toContain("boom");
   });
 
   it("registers the slash-command prompts composed over real tools", async () => {
@@ -1036,7 +1032,6 @@ describe("MCP protocol", () => {
 
   it("does not disclose unexpected defect messages in MCP tool errors", async () => {
     const { client, close } = await connect(() =>
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- an untyped defect is the case under test
       Effect.die(new Error("secret-from-request"))
     );
 

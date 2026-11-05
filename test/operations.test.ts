@@ -1138,7 +1138,7 @@ describe("operation manifest", () => {
     // so any route that echoes it carries lead-written text.
     const unframed = LUCA_OPERATIONS.filter(
       (operation) =>
-        // oxlint-disable-next-line effect/avoid-direct-json -- searches the generated output schema's text for a property name
+        // Searches the generated output schema's text for a property name.
         JSON.stringify(
           OPENAPI_OUTPUTS_BY_ROUTE[`${operation.method} ${operation.path}`] ??
             null

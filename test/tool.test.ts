@@ -33,7 +33,6 @@ const failingLayer = Layer.succeed(LucaApi, {
 
 const throwingLayer = Layer.succeed(LucaApi, {
   request: () => {
-    // oxlint-disable-next-line effect/avoid-untagged-errors -- a synchronous plain throw is the defect under test
     throw new Error("the request builder threw");
   },
 });
@@ -392,7 +391,7 @@ function failingWith(status: number, body: unknown) {
           status,
           statusText: "Error",
           // SAFETY: test bodies are plain JSON literals.
-          body: body as never,
+          body,
         })
       ),
   });
