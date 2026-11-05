@@ -10,6 +10,11 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Changed
+
+- Built on Effect 4.1.2 and the MCP SDK 2.4.0, up from 4.0.6 and 2.3.0. No
+  tool's input or output schema changed.
+
 ## [0.7.1] - 2026-11-07
 
 No tool, schema, or hosted server behavior changes. The hosted sweep runs the

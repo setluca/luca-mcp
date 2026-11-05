@@ -245,12 +245,12 @@ oauthProvider({
 
 1. Client hits `mcp.setluca.com/mcp` without a token → `401` with
    `WWW-Authenticate: Bearer
-resource_metadata="https://mcp.setluca.com/.well-known/oauth-protected-resource"`
+   resource_metadata="https://mcp.setluca.com/.well-known/oauth-protected-resource"`
    (shape borrowed from the plugin's `mcpHandler`; emitted by `remote.ts`).
 2. Client fetches protected-resource metadata — **static JSON served by the
    MCP Worker itself** (RFC 9728: `resource` is the path-scoped
    `https://mcp.setluca.com/mcp`, `authorization_servers:
-["https://api.setluca.com"]`). The Worker has no DB and calls no plugin
+   ["https://api.setluca.com"]`). The Worker has no DB and calls no plugin
    code for this. → Client fetches root
    `/.well-known/oauth-authorization-server` on the AS (Hono root route
    calling `oauthProviderAuthServerMetadata`).
