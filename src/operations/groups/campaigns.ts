@@ -31,7 +31,8 @@ export const campaignsOperations: readonly LucaOperation[] = [
   op({
     id: "campaigns.draft.update",
     title: "Edit a campaign draft",
-    description: "Autosave a campaign draft.",
+    description:
+      "Save a campaign draft. Read the campaign with luca_campaigns_get first and send its draft.updatedAt as body.expectedDraftUpdatedAt, so this cannot overwrite an edit made since. Without that field Luca refuses the call with a 428. If the draft has changed since you read it, Luca answers 409: read the campaign again and reapply your change.",
   }),
   op({
     id: "campaigns.enrollments.list",

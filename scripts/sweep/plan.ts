@@ -82,6 +82,7 @@ export type Fixture =
   | "sweepBookingType"
   | "attendee"
   | "sweepCampaign"
+  | "sweepDraftUpdatedAt"
   | "simulation"
   | "enrollment"
   | "sweepBroadcast"
@@ -1007,7 +1008,10 @@ const create: readonly SweepStep[] = [
     phase: "create",
     repeat: true,
     args: (_fx, ctx) => ({ body: { name: `Sweep campaign ${ctx.runId}` } }),
-    provides: { sweepCampaign: valueAt("id") },
+    provides: {
+      sweepCampaign: valueAt("id"),
+      sweepDraftUpdatedAt: valueAt("draft", "updatedAt"),
+    },
   },
   {
     tool: "luca_campaigns_simulations_create",
@@ -1377,10 +1381,13 @@ const change: readonly SweepStep[] = [
   {
     tool: "luca_campaigns_draft_update",
     phase: "change",
-    needs: ["sweepCampaign", "campaignGraph"],
+    needs: ["sweepCampaign", "campaignGraph", "sweepDraftUpdatedAt"],
     args: (fx) => ({
       id: fx.sweepCampaign,
-      body: { graph: decodeJsonText(fx.campaignGraph) },
+      body: {
+        expectedDraftUpdatedAt: fx.sweepDraftUpdatedAt,
+        graph: decodeJsonText(fx.campaignGraph),
+      },
     }),
   },
   {

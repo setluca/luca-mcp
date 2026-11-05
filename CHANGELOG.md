@@ -36,6 +36,14 @@ input schema, or changing what a tool does to a workspace.
   same tokens `mcp.setluca.com` does, OAuth included, instead of developer keys
   only.
 
+### Changed
+
+- `luca_campaigns_draft_update` tells the agent to read the campaign first and
+  send its `draft.updatedAt` as `body.expectedDraftUpdatedAt`. An upcoming Luca
+  release refuses a draft save without it, with a 428, so an agent cannot
+  overwrite a coach's edits it never saw. The API already accepts the field, so
+  this works before that release too.
+
 ### Fixed
 
 - `luca_campaigns_generate` reads as what it does: `readOnlyHint: true`,
