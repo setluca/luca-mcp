@@ -82,7 +82,8 @@ input schema, or changing what a tool does to a workspace.
 
 - Contracts are pinned to the Luca production release that serves
   `luca_campaigns_generate` as a read. `luca_reports_scorecard` gains an optional
-  `period` query, and results across conversations, the review queue, bookings,
+  `period` query, `luca_conversations_list` gains `channels`, `unread`, and
+  `status` filters, and results across conversations, the review queue, bookings,
   usage, and revenue gain fields.
 - The ChatGPT package moves to `0.1.5` for the next resubmission. The hints on
   the coach-webhook tools and on the OpenRouter drafting and media retry tools

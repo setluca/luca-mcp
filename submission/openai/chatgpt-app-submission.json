@@ -2523,9 +2523,9 @@
         "destructiveHint": false
       },
       "justifications": {
-        "read_only_justification": "Reads this period's model spend by agent and day against the plan cap from the coach's SetLuca workspace and returns it. It creates, changes, and deletes nothing.",
+        "read_only_justification": "Reads this period's model spend by agent and day against the billing account's monthly budget from the coach's SetLuca workspace and returns it. It creates, changes, and deletes nothing.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace; it reaches no lead, calendar, CRM, webhook subscriber, or outside service.",
-        "destructive_justification": "Only reads this period's model spend by agent and day against the plan cap; it overwrites and deletes nothing."
+        "destructive_justification": "Only reads this period's model spend by agent and day against the billing account's monthly budget; it overwrites and deletes nothing."
       }
     },
     "luca_voice_corpus": {
