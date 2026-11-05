@@ -26,7 +26,7 @@ export const campaignsOperations: readonly LucaOperation[] = [
     // nothing.
     readOnly: true,
     description:
-      "Build a campaign plan from a brief with fixed rules, not an AI model. Nothing is created or published: create the draft from the plan, review it, and publish it yourself.",
+      'Build a campaign plan from a brief with fixed rules, not an AI model. Nothing is created or published: create the draft from the plan, review it, and publish it yourself. A new brief has to say where leads come from: set body.source, or say it in body.prompt, for example a comment on a post or a DM. A comment campaign also has to name the word people comment in body.prompt, for example comment "GUIDE". If either is missing, Luca answers 400 and says what to add.',
   }),
   op({
     id: "campaigns.draft.update",

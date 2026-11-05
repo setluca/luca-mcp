@@ -452,6 +452,50 @@ describe("luca_campaigns_draft_update and the version it replaces", () => {
   });
 });
 
+describe("luca_campaigns_generate and what a new brief has to name", () => {
+  const generate = () => operationByToolName("luca_campaigns_generate");
+
+  const toolInput = {
+    body: {
+      mode: "new",
+      prompt: "Check in with leads who asked about prices.",
+      source: "instagram_dm",
+    },
+  };
+
+  // Luca refuses a new brief that names neither, and the input schema cannot
+  // say so: source stays optional because a prompt can name it instead.
+  it("tells the agent a brief has to say where leads come from", () => {
+    const { description } = capture(generate()).config;
+
+    expect(description).toContain("body.source");
+    expect(description).toContain("body.prompt");
+    expect(description).toContain('comment "GUIDE"');
+    expect(description).toContain("400");
+  });
+
+  it("sends the source the agent passed", () => {
+    expect(generate().buildRequest(toolInput).body).toEqual(toolInput.body);
+  });
+
+  it("relays the API's 400 to the agent", async () => {
+    const message =
+      "Say how people reach you, a comment on a post or a DM, or pick it from the list.";
+
+    const result = await capture(
+      generate(),
+      failingWith(400, { error: { code: "validation_error", message } })
+    ).handler(toolInput);
+
+    expect(result).toMatchObject({ isError: true });
+
+    const text = encodeUnknownJson(result);
+
+    expect(text).toContain("400");
+    expect(text).toContain(message);
+  });
+});
+
 const RESOURCE_METADATA_URL =
   "https://mcp.example.com/.well-known/oauth-protected-resource/mcp";
 

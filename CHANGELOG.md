@@ -43,6 +43,10 @@ input schema, or changing what a tool does to a workspace.
   release refuses a draft save without it, with a 428, so an agent cannot
   overwrite a coach's edits it never saw. The API already accepts the field, so
   this works before that release too.
+- `luca_campaigns_generate` tells the agent that a new brief has to say where
+  leads come from, in `body.source` or `body.prompt`, and that a comment campaign
+  has to name its word in `body.prompt`. The same Luca release answers 400
+  without them. Briefs that follow this work before that release too.
 
 ### Fixed
 
