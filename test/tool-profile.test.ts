@@ -92,12 +92,7 @@ describe("toolProfile for a task tool", () => {
   it("needs every API scope its operations declare, once each and sorted", () => {
     expect(
       toolProfile(
-        composing([
-          "usage.messages",
-          "channels.list",
-          "leads.list",
-          "leads.get",
-        ])
+        composing(["usage.spend", "channels.list", "leads.list", "leads.get"])
       ).apiScopes
     ).toEqual(["channels:read", "leads:read", "usage:read"]);
   });

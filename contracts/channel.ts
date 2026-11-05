@@ -12,6 +12,21 @@ export const ChannelSchema = z.enum(CHANNELS);
 
 export type Channel = z.infer<typeof ChannelSchema>;
 
+/**
+ * Whether a coach can connect a channel now, from its catalog entry. The
+ * release fields own the answer: a closed release mode refuses every
+ * connection, and only `visible` advertises the channel as open. The entry's
+ * `status` is the older flag and plays no part, because a release written
+ * without it would read as closed while the server accepted connections, and a
+ * rollback written without it would read as open while the server refused them.
+ */
+export function isChannelOpen(entry: {
+  readonly releaseMode: "off" | "internal" | "public";
+  readonly visibility: "hidden" | "coming_soon" | "visible";
+}): boolean {
+  return entry.releaseMode !== "off" && entry.visibility === "visible";
+}
+
 /** Disconnect removes these channels' owned lead and conversation history. */
 export const HISTORY_PURGED_ON_DISCONNECT_CHANNELS = [
   "telegram",

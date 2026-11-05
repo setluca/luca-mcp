@@ -1,12 +1,12 @@
 {
   "repository": "setluca/luca",
-  "commit": "621b92a2893e4fc6c45d078a8cc5638098cd2e10",
+  "commit": "8cf0900fce5354ebadd98629dbc86de249dc5973",
   "sha256": {
-    "openapi.json": "22dd8a4e0c4bf52de8411e9fc6efa9207aa49eec12de907ed6b0cde24228ae9b",
-    "api-key-policies.json": "945dee031fe228d2c43385bcb12e86642549f16132f10599cb3d927ec666b884",
+    "openapi.json": "5529f51888a1854727b0c103a71dc3ab6a01824caa62d328849607c97712d618",
+    "api-key-policies.json": "cb35c5ee737e0d98703ccee426bff1f42de3390fd42a3585255a24d2fd3a74b5",
     "agent-scope.ts": "8549ead8e67815b5da887e25d006f2eb0d713f77a8f42b0fed28ebbb6d5b86cd",
-    "public-route-policy.ts": "1ba5e84e33e1826c42ab706d49942ff1d141a756175a739ef9a69b8d5e0311cc",
+    "public-route-policy.ts": "455848ee7915d6e76c0bbda6e4dda5c25c813a58217841cf2f247a9e30c57575",
     "agent-surface-log.ts": "2244567a28c1e8d6c1f139cd9e222da4b27fe20c3f8289d58cb1699988abb3d7",
-    "channel.ts": "3b9d2d1ccc53ade5f2b9a6c39a4fc52cc435678726cc765a05f87778207a7abe"
+    "channel.ts": "f2d873ffe23541106d9e11259b64b3231e80fc649776ebbda3a1d9dfb7409ea7"
   }
 }
