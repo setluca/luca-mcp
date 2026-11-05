@@ -659,6 +659,8 @@ const read: readonly SweepStep[] = [
         mode: "new",
         prompt:
           "A short check-in campaign for leads who asked about coaching prices.",
+        // Luca is about to refuse a new brief that names no source.
+        source: "instagram_dm",
       },
     }),
   },
