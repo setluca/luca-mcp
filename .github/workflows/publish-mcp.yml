@@ -13,10 +13,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Runs first, so a stray tag does not start a sweep that writes to production.
+  tag:
+    name: Check the tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify tag and package
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          test "${RELEASE_TAG}" = "mcp-v${VERSION}"
+          test "$(node -p "require('./package.json').private === true")" = "false"
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "::error::Release tag must point to a commit on main."
+            exit 1
+          fi
+
   # The sweep's logs hold workspace record ids and this repository is public, so
   # it runs in setluca/luca and this job only waits for the verdict.
   sweep:
     name: Sweep the release build
+    needs: tag
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
@@ -54,18 +78,6 @@ jobs:
       - name: Install npm with trusted publishing support
         run: npm install -g npm@11.5.1
       - run: bun install --frozen-lockfile
-      - name: Verify tag and package
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          VERSION="$(node -p "require('./package.json').version")"
-          test "${RELEASE_TAG}" = "mcp-v${VERSION}"
-          test "$(node -p "require('./package.json').private === true")" = "false"
-          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
-            echo "::error::Release tag must point to a commit on main."
-            exit 1
-          fi
       - run: bun run verify
         env:
           CI: true

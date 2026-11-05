@@ -4,7 +4,7 @@ import type { InspectorOutcome } from "../scripts/lib/inspector.ts";
 import {
   auditRowsOf,
   judgeAuditLog,
-  sweepConnection,
+  hostedConnection,
 } from "../scripts/sweep/run.ts";
 import type { JsonValue } from "../src/serialization.ts";
 
@@ -47,36 +47,21 @@ describe("the sweep's read-only audit check", () => {
   });
 });
 
-describe("how a sweep connects", () => {
+describe("how a sweep reaches the hosted server", () => {
   const serverUrl = "https://mcp.setluca.com/mcp";
 
   it("uses the stored sign-in without a key", () => {
     const stored = { kind: "oauth", serverUrl, auth: "refresh" };
 
-    expect(
-      sweepConnection({ serverUrl, stdio: false, apiKey: undefined })
-    ).toEqual(stored);
-    expect(sweepConnection({ serverUrl, stdio: false, apiKey: "" })).toEqual(
-      stored
-    );
+    expect(hostedConnection(serverUrl, undefined)).toEqual(stored);
+    expect(hostedConnection(serverUrl, "")).toEqual(stored);
   });
 
-  it("sends a key to the hosted server", () => {
-    expect(sweepConnection({ serverUrl, stdio: false, apiKey: "key" })).toEqual(
-      { kind: "bearer", serverUrl, token: "key" }
-    );
-  });
-
-  it("gives a key to the local build", () => {
-    expect(sweepConnection({ serverUrl, stdio: true, apiKey: "key" })).toEqual({
-      kind: "stdio",
-      apiKey: "key",
+  it("sends a key when there is one", () => {
+    expect(hostedConnection(serverUrl, "key")).toEqual({
+      kind: "bearer",
+      serverUrl,
+      token: "key",
     });
-  });
-
-  it("refuses a local sweep with no key, since nothing could sign in", () => {
-    expect(() =>
-      sweepConnection({ serverUrl, stdio: true, apiKey: undefined })
-    ).toThrow("LUCA_SWEEP_API_KEY");
   });
 });

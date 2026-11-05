@@ -117,8 +117,8 @@ What the plan checks beyond "it answered":
 - **Listings.** `tools/list`, `prompts/list`, `resources/list`, and
   `resources/templates/list` have to list exactly what the registry declares.
 
-- **Read-only tools.** The newest audit row is read before and after the discovery
-  and read phases. A new one means a tool marked read-only wrote it.
+- **Read-only tools.** The newest audit row an API key wrote is read before and after
+  the discovery and read phases. A new one means a tool marked read-only wrote it.
 
 Other options: `--only luca_leads_get,luca_leads_explain` runs just those tools
 (discovery always runs), `--webhook-url` changes where webhook steps deliver

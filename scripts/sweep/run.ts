@@ -79,8 +79,7 @@ type CheckResult = Judgement & {
 };
 
 type RunOptions = {
-  readonly serverUrl: string;
-  readonly stdio: boolean;
+  readonly connection: InspectorConnection;
   readonly webhookUrl: string;
   readonly only: ReadonlySet<string> | undefined;
   readonly scopeCheck: boolean;
@@ -173,28 +172,23 @@ function judge(outcome: InspectorOutcome, expect: Expectation): Judgement {
 }
 
 /**
- * How a run reaches the server. With `LUCA_SWEEP_API_KEY` set it signs in with
- * that developer key, against the hosted server or, with `--stdio`, this
- * checkout's build. Without it, it uses the sign-in the web Inspector stored.
+ * How a run reaches the hosted server: with `LUCA_SWEEP_API_KEY` when it is set,
+ * and otherwise with the sign-in the web Inspector stored.
  */
-export function sweepConnection(input: {
-  readonly serverUrl: string;
-  readonly stdio: boolean;
-  readonly apiKey: string | undefined;
-}): InspectorConnection {
-  const apiKey = input.apiKey === "" ? undefined : input.apiKey;
+export function hostedConnection(
+  serverUrl: string,
+  apiKey: string | undefined
+): InspectorConnection {
+  return apiKey === undefined || apiKey === ""
+    ? { kind: "oauth", serverUrl, auth: "refresh" }
+    : { kind: "bearer", serverUrl, token: apiKey };
+}
 
-  if (input.stdio) {
-    if (apiKey === undefined) {
-      throw new Error("--stdio needs a developer key in LUCA_SWEEP_API_KEY");
-    }
-
-    return { kind: "stdio", apiKey };
-  }
-
-  return apiKey === undefined
-    ? { kind: "oauth", serverUrl: input.serverUrl, auth: "refresh" }
-    : { kind: "bearer", serverUrl: input.serverUrl, token: apiKey };
+/** What a report names as the server it swept. */
+function sweptTarget(connection: InspectorConnection): string {
+  return connection.kind === "stdio"
+    ? "this checkout's build"
+    : connection.serverUrl;
 }
 
 /**
@@ -567,7 +561,7 @@ function markdownReport(
   return [
     `# SetLuca MCP tool sweep, ${DateTime.formatIso(ctx.now)}`,
     "",
-    `Server: ${options.stdio ? "this checkout's build" : options.serverUrl}${scope}`,
+    `Server: ${sweptTarget(options.connection)}${scope}`,
     "",
     summaryLine(summarize(results)),
     "",
@@ -601,9 +595,17 @@ function readOptions(argv: readonly string[]): RunOptions {
     process.exit(0);
   }
 
+  const apiKey = process.env.LUCA_SWEEP_API_KEY;
+
+  if (values.stdio && (apiKey === undefined || apiKey === "")) {
+    console.error("--stdio needs a developer key in LUCA_SWEEP_API_KEY");
+    process.exit(2);
+  }
+
   return {
-    serverUrl: values["server-url"],
-    stdio: values.stdio,
+    connection: values.stdio
+      ? { kind: "stdio", apiKey }
+      : hostedConnection(values["server-url"], apiKey),
     webhookUrl: values["webhook-url"],
     only:
       values.only === undefined ? undefined : new Set(values.only.split(",")),
@@ -661,7 +663,7 @@ function writeReport(
     join(options.reportDir, `sweep-${stamp}.json`),
     JSON.stringify(
       {
-        serverUrl: options.serverUrl,
+        server: sweptTarget(options.connection),
         scopeCheck: options.scopeCheck,
         startedAt: DateTime.formatIso(ctx.now),
         counts: summarize(results),
@@ -697,11 +699,15 @@ export function auditRowsOf(outcome: InspectorOutcome): AuditRows | undefined {
     : undefined;
 }
 
+/**
+ * Only rows an API key wrote, which covers the sweep's own calls. Luca's background
+ * jobs write rows too, as `system`, and those say nothing about a tool.
+ */
 function readNewestAuditRow(call: Caller): Promise<InspectorOutcome> {
   return call({
     method: "tools/call",
     name: "luca_coach_audit_log",
-    args: { query: { limit: 1 }, maxPages: 1 },
+    args: { query: { limit: 1, actorType: "api_key" }, maxPages: 1 },
   });
 }
 
@@ -755,13 +761,7 @@ export async function runSweep(options: RunOptions): Promise<number> {
     return 0;
   }
 
-  const call = makeCaller(
-    sweepConnection({
-      serverUrl: options.serverUrl,
-      stdio: options.stdio,
-      apiKey: process.env.LUCA_SWEEP_API_KEY,
-    })
-  );
+  const call = makeCaller(options.connection);
 
   const fixtures: FoundFixtures = {};
   const results: CheckResult[] = [];

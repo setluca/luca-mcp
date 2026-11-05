@@ -44,6 +44,13 @@ git diff --quiet -- tool-surface.json || surface_changed=true
   echo "$report"
 } > "$body"
 
+# GitHub refuses a body over 65,536 characters.
+if [ "$(wc -c < "$body")" -gt 60000 ]; then
+  head -c 60000 "$body" > "$body.cut"
+  printf '\n\nThis report was cut short. Run "bun run contracts:report --base main" for all of it.\n' >> "$body.cut"
+  mv "$body.cut" "$body"
+fi
+
 commit="$(jq -r .commit contracts/source.json)"
 short="${commit:0:10}"
 branch="contracts/luca-$short"

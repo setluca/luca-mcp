@@ -62,7 +62,7 @@ const program = Effect.fn("check-live-surface")(function* () {
         })
     ),
     Effect.tapError((error) =>
-      Console.log(`Live check missed, trying again: ${error.message}`)
+      Console.log(`Live check missed: ${error.message}`)
     ),
     Effect.retry({ schedule: Schedule.spaced(RETRY_EVERY), times: RETRIES }),
     Effect.catchTag("SurfaceDrifted", ({ message, lines }) =>

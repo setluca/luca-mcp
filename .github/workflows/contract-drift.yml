@@ -55,16 +55,17 @@ jobs:
       # Compares with the latest release rather than main, because main is allowed
       # to be ahead of what is deployed.
       - name: Compare the live tool list with the latest release
+        id: compare
         env:
           LUCA_MCP_LIVE_KEY: ${{ secrets.LUCA_MCP_LIVE_KEY }}
         run: .github/scripts/check-live-surface.sh "$(git tag --list 'mcp-v*' --sort=-version:refname | head -n 1)"
       - name: Report the result
-        if: always()
+        if: always() && steps.compare.outputs.skipped != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           STATUS: ${{ job.status }}
         run: >-
           .github/scripts/drift-issue.sh
-          "The hosted MCP server no longer matches its release"
+          "The live MCP check is failing"
           "$STATUS"
-          "The run log names each tool, hint, or description that differs. Something other than a tagged release changed the deployed Worker, so redeploy the release or tag a new one."
+          "The run log says which. If it names tools, hints, or descriptions that differ, something other than a tagged release changed the deployed Worker, so redeploy the release or tag a new one. If it could not read the server, check that LUCA_MCP_LIVE_KEY has not expired."
