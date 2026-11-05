@@ -70,6 +70,13 @@ The tag first sweeps the build in setluca/luca and publishes only if that passes
 After the Worker deploys, the workflow compares the live tool list with
 `tool-surface.json` before it publishes to the registry.
 
+The live Claude listing follows the deploy, with no resubmission. If a tool was
+added, removed, or renamed, also edit the tool names on the listing, which a
+reviewer approves
+([Anthropic's guide](https://claude.com/docs/connectors/building/after-publishing)).
+It does not say whether changing a hint or a description needs review, so recheck
+the listing after each release that does.
+
 The release workflow skips npm publication when that version already exists,
 which allows an Actions rerun to finish a partial release. After deploying, it
 checks the public server card version, OAuth metadata, and unauthenticated MCP
