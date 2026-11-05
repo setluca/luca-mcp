@@ -10,8 +10,21 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-05
+
+### Breaking
+
+- `luca_usage_messages` is gone. Luca removed the message pool and its route,
+  so no call that worked is lost. `luca_usage_spend` is what remains for usage.
+- `luca_campaigns_generate` no longer takes `idempotencyKey`. The route no
+  longer has one to dedupe, because it saves nothing.
+
 ### Added
 
+- `luca_broadcasts_resume` resumes a broadcast that billing paused, once the
+  coach has bought a pack or updated the card. It sends the remaining messages
+  to live leads, so it requires `confirm: true`. With `luca_usage_messages`
+  gone, the list stays at 223 tools.
 - `@setluca/mcp/remote` exports `bearerTokenResolver`, which reads a developer
   key as one and any other bearer token as an OAuth access token, the way the
   hosted Worker always has. A self-hosted handler built on it now accepts the
@@ -20,6 +33,43 @@ input schema, or changing what a tool does to a workspace.
 
 ### Fixed
 
+- `luca_campaigns_generate` reads as what it does: `readOnlyHint: true`,
+  `idempotentHint: true`, and the title "Generate a campaign plan". It computes
+  a plan and returns it, but it was marked as a write while its description
+  said nothing is created, the mismatch OpenAI's review flags. Luca now serves
+  the route as a read, with no audit row and no stored idempotency response, so
+  it needs `campaigns:read` and `luca:draft` instead of `campaigns:write` and
+  `luca:queue_ops`.
+- Six hints now match what their routes do, after every tool was compared with
+  its handler:
+  - `destructiveHint: true` on `luca_bookings_guest_links_create`, which
+    replaces the booking's live links; `luca_bookings_types_create`, which can
+    clear the default flag on other types; `luca_bookings_types_attendees_add`,
+    which overwrites an attendee already listed; and
+    `luca_campaigns_comment_simulation_suite_run`, which stamps its verdict onto
+    the draft;
+  - `openWorldHint: true` on `luca_leads_drafting_pause`, because a timed pause
+    resumes by itself and Luca then drafts through OpenRouter;
+  - `openWorldHint: false` on `luca_integrations_crm_connections_webhooks_setup`,
+    which saves settings in SetLuca and registers nothing in the CRM.
+- Descriptions and justifications that said more than the API does:
+  - `luca_campaigns_set_status` no longer offers archiving, which the API refuses
+    for API keys and OAuth tokens;
+  - `luca_book_call` and `luca_bookings_provider_requests_create` no longer say the
+    lead gets Luca's confirmation, which is a draft for the coach to review;
+  - `luca_integrations_crm_connections_health` no longer says it probes the CRM
+    live or detects an outage;
+  - `luca_review_queue_restore` and the reject tools say a booking message cannot
+    be restored, where they named a recovery window that does not exist;
+  - `luca_bookings_lifecycle_resolution` no longer offers a sync retry or claims a
+    `booking.cancelled` webhook;
+  - `luca_broadcasts_retry` says it also resumes a broadcast paused by hand, and
+    `luca_campaigns_publish` that inbound messages can trigger a live campaign;
+  - others name effects they left out, such as a lead stage change, a webhook, or
+    the suggestions and invitations a delete takes with it.
+- `luca_channels_set_ai_dm_auto_send` no longer says turning a channel on also
+  turns on the workspace switch. Luca stopped doing that for API keys and OAuth
+  tokens: the channel sends only while that switch is already on.
 - Tool schemas no longer contain fields that constrain nothing. The MCP
   Inspector's `tools/list --strict` reported 25 of them across 18 tools: free
   form fields such as `customFields` and `qualification`, nine results whose
@@ -27,6 +77,16 @@ input schema, or changing what a tool does to a workspace.
   `luca_broadcasts_create`. Each is now spelled out as any JSON value, one
   branch per type, which accepts exactly what it accepted before, so no call
   that worked is refused.
+
+### Changed
+
+- Contracts are pinned to the Luca production release that serves
+  `luca_campaigns_generate` as a read. `luca_reports_scorecard` gains an optional
+  `period` query, and results across conversations, the review queue, bookings,
+  usage, and revenue gain fields.
+- The ChatGPT package moves to `0.1.5` for the next resubmission. The hints on
+  the coach-webhook tools and on the OpenRouter drafting and media retry tools
+  do not change.
 
 ## [0.6.0] - 2026-10-24
 

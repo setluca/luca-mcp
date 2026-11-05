@@ -77,8 +77,10 @@ in `src/toolsets.ts` and a protocol test pins it.
   redacts sample lead names and draft text. A ChatGPT-style sign-in with the
   account passed end to end on October 22, 2026. OpenAI rejected package
   `0.1.3` that day because tool annotations need explicit values with matching
-  justifications. Package `0.1.4` and `chatgpt-app-submission.json` are the
-  resubmission. See `submission/openai/README.md`.
+  justifications. OpenAI rejected package `0.1.4` on or around November 5, 2026
+  for another annotation mismatch. Package `0.1.5` and
+  `chatgpt-app-submission.json` are the resubmission. See
+  `submission/openai/README.md`.
 - **Claude reviewer connection.** The dedicated
   `claude-reviewer@setluca.com` account owns **Claude Review Workspace**,
   seeded on October 22, 2026 with the same synthetic fixtures as the OpenAI
@@ -91,9 +93,8 @@ in `src/toolsets.ts` and a protocol test pins it.
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.
 - **Portal submissions.** The OpenAI plugin is to be resubmitted as package
-  `0.1.4` once MCP `0.5.2` is deployed. No Claude submission has been filed;
-  it waits on the Luca API lifting its Claude cap (setluca/luca#361) and a
-  real claude.ai test (LUC-411).
+  `0.1.5` once MCP `0.7.0` is deployed. The Claude listing was published on
+  October 24, 2026. See `submission/claude/README.md`.
 
 ## What a human has to do in the Claude portal
 
