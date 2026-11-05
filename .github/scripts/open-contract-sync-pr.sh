@@ -22,8 +22,14 @@ if ! { bun run docs:generate && bun run build && bun run surface:generate; }; th
 fi
 
 body="$(mktemp)"
-routes_changed=false
-report="$(bun scripts/contract-report.ts --exit-code)" || routes_changed=true
+report_exit=0
+report="$(bun scripts/contract-report.ts --exit-code)" || report_exit=$?
+
+case "$report_exit" in
+  0) routes_changed=false ;;
+  2) routes_changed=true ;;
+  *) echo "::error::The contract report failed."; exit "$report_exit" ;;
+esac
 
 surface_changed=false
 git diff --quiet -- tool-surface.json || surface_changed=true

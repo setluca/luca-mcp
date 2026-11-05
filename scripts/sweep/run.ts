@@ -1,12 +1,14 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
 import { parseArgs } from "node:util";
 
 import * as Arr from "effect/Array";
 import * as DateTime from "effect/DateTime";
 import * as Match from "effect/Match";
+import * as Option from "effect/Option";
 import * as Order from "effect/Order";
-import * as P from "effect/Predicate";
+import * as Schema from "effect/Schema";
 
 import { LUCA_OPERATIONS } from "../../src/operations/catalog.ts";
 import { LUCA_PROMPTS } from "../../src/prompts.ts";
@@ -17,7 +19,6 @@ import {
   type JsonValue,
 } from "../../src/serialization.ts";
 import { LUCA_TASK_TOOLS } from "../../src/task-tools.ts";
-import { isEntryPoint } from "../lib/script.ts";
 import {
   CALL_LIMIT_MS,
   INSPECTOR_EXIT,
@@ -26,7 +27,8 @@ import {
   type InspectorOutcome,
   type InspectorRequest,
   runInspector,
-} from "./inspector.ts";
+} from "../lib/inspector.ts";
+import { isEntryPoint } from "../lib/script.ts";
 import {
   type ApiBody,
   type Capture,
@@ -34,6 +36,7 @@ import {
   type Expectation,
   type Fixture,
   type Fixtures,
+  isReadStep,
   SCOPE_REFUSAL,
   SWEEP_PHASES,
   SWEEP_PLAN,
@@ -174,61 +177,53 @@ function judge(outcome: InspectorOutcome, expect: Expectation): Judgement {
  * that developer key, against the hosted server or, with `--stdio`, this
  * checkout's build. Without it, it uses the sign-in the web Inspector stored.
  */
-type SweepSignIn =
-  | { readonly kind: "stored-oauth"; readonly serverUrl: string }
-  | { readonly kind: "key"; readonly connection: InspectorConnection };
-
-export function sweepSignIn(input: {
+export function sweepConnection(input: {
   readonly serverUrl: string;
   readonly stdio: boolean;
   readonly apiKey: string | undefined;
-}): SweepSignIn {
-  if (input.apiKey === undefined || input.apiKey === "") {
-    if (input.stdio) {
+}): InspectorConnection {
+  const apiKey = input.apiKey === "" ? undefined : input.apiKey;
+
+  if (input.stdio) {
+    if (apiKey === undefined) {
       throw new Error("--stdio needs a developer key in LUCA_SWEEP_API_KEY");
     }
 
-    return { kind: "stored-oauth", serverUrl: input.serverUrl };
+    return { kind: "stdio", apiKey };
   }
 
-  return {
-    kind: "key",
-    connection: input.stdio
-      ? { kind: "stdio", env: { LUCA_API_KEY: input.apiKey } }
-      : { kind: "bearer", serverUrl: input.serverUrl, token: input.apiKey },
-  };
+  return apiKey === undefined
+    ? { kind: "oauth", serverUrl: input.serverUrl, auth: "refresh" }
+    : { kind: "bearer", serverUrl: input.serverUrl, token: apiKey };
 }
 
 /**
- * Sends requests one at a time. The first call refreshes the stored sign-in,
+ * Sends requests one at a time. On a stored sign-in the first call refreshes it,
  * the rest reuse it, and a call refused for auth retries once after a refresh.
  */
-function makeCaller(signIn: SweepSignIn) {
-  if (signIn.kind !== "stored-oauth") {
+function makeCaller(connection: InspectorConnection) {
+  if (connection.kind !== "oauth") {
     return (request: InspectorRequest): Promise<InspectorOutcome> =>
-      runInspector(signIn.connection, request);
+      runInspector(connection, request);
   }
 
-  const { serverUrl } = signIn;
+  const signedIn = (auth: InspectorAuth): InspectorConnection => ({
+    ...connection,
+    auth,
+  });
+
   let refreshed = false;
 
   return async (request: InspectorRequest): Promise<InspectorOutcome> => {
     const auth: InspectorAuth = refreshed ? "stored" : "refresh";
-
-    const outcome = await runInspector(
-      { kind: "oauth", serverUrl, auth },
-      request
-    );
+    const outcome = await runInspector(signedIn(auth), request);
 
     if (!refreshed && outcome.exitCode !== INSPECTOR_EXIT.authRequired) {
       refreshed = true;
     }
 
     if (auth === "stored" && outcome.exitCode === INSPECTOR_EXIT.authRequired) {
-      return runInspector(
-        { kind: "oauth", serverUrl, auth: "refresh" },
-        request
-      );
+      return runInspector(signedIn("refresh"), request);
     }
 
     return outcome;
@@ -263,9 +258,8 @@ function effectiveExpectation(
   scopeCheck: boolean
 ): Expectation {
   const expect = step.expect ?? { kind: "ok" };
-  const isWrite = step.phase !== "discover" && step.phase !== "read";
 
-  if (!scopeCheck || !isWrite || expect.kind === "pending") {
+  if (!scopeCheck || isReadStep(step) || expect.kind === "pending") {
     return expect;
   }
 
@@ -686,46 +680,35 @@ function writeReport(
 /** Luca writes an audit row just after the response, so give it time to land. */
 const AUDIT_SETTLE_MS = 3000;
 
-function isReadStep(step: SweepStep): boolean {
-  return step.phase === "discover" || step.phase === "read";
+const AuditLogPage = Schema.Struct({
+  items: Schema.Array(
+    Schema.Struct({ id: Schema.String, action: Schema.String })
+  ),
+});
+
+type AuditRows = (typeof AuditLogPage.Type)["items"];
+
+const decodeAuditLogPage = Schema.decodeUnknownOption(AuditLogPage);
+
+/** The rows an audit log read returned, or nothing when it can't be read. */
+export function auditRowsOf(outcome: InspectorOutcome): AuditRows | undefined {
+  return outcome.exitCode === INSPECTOR_EXIT.ok
+    ? Option.getOrUndefined(decodeAuditLogPage(apiBody(outcome)))?.items
+    : undefined;
 }
 
-/** The newest audit row, or `none` for an empty log. Absent when it can't be read. */
-export type AuditHead =
-  | { readonly id: string; readonly action: string }
-  | "none";
-
-export function auditHeadOf(body: ApiBody): AuditHead | undefined {
-  const items = field(body, "items");
-
-  if (!isJsonArray(items)) {
-    return undefined;
-  }
-
-  const [first] = items;
-  const id = field(first, "id");
-
-  return P.isString(id)
-    ? { id, action: String(field(first, "action")) }
-    : "none";
-}
-
-async function readAuditHead(call: Caller): Promise<AuditHead | undefined> {
-  const outcome = await call({
+function readNewestAuditRow(call: Caller): Promise<InspectorOutcome> {
+  return call({
     method: "tools/call",
     name: "luca_coach_audit_log",
     args: { query: { limit: 1 }, maxPages: 1 },
   });
-
-  return outcome.exitCode === INSPECTOR_EXIT.ok
-    ? auditHeadOf(apiBody(outcome))
-    : undefined;
 }
 
 /** Whether the read-only phases left the audit log as they found it. */
-export function judgeAuditHead(
-  before: AuditHead | undefined,
-  after: AuditHead | undefined
+export function judgeAuditLog(
+  before: AuditRows | undefined,
+  after: AuditRows | undefined
 ): CheckResult {
   const base = {
     phase: "read",
@@ -742,22 +725,17 @@ export function judgeAuditHead(
     };
   }
 
-  if (JSON.stringify(before) === JSON.stringify(after)) {
-    return {
-      ...base,
-      verdict: "pass",
-      note: "the newest audit row did not change",
-    };
-  }
-
-  return {
-    ...base,
-    verdict: "fail",
-    note:
-      after === "none"
-        ? "the audit log emptied during the read-only phases"
-        : `a tool marked read-only wrote an audit row: ${after.action}`,
-  };
+  return before[0]?.id === after[0]?.id
+    ? {
+        ...base,
+        verdict: "pass",
+        note: "the newest audit row did not change",
+      }
+    : {
+        ...base,
+        verdict: "fail",
+        note: `a tool marked read-only changed the audit log: ${after[0]?.action ?? "it is now empty"}`,
+      };
 }
 
 export async function runSweep(options: RunOptions): Promise<number> {
@@ -778,7 +756,7 @@ export async function runSweep(options: RunOptions): Promise<number> {
   }
 
   const call = makeCaller(
-    sweepSignIn({
+    sweepConnection({
       serverUrl: options.serverUrl,
       stdio: options.stdio,
       apiKey: process.env.LUCA_SWEEP_API_KEY,
@@ -799,17 +777,18 @@ export async function runSweep(options: RunOptions): Promise<number> {
 
   const reads = steps.filter(isReadStep);
   const writes = steps.filter((step) => !isReadStep(step));
-  const auditBefore = await readAuditHead(call);
+  const auditBefore = auditRowsOf(await readNewestAuditRow(call));
 
   await runSteps(reads);
 
   // Every tool in these phases is marked read-only, and sweep-plan.test.ts holds
   // the plan to that, so a new row here means one of them is not.
-  await new Promise((resolve) => {
-    setTimeout(resolve, AUDIT_SETTLE_MS);
-  });
+  await sleep(AUDIT_SETTLE_MS);
 
-  const auditCheck = judgeAuditHead(auditBefore, await readAuditHead(call));
+  const auditCheck = judgeAuditLog(
+    auditBefore,
+    auditRowsOf(await readNewestAuditRow(call))
+  );
 
   results.push(auditCheck);
   printResult(auditCheck);

@@ -81,6 +81,11 @@ const decodeApiKeyPolicies = Schema.decodeUnknownEffect(
   )
 );
 
+/** Parses the allowlist's JSON text, from a file or from an older commit. */
+export function parseApiKeyPolicies(text: string) {
+  return decodeApiKeyPolicies(text);
+}
+
 /**
  * Loads the serialized API-key authorization allowlist emitted by
  * Luca's `apps/api/scripts/api-key-policies.ts`. Local-only: no deployed endpoint

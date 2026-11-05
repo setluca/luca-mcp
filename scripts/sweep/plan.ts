@@ -174,6 +174,11 @@ export type SurfaceStep =
     }
   | { readonly method: "prompts/get"; readonly name: string };
 
+/** Steps in these phases call only read-only tools, which a test holds them to. */
+export function isReadStep(step: SweepStep): boolean {
+  return step.phase === "discover" || step.phase === "read";
+}
+
 // ---------------------------------------------------------------------------
 // Reading values out of API bodies.
 

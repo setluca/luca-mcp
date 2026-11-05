@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 jobs:
-  check:
+  contracts:
     name: Luca contracts match production
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -23,17 +23,16 @@ jobs:
           bun-version-file: .bun-version
       - run: bun install --frozen-lockfile
       - name: Compare the pin and OpenAPI with Luca production
-        id: compare
         run: bun run contracts:deployed:check
       - name: Report the result
-        if: always() && steps.compare.outcome != 'skipped'
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          OUTCOME: ${{ steps.compare.outcome }}
+          STATUS: ${{ job.status }}
         run: >-
           .github/scripts/drift-issue.sh
           "MCP contracts no longer match Luca production"
-          "$OUTCOME"
+          "$STATUS"
           "Luca's release should have opened a sync pull request here. Review and merge it. To sync by hand, see docs/maintenance.md."
 
   live:
@@ -56,25 +55,16 @@ jobs:
       # Compares with the latest release rather than main, because main is allowed
       # to be ahead of what is deployed.
       - name: Compare the live tool list with the latest release
-        id: compare
         env:
           LUCA_MCP_LIVE_KEY: ${{ secrets.LUCA_MCP_LIVE_KEY }}
-        run: |
-          set -euo pipefail
-          tag="$(git tag --list 'mcp-v*' --sort=-version:refname | head -n 1)"
-          expected="$RUNNER_TEMP/tool-surface.json"
-          if ! git show "$tag:tool-surface.json" > "$expected" 2>/dev/null; then
-            echo "::notice::$tag has no tool-surface.json yet, so there is nothing to compare."
-            exit 0
-          fi
-          bun run surface:live --expected "$expected" --allow-missing-key
+        run: .github/scripts/check-live-surface.sh "$(git tag --list 'mcp-v*' --sort=-version:refname | head -n 1)"
       - name: Report the result
-        if: always() && steps.compare.outcome != 'skipped'
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          OUTCOME: ${{ steps.compare.outcome }}
+          STATUS: ${{ job.status }}
         run: >-
           .github/scripts/drift-issue.sh
           "The hosted MCP server no longer matches its release"
-          "$OUTCOME"
+          "$STATUS"
           "The run log names each tool, hint, or description that differs. Something other than a tagged release changed the deployed Worker, so redeploy the release or tag a new one."

@@ -6,8 +6,7 @@ lists tools, resources, and prompts, and lets you run calls interactively.
 ## UI mode
 
 ```bash
-export LUCA_API_KEY="luca_..."
-bun run inspect
+bun run inspect -e LUCA_API_KEY="luca_..."
 ```
 
 The script builds `dist/index.js` and starts Inspector with:
@@ -19,8 +18,7 @@ mcp-inspector --transport stdio bun dist/index.js
 ## CLI mode
 
 ```bash
-export LUCA_API_KEY="luca_..."
-bun run inspect:cli
+bun run inspect:cli -e LUCA_API_KEY="luca_..." --method tools/list
 ```
 
 CLI mode is what to use in a terminal-only environment. The target comes
@@ -46,12 +44,11 @@ in `LUCA_MCP_LIVE_KEY`. See [maintenance](./maintenance.md#drift-checks).
 
 ## Workspace and base URL
 
-Inspector inherits the same environment variables as the server:
+The server gets only the environment `-e` names, not the shell's, so an exported
+variable does not reach it:
 
 ```bash
-export LUCA_API_BASE_URL="https://api.setluca.com"
-export LUCA_WORKSPACE_SLUG="my-workspace"
-bun run inspect
+bun run inspect -e LUCA_API_BASE_URL="https://api.setluca.com" -e LUCA_WORKSPACE_SLUG="my-workspace"
 ```
 
 ## Safe first checks

@@ -1,69 +1,82 @@
 import { describe, expect, it } from "vitest";
 
+import type { InspectorOutcome } from "../scripts/lib/inspector.ts";
 import {
-  auditHeadOf,
-  judgeAuditHead,
-  sweepSignIn,
+  auditRowsOf,
+  judgeAuditLog,
+  sweepConnection,
 } from "../scripts/sweep/run.ts";
+import type { JsonValue } from "../src/serialization.ts";
 
 const row = { id: "row-1", action: "campaign.generate" };
 
+const answered = (result: JsonValue): InspectorOutcome => ({
+  exitCode: 0,
+  durationMs: 1,
+  output: { result: { structuredContent: { result } } },
+  error: undefined,
+  text: "",
+});
+
 describe("the sweep's read-only audit check", () => {
-  it("reads the newest row, an empty log, and an answer it does not know", () => {
-    expect(auditHeadOf({ items: [row] })).toEqual(row);
-    expect(auditHeadOf({ items: [] })).toBe("none");
-    expect(auditHeadOf({ error: "nope" })).toBeUndefined();
-    expect(auditHeadOf(undefined)).toBeUndefined();
+  it("reads the rows, an empty log, and an answer it does not understand", () => {
+    expect(auditRowsOf(answered({ items: [row] }))).toEqual([row]);
+    expect(auditRowsOf(answered({ items: [] }))).toEqual([]);
+    expect(auditRowsOf(answered({ error: "nope" }))).toBeUndefined();
+    expect(
+      auditRowsOf({ ...answered({ items: [row] }), exitCode: 5 })
+    ).toBeUndefined();
   });
 
   it("passes when the newest row did not change", () => {
-    expect(judgeAuditHead(row, row).verdict).toBe("pass");
-    expect(judgeAuditHead("none", "none").verdict).toBe("pass");
+    expect(judgeAuditLog([row], [row]).verdict).toBe("pass");
+    expect(judgeAuditLog([], []).verdict).toBe("pass");
   });
 
   it("fails and names the action when a read-only tool wrote a row", () => {
     // What this tool did before it was fixed: a read that wrote an audit row.
-    const result = judgeAuditHead("none", row);
+    const result = judgeAuditLog([], [row]);
 
     expect(result.verdict).toBe("fail");
     expect(result.note).toContain("campaign.generate");
   });
 
   it("fails rather than passes when it could not read the log", () => {
-    expect(judgeAuditHead(undefined, row).verdict).toBe("fail");
-    expect(judgeAuditHead(row, undefined).verdict).toBe("fail");
+    expect(judgeAuditLog(undefined, [row]).verdict).toBe("fail");
+    expect(judgeAuditLog([row], undefined).verdict).toBe("fail");
   });
 });
 
-describe("how a sweep signs in", () => {
+describe("how a sweep connects", () => {
   const serverUrl = "https://mcp.setluca.com/mcp";
 
   it("uses the stored sign-in without a key", () => {
-    expect(sweepSignIn({ serverUrl, stdio: false, apiKey: undefined })).toEqual(
-      { kind: "stored-oauth", serverUrl }
-    );
-    expect(sweepSignIn({ serverUrl, stdio: false, apiKey: "" }).kind).toBe(
-      "stored-oauth"
+    const stored = { kind: "oauth", serverUrl, auth: "refresh" };
+
+    expect(
+      sweepConnection({ serverUrl, stdio: false, apiKey: undefined })
+    ).toEqual(stored);
+    expect(sweepConnection({ serverUrl, stdio: false, apiKey: "" })).toEqual(
+      stored
     );
   });
 
   it("sends a key to the hosted server", () => {
-    expect(sweepSignIn({ serverUrl, stdio: false, apiKey: "key" })).toEqual({
-      kind: "key",
-      connection: { kind: "bearer", serverUrl, token: "key" },
-    });
+    expect(sweepConnection({ serverUrl, stdio: false, apiKey: "key" })).toEqual(
+      { kind: "bearer", serverUrl, token: "key" }
+    );
   });
 
   it("gives a key to the local build", () => {
-    expect(sweepSignIn({ serverUrl, stdio: true, apiKey: "key" })).toEqual({
-      kind: "key",
-      connection: { kind: "stdio", env: { LUCA_API_KEY: "key" } },
+    expect(sweepConnection({ serverUrl, stdio: true, apiKey: "key" })).toEqual({
+      kind: "stdio",
+      apiKey: "key",
     });
   });
 
   it("refuses a local sweep with no key, since nothing could sign in", () => {
     expect(() =>
-      sweepSignIn({ serverUrl, stdio: true, apiKey: undefined })
+      sweepConnection({ serverUrl, stdio: true, apiKey: undefined })
     ).toThrow("LUCA_SWEEP_API_KEY");
   });
 });

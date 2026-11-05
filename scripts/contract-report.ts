@@ -1,20 +1,3 @@
-import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { parseArgs } from "node:util";
-
-import * as P from "effect/Predicate";
-import * as Schema from "effect/Schema";
-
-import { toolNameFor } from "../src/operations/registry.ts";
-import {
-  isJsonArray,
-  isJsonObject,
-  type JsonObject,
-  JsonValue,
-} from "../src/serialization.ts";
-import { isEntryPoint } from "./lib/script.ts";
-
 /**
  * What a contract sync changed for the routes MCP tools call, tool by tool.
  *
@@ -24,15 +7,45 @@ import { isEntryPoint } from "./lib/script.ts";
  * it. So any change to a route's text is listed here for a person to compare
  * with the tool's own hints and text.
  */
-const CONTRACTS = resolve(import.meta.dirname, "../contracts");
+import { execFileSync } from "node:child_process";
+import { parseArgs } from "node:util";
 
-const decodeJson = Schema.decodeUnknownSync(Schema.fromJsonString(JsonValue));
+import * as Console from "effect/Console";
+import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
+
+import { toolNameFor } from "../src/operations/registry.ts";
+import {
+  type JsonValue,
+  type JsonValueInput,
+  parseJson,
+  toJsonPayload,
+} from "../src/serialization.ts";
+import {
+  findOpenApiOperation,
+  type OpenApiOperation,
+} from "./lib/openapi-operation.ts";
+import { exitWith, isEntryPoint, runScript } from "./lib/script.ts";
+import {
+  type ApiKeyPolicyEntry,
+  loadApiKeyPolicies,
+  loadOpenApi,
+  parseApiKeyPolicies,
+} from "./load-openapi.ts";
+
+/** Luca appends this to a route's description, and scope changes are listed on their own. */
+const SCOPES_FOOTER = "\n\n**API key scopes:**";
+
+type Contract = {
+  readonly spec: JsonValue;
+  readonly policies: readonly ApiKeyPolicyEntry[];
+};
 
 type Route = { readonly id: string; readonly route: string };
 
 export type ContractChanges = {
-  readonly added: readonly Route[];
   readonly removed: readonly Route[];
+  readonly added: readonly Route[];
   readonly access: readonly Route[];
   readonly text: readonly (Route & {
     readonly before: string;
@@ -42,101 +55,28 @@ export type ContractChanges = {
   readonly output: readonly Route[];
 };
 
-type Contract = { readonly openApi: JsonValue; readonly policies: JsonValue };
-
-function child(value: JsonValue | undefined, key: string) {
-  return isJsonObject(value) ? value[key] : undefined;
+function routeOf(policy: ApiKeyPolicyEntry): Route {
+  return { id: policy.id, route: `${policy.method} ${policy.path}` };
 }
 
-/** A schema with every `$ref` swapped for what it points at. */
-function resolveRefs(
-  document: JsonValue,
-  value: JsonValue | undefined,
-  seen: ReadonlySet<string> = new Set()
-): JsonValue {
-  if (isJsonArray(value)) {
-    return value.map((item) => resolveRefs(document, item, seen));
-  }
-
-  if (!isJsonObject(value)) {
-    return value ?? null;
-  }
-
-  const ref = value.$ref;
-
-  if (P.isString(ref)) {
-    const name = ref.split("/").at(-1) ?? ref;
-
-    return seen.has(name)
-      ? { circular: name }
-      : resolveRefs(
-          document,
-          child(child(child(document, "components"), "schemas"), name),
-          new Set([...seen, name])
-        );
-  }
-
-  return Object.fromEntries(
-    Object.keys(value).map((key) => [
-      key,
-      resolveRefs(document, value[key], seen),
-    ])
-  );
+function byId(policies: readonly ApiKeyPolicyEntry[]) {
+  return new Map(policies.map((policy) => [policy.id, policy]));
 }
 
-function policyEntries(policies: JsonValue): readonly JsonObject[] {
-  return isJsonArray(policies) ? policies.filter(isJsonObject) : [];
+function operationOf(contract: Contract, policy: ApiKeyPolicyEntry) {
+  return Option.getOrUndefined(findOpenApiOperation(contract.spec, policy));
 }
 
-function routeOf(policy: JsonObject): Route {
-  return {
-    id: String(policy.id),
-    route: `${String(policy.method)} ${String(policy.path)}`,
-  };
+function textOf(operation: OpenApiOperation | undefined): string {
+  return operation?.description?.split(SCOPES_FOOTER)[0] ?? "";
 }
 
-function operationOf(contract: Contract, policy: JsonObject) {
-  return child(
-    child(child(contract.openApi, "paths"), String(policy.path)),
-    String(policy.method).toLowerCase()
-  );
+function accessOf(policy: ApiKeyPolicyEntry): string {
+  return JSON.stringify([policy.scopes, Boolean(policy.requireIdempotency)]);
 }
 
-function same(left: JsonValue, right: JsonValue): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
-}
-
-function inputOf(contract: Contract, policy: JsonObject): JsonValue {
-  const operation = operationOf(contract, policy);
-
-  return resolveRefs(contract.openApi, [
-    child(operation, "parameters") ?? null,
-    child(operation, "requestBody") ?? null,
-  ]);
-}
-
-function outputOf(contract: Contract, policy: JsonObject): JsonValue {
-  return resolveRefs(
-    contract.openApi,
-    child(operationOf(contract, policy), "responses")
-  );
-}
-
-function textOf(contract: Contract, policy: JsonObject): string {
-  const description = child(operationOf(contract, policy), "description");
-
-  return P.isString(description)
-    ? (description.split("\n\n**API key scopes:**")[0] ?? description)
-    : "";
-}
-
-function accessOf(policy: JsonObject): string {
-  return JSON.stringify([
-    policy.method,
-    policy.path,
-    policy.scopes,
-    policy.requireIdempotency ?? false,
-  ]);
+function differ(left: JsonValueInput, right: JsonValueInput): boolean {
+  return toJsonPayload(left) !== toJsonPayload(right);
 }
 
 /** Only routes in the API-key allowlist have a tool to go stale. */
@@ -144,50 +84,45 @@ export function contractChanges(
   before: Contract,
   after: Contract
 ): ContractChanges {
-  const wasById = new Map(
-    policyEntries(before.policies).map((policy) => [String(policy.id), policy])
-  );
+  const was = byId(before.policies);
+  const now = byId(after.policies);
 
-  const nowById = new Map(
-    policyEntries(after.policies).map((policy) => [String(policy.id), policy])
-  );
+  const kept = after.policies.flatMap((policy) => {
+    const previous = was.get(policy.id);
 
-  const kept = [...nowById.values()].flatMap((policy) => {
-    const was = wasById.get(String(policy.id));
-
-    return was === undefined ? [] : [{ was, now: policy }];
+    return previous === undefined
+      ? []
+      : [
+          {
+            route: routeOf(policy),
+            access: [accessOf(previous), accessOf(policy)] as const,
+            old: operationOf(before, previous),
+            current: operationOf(after, policy),
+          },
+        ];
   });
 
-  const keptWhere = (
-    differs: (was: JsonObject, now: JsonObject) => boolean
-  ): readonly Route[] =>
-    kept.flatMap(({ was, now }) => (differs(was, now) ? [routeOf(now)] : []));
-
-  const missingFrom = (
-    from: ReadonlyMap<string, JsonObject>,
-    other: ReadonlyMap<string, JsonObject>
-  ): readonly Route[] =>
-    [...from.values()].flatMap((policy) =>
-      other.has(String(policy.id)) ? [] : [routeOf(policy)]
-    );
-
   return {
-    added: missingFrom(nowById, wasById),
-    removed: missingFrom(wasById, nowById),
-    access: keptWhere((was, now) => accessOf(was) !== accessOf(now)),
-    text: kept.flatMap(({ was, now }) => {
-      const textBefore = textOf(before, was);
-      const textAfter = textOf(after, now);
-
-      return textBefore === textAfter
-        ? []
-        : [{ ...routeOf(now), before: textBefore, after: textAfter }];
-    }),
-    input: keptWhere(
-      (was, now) => !same(inputOf(before, was), inputOf(after, now))
+    removed: before.policies.filter(({ id }) => !now.has(id)).map(routeOf),
+    added: after.policies.filter(({ id }) => !was.has(id)).map(routeOf),
+    access: kept.flatMap(({ route, access: [left, right] }) =>
+      left === right ? [] : [route]
     ),
-    output: keptWhere(
-      (was, now) => !same(outputOf(before, was), outputOf(after, now))
+    text: kept.flatMap(({ route, old, current }) =>
+      textOf(old) === textOf(current)
+        ? []
+        : [{ ...route, before: textOf(old), after: textOf(current) }]
+    ),
+    input: kept.flatMap(({ route, old, current }) =>
+      differ(
+        [old?.parameters, old?.requestBody],
+        [current?.parameters, current?.requestBody]
+      )
+        ? [route]
+        : []
+    ),
+    output: kept.flatMap(({ route, old, current }) =>
+      differ(old?.responses, current?.responses) ? [route] : []
     ),
   };
 }
@@ -251,41 +186,46 @@ export function changesReport(changes: ContractChanges): string {
   ].join("\n");
 }
 
-function contractFrom(read: (name: string) => string): Contract {
-  return {
-    openApi: decodeJson(read("openapi.json")),
-    policies: decodeJson(read("api-key-policies.json")),
-  };
+function contractFileAt(ref: string, name: string): string {
+  // fallow-ignore-next-line security-sink -- git is fixed and the ref is an argument, not shell text
+  return execFileSync("git", ["show", `${ref}:contracts/${name}`], {
+    encoding: "utf-8",
+    maxBuffer: 256 * 1024 * 1024,
+  });
 }
 
-function main(argv: readonly string[]): number {
+const contractAt = Effect.fn("contractAt")(function* (ref: string) {
+  return {
+    spec: yield* parseJson(contractFileAt(ref, "openapi.json")),
+    policies: yield* parseApiKeyPolicies(
+      contractFileAt(ref, "api-key-policies.json")
+    ),
+  };
+});
+
+const program = Effect.fn("contract-report")(function* () {
   const { values } = parseArgs({
-    args: [...argv],
     options: {
       base: { type: "string", default: "HEAD" },
       "exit-code": { type: "boolean", default: false },
     },
   });
 
-  const before = contractFrom((name) =>
-    // fallow-ignore-next-line security-sink -- git is fixed and the ref is an argument, not shell text
-    execFileSync("git", ["show", `${values.base}:contracts/${name}`], {
-      encoding: "utf-8",
-      maxBuffer: 256 * 1024 * 1024,
-    })
-  );
+  const { spec } = yield* loadOpenApi();
+  const { policies } = yield* loadApiKeyPolicies();
 
-  const after = contractFrom((name) =>
-    readFileSync(resolve(CONTRACTS, name), "utf-8")
-  );
+  const changes = contractChanges(yield* contractAt(values.base), {
+    spec,
+    policies,
+  });
 
-  const changes = contractChanges(before, after);
+  yield* Console.log(changesReport(changes));
 
-  console.log(changesReport(changes));
-
-  return values["exit-code"] && hasChanges(changes) ? 2 : 0;
-}
+  if (values["exit-code"] && hasChanges(changes)) {
+    return yield* exitWith([], 2);
+  }
+});
 
 if (isEntryPoint(import.meta.filename)) {
-  process.exit(main(process.argv.slice(2)));
+  runScript(program());
 }

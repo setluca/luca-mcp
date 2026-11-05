@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
-import { resolve } from "node:path";
+import { join } from "node:path";
 import { performance } from "node:perf_hooks";
+import { setTimeout as sleep } from "node:timers/promises";
 
 import * as Arr from "effect/Array";
 import * as Match from "effect/Match";
@@ -43,7 +44,8 @@ export type InspectorAuth = "refresh" | "stored";
  * Which server a call reaches. `oauth` uses the sign-in the web Inspector
  * stored. `bearer` sends a developer key to the hosted server, for CI, where a
  * refresh token that rotates on every use cannot be shared. `stdio` starts this
- * checkout's build, so a release can be checked before it ships.
+ * checkout's build, so a release can be checked before it ships. Listing its tools
+ * needs no key.
  */
 export type InspectorConnection =
   | {
@@ -58,7 +60,7 @@ export type InspectorConnection =
     }
   | {
       readonly kind: "stdio";
-      readonly env: Readonly<Record<string, string>>;
+      readonly apiKey: string | undefined;
     };
 
 /** The MCP revisions the server has to answer the same way in. */
@@ -116,12 +118,12 @@ const RATE_LIMIT_ATTEMPTS = 5;
 /** The wait when a 429 names none: the whole of the server's window. */
 const RATE_LIMIT_WAIT_MS = 60_000;
 
-const INSPECTOR_BIN = new URL(
-  "../../node_modules/.bin/mcp-inspector",
-  import.meta.url
-).pathname;
+const INSPECTOR_BIN = join(
+  import.meta.dirname,
+  "../../node_modules/.bin/mcp-inspector"
+);
 
-const BUILT_SERVER = resolve(import.meta.dirname, "../../dist/index.js");
+const BUILT_SERVER = join(import.meta.dirname, "../../dist/index.js");
 
 /** No call the sweep makes should take longer; a slower one is a failure too. */
 export const CALL_LIMIT_MS = 30_000;
@@ -176,13 +178,18 @@ function connectionArgs(connection: InspectorConnection): readonly string[] {
         "--header",
         `Authorization: Bearer ${token}`,
       ],
-      stdio: () => ["bun", BUILT_SERVER],
+      // The CLI gives a stdio server only what `-e` names, not its own environment.
+      stdio: ({ apiKey }) => [
+        "bun",
+        BUILT_SERVER,
+        ...(apiKey === undefined ? [] : ["-e", `LUCA_API_KEY=${apiKey}`]),
+      ],
     })
   );
 }
 
 /** The CLI arguments for one request. The target has to come right after --cli. */
-function inspectorArgs(
+export function inspectorArgs(
   connection: InspectorConnection,
   request: InspectorRequest,
   era: ProtocolEra | undefined
@@ -238,11 +245,7 @@ export async function runInspector(
     outcome.exitCode === INSPECTOR_EXIT.rateLimited;
     attempt++
   ) {
-    const wait = outcome.error?.retryAfterMs ?? RATE_LIMIT_WAIT_MS;
-
-    await new Promise((resolve) => {
-      setTimeout(resolve, wait);
-    });
+    await sleep(outcome.error?.retryAfterMs ?? RATE_LIMIT_WAIT_MS);
 
     outcome = await runOnce(connection, request, era);
   }
@@ -264,13 +267,7 @@ function runOnce(
     const child = spawn(
       INSPECTOR_BIN,
       [...inspectorArgs(connection, request, era)],
-      {
-        stdio: ["ignore", "pipe", "pipe"],
-        env: {
-          ...process.env,
-          ...(connection.kind === "stdio" ? connection.env : undefined),
-        },
-      }
+      { stdio: ["ignore", "pipe", "pipe"] }
     );
 
     let stdout = "";

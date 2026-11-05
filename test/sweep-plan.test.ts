@@ -5,6 +5,7 @@ import { describe, expect, it, onTestFinished } from "vitest";
 
 import {
   type Fixture,
+  isReadStep,
   SWEEP_PHASES,
   SWEEP_PLAN,
   SWEEP_SURFACES,
@@ -71,9 +72,7 @@ describe("tool sweep plan", () => {
 
     expect(
       SWEEP_PLAN.filter(
-        (step) =>
-          (step.phase === "discover" || step.phase === "read") &&
-          !readOnly.has(step.tool)
+        (step) => isReadStep(step) && !readOnly.has(step.tool)
       ).map((step) => step.tool)
     ).toEqual([]);
   });

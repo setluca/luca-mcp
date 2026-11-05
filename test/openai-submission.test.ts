@@ -132,6 +132,15 @@ async function listedTools() {
 
 type SubmissionTool = typeof Tool.Type;
 
+type ToolText = "description" | keyof SubmissionTool["justifications"];
+
+const ALL_TEXT: readonly ToolText[] = [
+  "description",
+  "read_only_justification",
+  "open_world_justification",
+  "destructive_justification",
+];
+
 /**
  * Wording that contradicts a tool's hints, which is what OpenAI's review
  * rejects. Each phrase is one we have written by mistake or could copy from a
@@ -139,62 +148,60 @@ type SubmissionTool = typeof Tool.Type;
  */
 const CONTRADICTIONS: readonly {
   readonly rule: string;
-  readonly applies: (hints: SubmissionTool["annotations"]) => boolean;
-  readonly text: (
-    tool: SubmissionTool,
-    description: string
-  ) => readonly string[];
+  readonly hint: keyof SubmissionTool["annotations"];
+  readonly when: boolean;
+  readonly in: readonly ToolText[];
   readonly phrase: RegExp;
 }[] = [
   {
     rule: "a write says it saves nothing",
-    applies: (hints) => !hints.readOnlyHint,
-    text: ({ justifications }, description) => [
-      description,
-      ...R.values(justifications),
-    ],
+    hint: "readOnlyHint",
+    when: false,
+    in: ALL_TEXT,
     phrase:
       /\bnothing is (?:created|saved)\b|\b(?:creates|saves) nothing\b|\bthe only write\b/iu,
   },
   {
     rule: "a write justifies itself as a read",
-    applies: (hints) => !hints.readOnlyHint,
-    text: ({ justifications }) => [justifications.read_only_justification],
+    hint: "readOnlyHint",
+    when: false,
+    in: ["read_only_justification"],
     phrase: /^only reads\b/iu,
   },
   {
     rule: "a read justifies itself as a write",
-    applies: (hints) => hints.readOnlyHint,
-    text: ({ justifications }) => [justifications.read_only_justification],
+    hint: "readOnlyHint",
+    when: true,
+    in: ["read_only_justification"],
     phrase:
       /^(?:creates?|updates?|changes?|deletes?|removes?|writes?|sends?|records?|saves?|overwrites?)\b/iu,
   },
   {
     rule: "a closed-world tool says it reaches outside",
-    applies: (hints) => !hints.openWorldHint,
-    text: ({ justifications }, description) => [
-      description,
-      justifications.read_only_justification,
-      justifications.destructive_justification,
-    ],
+    hint: "openWorldHint",
+    when: false,
+    in: ["description", "read_only_justification", "destructive_justification"],
     phrase: /\bopenrouter\b|\blanguage model\b|\bwebhook subscribers\b/iu,
   },
   {
     rule: "an open-world tool says it stays inside",
-    applies: (hints) => hints.openWorldHint,
-    text: ({ justifications }) => [justifications.open_world_justification],
+    hint: "openWorldHint",
+    when: true,
+    in: ["open_world_justification"],
     phrase: /^stays inside\b/iu,
   },
   {
     rule: "a destructive tool says it loses nothing",
-    applies: (hints) => hints.destructiveHint,
-    text: ({ justifications }) => [justifications.destructive_justification],
+    hint: "destructiveHint",
+    when: true,
+    in: ["destructive_justification"],
     phrase: /\boverwrites and deletes nothing\b/iu,
   },
   {
     rule: "a non-destructive tool says it loses something",
-    applies: (hints) => !hints.destructiveHint,
-    text: ({ justifications }) => [justifications.destructive_justification],
+    hint: "destructiveHint",
+    when: false,
+    in: ["destructive_justification"],
     phrase:
       /^(?:overwrites|deletes|removes|permanently)\b|\bcannot be (?:undone|unsent|recalled)\b/iu,
   },
@@ -209,13 +216,21 @@ describe("OpenAI app submission", () => {
     );
 
     const contradictions = R.toEntries(submission.tools).flatMap(
-      ([name, tool]) =>
-        CONTRADICTIONS.flatMap(({ rule, applies, text, phrase }) =>
-          applies(tool.annotations) &&
-          text(tool, descriptions[name] ?? "").some((line) => phrase.test(line))
-            ? [`${name}: ${rule}`]
+      ([name, tool]) => {
+        const text = {
+          description: descriptions[name] ?? "",
+          ...tool.justifications,
+        };
+
+        return CONTRADICTIONS.flatMap((contradiction) =>
+          tool.annotations[contradiction.hint] === contradiction.when &&
+          contradiction.in.some((field) =>
+            contradiction.phrase.test(text[field])
+          )
+            ? [`${name}: ${contradiction.rule}`]
             : []
-        )
+        );
+      }
     );
 
     expect(contradictions).toEqual([]);
