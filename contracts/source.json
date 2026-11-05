@@ -1,8 +1,8 @@
 {
   "repository": "setluca/luca",
-  "commit": "8cf0900fce5354ebadd98629dbc86de249dc5973",
+  "commit": "c3dcdb2d89e392650359e81649b36f5b181999c4",
   "sha256": {
-    "openapi.json": "5529f51888a1854727b0c103a71dc3ab6a01824caa62d328849607c97712d618",
+    "openapi.json": "3d9ad052e75dcd462b8e3ef204272782f049bc30a5d67dd8f71392710bd4fee6",
     "api-key-policies.json": "cb35c5ee737e0d98703ccee426bff1f42de3390fd42a3585255a24d2fd3a74b5",
     "agent-scope.ts": "8549ead8e67815b5da887e25d006f2eb0d713f77a8f42b0fed28ebbb6d5b86cd",
     "public-route-policy.ts": "455848ee7915d6e76c0bbda6e4dda5c25c813a58217841cf2f247a9e30c57575",

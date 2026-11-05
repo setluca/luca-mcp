@@ -55610,7 +55610,7 @@
           "CRM"
         ],
         "summary": "Probe CRM provider health",
-        "description": "Probes the provider live and updates the connection's stored health. It's how you tell a stale credential from a provider outage.\n\n**API key scopes:** `integrations:write`. You also need an `Idempotency-Key` header.",
+        "description": "Checks the connection's stored credentials and scopes, refreshing an expired token if it has to, and updates its stored health. It sends the provider no other request, so it can't tell you the provider is down.\n\n**API key scopes:** `integrations:write`. You also need an `Idempotency-Key` header.",
         "parameters": [
           {
             "schema": {
@@ -55742,7 +55742,7 @@
           "CRM"
         ],
         "summary": "Configure CRM provider webhook status",
-        "description": "Registers or repairs the webhook on the provider's side, so changes flow back to us instead of waiting for the next sync.\n\n**API key scopes:** `integrations:write`. You also need an `Idempotency-Key` header.",
+        "description": "Saves the webhook target and secret on the connection as pending. Nothing is registered with the provider yet, so its changes still arrive with the next sync.\n\n**API key scopes:** `integrations:write`. You also need an `Idempotency-Key` header.",
         "parameters": [
           {
             "schema": {
