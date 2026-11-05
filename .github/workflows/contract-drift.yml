@@ -1,4 +1,4 @@
-name: Check Luca production contracts
+name: Check for drift
 
 on:
   schedule:
@@ -7,9 +7,11 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   check:
+    name: Luca contracts match production
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -21,4 +23,58 @@ jobs:
           bun-version-file: .bun-version
       - run: bun install --frozen-lockfile
       - name: Compare the pin and OpenAPI with Luca production
+        id: compare
         run: bun run contracts:deployed:check
+      - name: Report the result
+        if: always() && steps.compare.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ steps.compare.outcome }}
+        run: >-
+          .github/scripts/drift-issue.sh
+          "MCP contracts no longer match Luca production"
+          "$OUTCOME"
+          "Luca's release should have opened a sync pull request here. Review and merge it. To sync by hand, see docs/maintenance.md."
+
+  live:
+    name: Hosted server matches its release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: bun install --frozen-lockfile
+      # Compares with the latest release rather than main, because main is allowed
+      # to be ahead of what is deployed.
+      - name: Compare the live tool list with the latest release
+        id: compare
+        env:
+          LUCA_MCP_LIVE_KEY: ${{ secrets.LUCA_MCP_LIVE_KEY }}
+        run: |
+          set -euo pipefail
+          tag="$(git tag --list 'mcp-v*' --sort=-version:refname | head -n 1)"
+          expected="$RUNNER_TEMP/tool-surface.json"
+          if ! git show "$tag:tool-surface.json" > "$expected" 2>/dev/null; then
+            echo "::notice::$tag has no tool-surface.json yet, so there is nothing to compare."
+            exit 0
+          fi
+          bun run surface:live --expected "$expected" --allow-missing-key
+      - name: Report the result
+        if: always() && steps.compare.outcome != 'skipped'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUTCOME: ${{ steps.compare.outcome }}
+        run: >-
+          .github/scripts/drift-issue.sh
+          "The hosted MCP server no longer matches its release"
+          "$OUTCOME"
+          "The run log names each tool, hint, or description that differs. Something other than a tagged release changed the deployed Worker, so redeploy the release or tag a new one."

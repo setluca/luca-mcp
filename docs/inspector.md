@@ -36,6 +36,14 @@ that makes a client refuse or mangle the tool. `verify` runs it after `build`,
 so CI catches a broken schema before release. Warnings print a one-line count
 and don't fail the build; run the command without `> /dev/null` to see them.
 
+## Tool surface
+
+`bun run surface:check` reads the build's `tools/list`, `prompts/list`,
+`resources/list`, `resources/templates/list`, and `initialize` in both protocol eras
+and compares them with `tool-surface.json`. `verify` runs it after `build`.
+`bun run surface:live` does the same against `mcp.setluca.com`, with a developer key
+in `LUCA_MCP_LIVE_KEY`. See [maintenance](./maintenance.md#drift-checks).
+
 ## Workspace and base URL
 
 Inspector inherits the same environment variables as the server:
@@ -112,10 +120,22 @@ What the plan checks beyond "it answered":
 - **Listings.** `tools/list`, `prompts/list`, `resources/list`, and
   `resources/templates/list` have to list exactly what the registry declares.
 
+- **Read-only tools.** The newest audit row is read before and after the discovery
+  and read phases. A new one means a tool marked read-only wrote it.
+
 Other options: `--only luca_leads_get,luca_leads_explain` runs just those tools
 (discovery always runs), `--webhook-url` changes where webhook steps deliver
 (the default is a SetLuca-owned URL), and `--scope-check` runs a session signed
 in with a read-only grant, where every write has to be refused.
+
+Set `LUCA_SWEEP_API_KEY` to sign in with a developer key instead of the web
+Inspector's stored token. `--stdio`, which needs that key, sweeps this checkout's
+build instead of the hosted server, so a release can be checked before it ships.
+
+`.github/workflows/mcp-sweep.yml` in setluca/luca reseeds the workspace and runs the
+sweep on Mondays against the hosted server, and against the build whenever a release
+tag starts it. It runs there because this repository is public and sweep logs hold
+workspace record IDs.
 
 `test/sweep-plan.test.ts` keeps the plan covering every tool the server lists,
 marks exactly the confirm-gated tools as gated, and checks that every record a

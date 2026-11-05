@@ -101,9 +101,13 @@ the test cases allow for either.
 
 ## Resubmit
 
+Run the [handler audit](../../docs/runbooks/tool-audit.md) first. A rejection costs
+about two weeks, and OpenAI's email does not say which tool it flagged.
+
 1. Deploy the Luca release the contract pin names, then the MCP release that
    `chatgpt-app-submission.json` matches, and check
-   `/.well-known/mcp/server-card.json` reports it.
+   `/.well-known/mcp/server-card.json` reports it. The release workflow compares the
+   live tool list with the release; `bun run surface:live` repeats that by hand.
 2. Build the ZIP above and upload it. The portal shows the package version.
 3. Under **MCPs**, run **Scan Tools** (or **Rescan**) and confirm it finds
    every tool with the hints in the JSON. A scan from before the deploy can

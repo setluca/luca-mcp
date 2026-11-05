@@ -8,10 +8,18 @@ import * as Schema from "effect/Schema";
 
 import { JsonValue } from "../../src/serialization.ts";
 
+/** The requests that list what a server exposes. None takes an argument. */
+export type ListingMethod =
+  | "initialize"
+  | "tools/list"
+  | "resources/list"
+  | "resources/templates/list"
+  | "prompts/list";
+
 /**
- * One request the sweep sends through the MCP Inspector CLI. Each runs as its
- * own `mcp-inspector --cli` process, so a verdict is the CLI's exit code and
- * nothing in this script speaks MCP itself.
+ * One request sent through the MCP Inspector CLI. Each runs as its own
+ * `mcp-inspector --cli` process, so a verdict is the CLI's exit code and nothing
+ * in this script speaks MCP itself.
  */
 export type InspectorRequest =
   | {
@@ -21,13 +29,7 @@ export type InspectorRequest =
     }
   | { readonly method: "resources/read"; readonly uri: string }
   | { readonly method: "prompts/get"; readonly name: string }
-  | {
-      readonly method:
-        | "tools/list"
-        | "resources/list"
-        | "resources/templates/list"
-        | "prompts/list";
-    };
+  | { readonly method: ListingMethod };
 
 /**
  * How a call signs in. `refresh` runs the stored refresh token first, which
@@ -36,9 +38,38 @@ export type InspectorRequest =
  */
 export type InspectorAuth = "refresh" | "stored";
 
+/**
+ * Which server a call reaches. `oauth` uses the sign-in the web Inspector
+ * stored. `bearer` sends a developer key to the hosted server, for CI, where a
+ * refresh token that rotates on every use cannot be shared. `stdio` starts this
+ * checkout's build, so a release can be checked before it ships.
+ */
+export type InspectorConnection =
+  | {
+      readonly kind: "oauth";
+      readonly serverUrl: string;
+      readonly auth: InspectorAuth;
+    }
+  | {
+      readonly kind: "bearer";
+      readonly serverUrl: string;
+      readonly token: string;
+    }
+  | {
+      readonly kind: "stdio";
+      readonly env: Readonly<Record<string, string>>;
+    };
+
+/** The MCP revisions the server has to answer the same way in. */
+export type ProtocolEra = "legacy" | "modern";
+
 /** The CLI's one-line error envelope, written to stderr on a non-zero exit. */
 const ErrorEnvelope = Schema.Struct({
-  error: Schema.Struct({ code: Schema.String, message: Schema.String }),
+  error: Schema.Struct({
+    code: Schema.String,
+    message: Schema.String,
+    retryAfterMs: Schema.optional(Schema.Finite),
+  }),
 });
 
 type ErrorEnvelope = typeof ErrorEnvelope.Type;
@@ -71,12 +102,25 @@ export const INSPECTOR_EXIT = {
   authRequired: 3,
   unreachable: 4,
   toolError: 5,
+  rateLimited: 11,
 } as const;
+
+/**
+ * The hosted server allows a token 60 requests a minute, and each call costs 3
+ * or 4 because the CLI connects anew every time. So a long run reaches the limit
+ * as a matter of course, and waiting it out is not a failure.
+ */
+const RATE_LIMIT_ATTEMPTS = 5;
+
+/** The wait when a 429 names none: the whole of the server's window. */
+const RATE_LIMIT_WAIT_MS = 60_000;
 
 const INSPECTOR_BIN = new URL(
   "../../node_modules/.bin/mcp-inspector",
   import.meta.url
 ).pathname;
+
+const BUILT_SERVER = new URL("../../dist/index.js", import.meta.url).pathname;
 
 /** No call the sweep makes should take longer; a slower one is a failure too. */
 export const CALL_LIMIT_MS = 30_000;
@@ -112,19 +156,40 @@ function methodArgs(request: InspectorRequest): readonly string[] {
   );
 }
 
-/** The CLI arguments for one request against the hosted server. */
+/** The CLI arguments that pick the server and how to sign in to it. */
+function connectionArgs(connection: InspectorConnection): readonly string[] {
+  return Match.value(connection).pipe(
+    Match.discriminatorsExhaustive("kind")({
+      oauth: ({ serverUrl, auth }) => [
+        "--server-url",
+        serverUrl,
+        "--transport",
+        "http",
+        auth === "refresh" ? "--use-stored-auth" : "--stored-auth-only",
+      ],
+      bearer: ({ serverUrl, token }) => [
+        "--server-url",
+        serverUrl,
+        "--transport",
+        "http",
+        "--header",
+        `Authorization: Bearer ${token}`,
+      ],
+      stdio: () => ["bun", BUILT_SERVER],
+    })
+  );
+}
+
+/** The CLI arguments for one request. The target has to come right after --cli. */
 function inspectorArgs(
-  serverUrl: string,
+  connection: InspectorConnection,
   request: InspectorRequest,
-  auth: InspectorAuth
+  era: ProtocolEra | undefined
 ): readonly string[] {
   return [
     "--cli",
-    "--server-url",
-    serverUrl,
-    "--transport",
-    "http",
-    auth === "refresh" ? "--use-stored-auth" : "--stored-auth-only",
+    ...connectionArgs(connection),
+    ...(era === undefined ? [] : ["--protocol-era", era]),
     "--format",
     "json",
     "--method",
@@ -155,11 +220,39 @@ function contentText(stdout: string): string {
   });
 }
 
-/** Runs one request and reports how it ended. Never rejects. */
-export function runInspector(
-  serverUrl: string,
+/**
+ * Runs one request and reports how it ended, waiting out a rate limit first.
+ * Never rejects.
+ */
+export async function runInspector(
+  connection: InspectorConnection,
   request: InspectorRequest,
-  auth: InspectorAuth
+  era?: ProtocolEra
+): Promise<InspectorOutcome> {
+  let outcome = await runOnce(connection, request, era);
+
+  for (
+    let attempt = 1;
+    attempt < RATE_LIMIT_ATTEMPTS &&
+    outcome.exitCode === INSPECTOR_EXIT.rateLimited;
+    attempt++
+  ) {
+    const wait = outcome.error?.retryAfterMs ?? RATE_LIMIT_WAIT_MS;
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, wait);
+    });
+
+    outcome = await runOnce(connection, request, era);
+  }
+
+  return outcome;
+}
+
+function runOnce(
+  connection: InspectorConnection,
+  request: InspectorRequest,
+  era: ProtocolEra | undefined
 ): Promise<InspectorOutcome> {
   const started = performance.now();
 
@@ -169,8 +262,14 @@ export function runInspector(
     // fallow-ignore-next-line security-sink -- the command is this repo's own Inspector binary, run without a shell, and its arguments come from the sweep plan and the operator's own command-line flags
     const child = spawn(
       INSPECTOR_BIN,
-      [...inspectorArgs(serverUrl, request, auth)],
-      { stdio: ["ignore", "pipe", "pipe"] }
+      [...inspectorArgs(connection, request, era)],
+      {
+        stdio: ["ignore", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          ...(connection.kind === "stdio" ? connection.env : undefined),
+        },
+      }
     );
 
     let stdout = "";
