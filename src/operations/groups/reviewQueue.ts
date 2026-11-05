@@ -43,7 +43,7 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
     title: "Restore a rejected draft",
     mutatesExisting: true,
     description:
-      "Restore a rejected review-queue item back to pending. Fails if it's a booking message whose recovery window already passed.",
+      "Restore a rejected review-queue item back to pending. A booking message cannot be restored.",
   }),
   op({
     id: "reviewQueue.media.retry",

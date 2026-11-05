@@ -13,7 +13,7 @@ const rescueSilentLeads = taskTool({
   name: "luca_rescue_silent_leads",
   title: "Enroll silent leads into the rescue cadence",
   description:
-    'Enroll one or more silent leads into the multi-day rescue cadence. THIS STARTS OUTBOUND TOUCHES to real leads over the coming days — pass confirm: true to proceed. cadenceTemplate is light | standard | aggressive (default standard). Example: { leadIds: ["..."], cadenceTemplate: "standard", confirm: true }.',
+    'Enroll one or more silent leads into the multi-day rescue cadence. THIS STARTS OUTBOUND TOUCHES to real leads over the coming days. Luca drafts each one, and with auto-send off each waits in the review queue first. Pass confirm: true to proceed. cadenceTemplate is light | standard | aggressive (default standard). Example: { leadIds: ["..."], cadenceTemplate: "standard", confirm: true }.',
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     leadIds: Schema.Array(NonEmptyString)
@@ -46,7 +46,7 @@ const pauseCadence = taskTool({
   name: "luca_pause_cadence",
   title: "Pause a lead's rescue cadence",
   description:
-    'Cancel a lead\'s running rescue cadence so no further touches are sent. Safe to call twice (a no-op once cancelled). Example: call with { leadId, reason: "lead replied elsewhere" }.',
+    'Cancel a lead\'s running rescue cadence so no further touches are sent. Safe to call twice: a cancelled cadence stays cancelled, and only its stored time and reason update. Example: call with { leadId, reason: "lead replied elsewhere" }.',
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     leadId: NonEmptyString.annotate({

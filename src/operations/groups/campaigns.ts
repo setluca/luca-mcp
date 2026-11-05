@@ -21,7 +21,10 @@ export const campaignsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "campaigns.generate",
-    title: "Generate a campaign draft",
+    title: "Generate a campaign plan",
+    // A POST only so the brief fits in a body. It computes a plan and saves
+    // nothing.
+    readOnly: true,
     description:
       "Build a campaign plan from a brief with fixed rules, not an AI model. Nothing is created or published: create the draft from the plan, review it, and publish it yourself.",
   }),
@@ -89,11 +92,13 @@ export const campaignsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "campaigns.commentSimulationSuite.run",
+    // Stamps the suite's verdict onto the draft by overwriting its graph.
+    mutatesExisting: true,
     title: "Run the comment automation suite",
     // Each simulation echoes the lead record, event payload and context it ran on, and the drafts a model wrote from them.
     untrustedContent: true,
     description:
-      "Run the Instagram comment-to-DM simulation suite against a campaign. Any campaign that uses comment automation has to pass it before it can publish, so run this before reaching for publish.",
+      "Run the Instagram comment-to-DM simulation suite against a campaign and stamp its verdict onto the draft. Any campaign that uses comment automation has to pass it before it can publish, so run this before reaching for publish.",
   }),
   op({
     id: "campaigns.publish",
@@ -102,11 +107,11 @@ export const campaignsOperations: readonly LucaOperation[] = [
     mutatesExisting: true,
     confirm: "always",
     description:
-      "Freeze the draft as a new immutable version and point new enrollments at it. Published versions never change, and enrollments against a live campaign reach real leads. Publish is blocked when the target provider cannot do something the campaign needs, so read the provider capabilities first.",
+      "Freeze the draft as a new immutable version and point new enrollments at it. Published versions never change. A live campaign reaches real leads through enrollments and through inbound DMs, comments, or story replies that match its trigger. Publish is blocked when the target provider cannot do something the campaign needs, so read the provider capabilities first.",
   }),
   op({
     id: "campaigns.setStatus",
-    title: "Pause, resume, or archive a campaign",
+    title: "Pause or resume a campaign",
     openWorld: true,
     mutatesExisting: true,
     // Resuming restarts the campaign's automatic sends to real leads. Pausing
@@ -117,7 +122,7 @@ export const campaignsOperations: readonly LucaOperation[] = [
       description: "status is published (resuming sends)",
     },
     description:
-      "Pause, resume, or archive a campaign. A transition that does not make sense for the campaign's current state is rejected rather than forced through.",
+      "Pause or resume a campaign. Archiving is only available in the SetLuca app, so a connected assistant gets 403 for it. A transition that does not make sense for the campaign's current state is rejected rather than forced through.",
   }),
   op({
     id: "campaigns.duplicate",

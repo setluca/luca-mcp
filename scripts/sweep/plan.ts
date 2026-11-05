@@ -647,6 +647,17 @@ const read: readonly SweepStep[] = [
   },
   { tool: "luca_campaigns_analytics", phase: "read", ...idFrom("campaign") },
   {
+    tool: "luca_campaigns_generate",
+    phase: "read",
+    args: () => ({
+      body: {
+        mode: "new",
+        prompt:
+          "A short check-in campaign for leads who asked about coaching prices.",
+      },
+    }),
+  },
+  {
     tool: "luca_campaigns_provider_capabilities",
     phase: "read",
     ...idFrom("campaign"),
@@ -684,7 +695,6 @@ const read: readonly SweepStep[] = [
   { tool: "luca_coach_post_call_deal_sync", phase: "read" },
   { tool: "luca_coach_audit_log", phase: "read" },
   { tool: "luca_usage_spend", phase: "read" },
-  { tool: "luca_usage_messages", phase: "read" },
   { tool: "luca_safety_accounts", phase: "read" },
   { tool: "luca_channels_catalog", phase: "read" },
   { tool: "luca_channels_features", phase: "read" },
@@ -989,17 +999,6 @@ const create: readonly SweepStep[] = [
     repeat: true,
     args: (_fx, ctx) => ({ body: { name: `Sweep campaign ${ctx.runId}` } }),
     provides: { sweepCampaign: valueAt("id") },
-  },
-  {
-    tool: "luca_campaigns_generate",
-    phase: "create",
-    args: () => ({
-      body: {
-        mode: "new",
-        prompt:
-          "A short check-in campaign for leads who asked about coaching prices.",
-      },
-    }),
   },
   {
     tool: "luca_campaigns_simulations_create",
@@ -1431,6 +1430,17 @@ const change: readonly SweepStep[] = [
     tool: "luca_broadcasts_pause",
     phase: "change",
     ...idFrom("sweepBroadcast", () => ({ body: { reason: "Sweep check" } })),
+  },
+  {
+    tool: "luca_broadcasts_resume",
+    phase: "change",
+    gated: true,
+    ...idFrom("sweepBroadcast"),
+    expect: {
+      kind: "refused",
+      because: "the sweep paused this broadcast by hand, not billing",
+      match: /broadcast_not_billing_paused|billing paused/i,
+    },
   },
   {
     tool: "luca_broadcasts_retry",

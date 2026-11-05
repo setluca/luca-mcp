@@ -246,6 +246,7 @@ These 36 operations carry the gate:
 - `luca_campaigns_publish`
 - `luca_campaigns_set_status`, only when `status` is `published`
 - `luca_broadcasts_launch`
+- `luca_broadcasts_resume`
 - `luca_broadcasts_retry`
 - `luca_webhooks_subscriptions_create`
 - `luca_webhooks_subscriptions_update`
@@ -262,10 +263,10 @@ These 36 operations carry the gate:
 `luca_bookings_outcome_record`, and `luca_channels_set_ai_dm_auto_send` are
 the conditional gates. Setting
 `published` resumes a paused campaign, which restarts automatic sends to real
-leads. Pausing or archiving only stops work, so those calls run without
-`confirm`. Turning a channel's auto-send on lets Luca's replies reach leads
-without review, and turns on the workspace switch for every other channel whose
-own switch is on; turning it off only sends drafts to review. Reporting a `no_show` outcome can start recovery messaging to
+leads. Pausing only stops work, so that call runs without `confirm`. API keys and
+OAuth tokens cannot archive a campaign. Turning a channel's auto-send on lets Luca's replies reach leads
+without review while the workspace switch is on, and leaves that switch as it
+was; turning it off only sends drafts to review. Reporting a `no_show` outcome can start recovery messaging to
 the lead, so that report needs `confirm`; the other outcomes run without it. The
 tool's description says when the gate applies.
 

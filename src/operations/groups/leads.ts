@@ -125,6 +125,9 @@ export const leadsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "leads.drafting.pause",
+    // When a timed pause ends, Luca drafts through OpenRouter, and auto-send can
+    // take that reply to the lead without review.
+    openWorld: true,
     // Answers with the pause's end time only; no lead-authored text.
     untrustedContent: false,
     title: "Pause Luca for a lead",
@@ -133,7 +136,7 @@ export const leadsOperations: readonly LucaOperation[] = [
     // leads:write scope sits at the draft tier.
     capability: "queue_ops",
     description:
-      "Stop Luca drafting replies, running follow-up cadences, and sending campaign messages to one lead, for 1h, 24h, 7d, 30d, or until resumed. A draft in flight stops at its next step. Opt-outs and crisis messages are still handled. Pausing again replaces the earlier pause. A timed pause resumes the lead by itself when it ends.",
+      "Stop Luca drafting replies, running follow-up cadences, and sending campaign messages to one lead, for 1h, 24h, 7d, 30d, or until resumed. A draft in flight stops at its next step. Opt-outs and crisis messages are still handled. Pausing again replaces the earlier pause. A timed pause resumes the lead by itself when it ends, and Luca then drafts a reply that can send without review if auto-send is on.",
   }),
   op({
     id: "leads.drafting.resume",

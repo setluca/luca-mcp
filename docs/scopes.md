@@ -28,7 +28,7 @@ tier when that is higher.
 
 | OAuth scope      | Operation tools | Task tools | API scopes added over the tier below                                                                                                                                                                                                                                                                                                  |
 | ---------------- | --------------: | ---------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `luca:read`      |             109 |          7 | `analytics:read`, `bookings:read`, `broadcasts:read`, `call_events:read`, `campaigns:read`, `channels:read`, `coach:read`, `conversations:read`, `integrations:read`, `knowledge:read`, `leads:read`, `learning:read`, `memory:read`, `reports:read`, `review_queue:read`, `safety:read`, `usage:read`, `voice:read`, `webhooks:read` |
+| `luca:read`      |             108 |          7 | `analytics:read`, `bookings:read`, `broadcasts:read`, `call_events:read`, `campaigns:read`, `channels:read`, `coach:read`, `conversations:read`, `integrations:read`, `knowledge:read`, `leads:read`, `learning:read`, `memory:read`, `reports:read`, `review_queue:read`, `safety:read`, `usage:read`, `voice:read`, `webhooks:read` |
 | `luca:draft`     |             128 |          9 | `call_events:write`, `insights:write`, `leads:write`, `learning:write`, `memory:write`                                                                                                                                                                                                                                                |
 | `luca:queue_ops` |             190 |         15 | `bookings:write`, `broadcasts:write`, `cadences:write`, `campaigns:write`, `conversations:write`, `knowledge:write`, `review_queue:write`                                                                                                                                                                                             |
 | `luca:full`      |             208 |         15 | `channels:write`, `integrations:write`, `webhooks:write`                                                                                                                                                                                                                                                                              |
@@ -51,12 +51,12 @@ The middle column is the least-privilege answer.
 | `bookings:read`       | `luca:read`                    |    19 | Bookings, Capabilities         |
 | `bookings:write`      | `luca:queue_ops`               |    20 | Bookings                       |
 | `broadcasts:read`     | `luca:read`                    |     3 | Broadcasts, Capabilities       |
-| `broadcasts:write`    | `luca:queue_ops`               |     7 | Broadcasts                     |
+| `broadcasts:write`    | `luca:queue_ops`               |     8 | Broadcasts                     |
 | `cadences:write`      | `luca:queue_ops`               |     2 | Cadences                       |
 | `call_events:read`    | `luca:read`                    |     4 | Call Events                    |
 | `call_events:write`   | `luca:draft`                   |     6 | Call Events                    |
-| `campaigns:read`      | `luca:read`                    |    10 | Campaigns, Capabilities        |
-| `campaigns:write`     | `luca:queue_ops`               |     9 | Campaigns                      |
+| `campaigns:read`      | `luca:read`                    |    11 | Campaigns, Capabilities        |
+| `campaigns:write`     | `luca:queue_ops`               |     8 | Campaigns                      |
 | `channels:read`       | `luca:read`                    |     4 | Channels                       |
 | `channels:write`      | `luca:full`                    |     1 | Channels                       |
 | `coach:read`          | `luca:read`                    |     8 | Coach                          |
@@ -77,7 +77,7 @@ The middle column is the least-privilege answer.
 | `review_queue:read`   | `luca:read`                    |     6 | Review Queue                   |
 | `review_queue:write`  | `luca:queue_ops`               |    11 | Review Queue                   |
 | `safety:read`         | `luca:read`                    |     1 | Account Safety                 |
-| `usage:read`          | `luca:read`                    |     2 | Usage                          |
+| `usage:read`          | `luca:read`                    |     1 | Usage                          |
 | `voice:read`          | `luca:read`                    |     2 | Voice                          |
 | `webhooks:read`       | `luca:read`                    |     5 | Capabilities, Webhooks         |
 | `webhooks:write`      | `luca:full`                    |     7 | Webhooks                       |

@@ -41,16 +41,18 @@ export const integrationsOperations: readonly LucaOperation[] = [
   op({
     id: "integrations.crm.connections.health",
     title: "Check a CRM connection's health",
+    // An expired OAuth token can be refreshed with the CRM.
     openWorld: true,
-    description: "Probe CRM provider health.",
+    description:
+      "Check a CRM connection's stored credentials and scopes and record the result. An expired token may be refreshed with the CRM; a provider outage is not detected.",
   }),
   op({
     id: "integrations.crm.connections.webhooksSetup",
-    title: "Set up a CRM's webhooks",
-    openWorld: true,
+    title: "Save a CRM connection's webhook settings",
     confirm: "always",
     mutatesExisting: true,
-    description: "Configure CRM provider webhook status.",
+    description:
+      "Save a CRM connection's webhook target and secret as pending. Nothing is registered in the CRM yet.",
   }),
   op({
     id: "integrations.crm.mappings.suggest",

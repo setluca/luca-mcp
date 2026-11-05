@@ -223,10 +223,32 @@ describe("MCP protocol", () => {
       luca_insights_settings_get: hint(true, false, true, false),
       luca_leads_create: hint(false, true, false, true),
       luca_leads_import_preview: hint(true, false, true, false),
+      // Each overwrites something a create would not, found by reading the handler.
+      luca_bookings_guest_links_create: hint(false, true, false, false),
+      luca_bookings_types_create: hint(false, true, false, false),
+      luca_bookings_types_attendees_add: hint(false, true, false, false),
+      luca_campaigns_comment_simulation_suite_run: hint(
+        false,
+        true,
+        false,
+        false
+      ),
+      // A timed pause resumes by itself, and that resume drafts through OpenRouter.
+      luca_leads_drafting_pause: hint(false, true, false, true),
+      // Saves settings on the connection; nothing is registered in the CRM.
+      luca_integrations_crm_connections_webhooks_setup: hint(
+        false,
+        true,
+        false,
+        false
+      ),
+      luca_campaigns_generate: hint(true, false, true, false),
       luca_leads_identities_attach: hint(false, true, false, true),
       luca_review_queue_reject: hint(false, true, false, true),
+      luca_review_queue_bulk_reject: hint(false, true, true, true),
       luca_review_queue_objection_variant: hint(false, false, false, false),
       luca_broadcasts_pause: hint(false, true, true, true),
+      luca_broadcasts_resume: hint(false, true, false, true),
       luca_integrations_crm_connections_schema: hint(false, false, true, true),
       luca_integrations_crm_sync_runs_create: hint(false, false, false, false),
       // A retried transcription sends the voice note to OpenRouter.

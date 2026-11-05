@@ -316,7 +316,7 @@
       },
       "justifications": {
         "read_only_justification": "Approves one pending draft in the SetLuca review queue and sends it to the lead through the lead's channel, optionally with an edited finalBody.",
-        "open_world_justification": "Sends a real message to a real lead through their inbox (Instagram, Telegram, or Messenger).",
+        "open_world_justification": "Sends a real message to a real lead through their inbox (Instagram, Telegram, or Messenger). A review.approved event also goes to the coach's webhook subscribers.",
         "destructive_justification": "The message goes to the lead as approved, with finalBody replacing the draft text if given, and a sent message cannot be unsent. Refuses to run without confirm: true."
       }
     },
@@ -328,8 +328,8 @@
       },
       "justifications": {
         "read_only_justification": "Books a call for one lead on the coach's calendar after checking the slot is open, then asks the provider to confirm it.",
-        "open_world_justification": "Creates the event on the coach's Calendly, Cal.com, or Google Calendar and the provider emails the invite to the lead; SetLuca also sends the lead its own booking confirmation.",
-        "destructive_justification": "Puts a real event on the coach's calendar and sends the lead a provider invite and a SetLuca confirmation, neither of which can be unsent. The booking can be cancelled or moved with other tools. A taken slot books nothing. Refuses to run without confirm: true."
+        "open_world_justification": "Creates the event on the coach's Calendly, Cal.com, or Google Calendar and the provider emails the invite to the lead; SetLuca can also queue a booking confirmation draft for the coach to review.",
+        "destructive_justification": "Puts a real event on the coach's calendar and has the provider send the lead an invite, which cannot be unsent. The booking can be cancelled or moved with other tools. A taken slot books nothing. Refuses to run without confirm: true."
       }
     },
     "luca_bookings_availability": {
@@ -400,7 +400,7 @@
       },
       "justifications": {
         "read_only_justification": "Cancels one booking in the coach's SetLuca workspace and, for a Google Calendar or Cal.com booking, on that calendar too.",
-        "open_world_justification": "Reaches the connected calendar (Google Calendar or Cal.com) to cancel the event. Google Calendar emails the lead about it, and Cal.com may notify the attendee too.",
+        "open_world_justification": "Reaches the connected calendar (Google Calendar or Cal.com) to cancel the event. Google Calendar emails the lead about it, and Cal.com may notify the attendee too. It also sends booking.cancelled to the coach's webhook subscribers.",
         "destructive_justification": "Removes the booking from the calendar and from the schedule, and the lead can be emailed a cancellation notice that cannot be recalled. The cancelled call can only be rebooked as a new booking. Refuses to run without confirm: true."
       }
     },
@@ -432,12 +432,12 @@
       "annotations": {
         "readOnlyHint": false,
         "openWorldHint": false,
-        "destructiveHint": false
+        "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Creates new reschedule and cancel links for one booking in the coach's SetLuca workspace and returns them to the coach. Nothing is sent.",
+        "read_only_justification": "Creates new reschedule and cancel links for one booking in the coach's SetLuca workspace, replacing its current links, and returns them to the coach. Nothing is sent.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace; it messages no lead and reaches no calendar, CRM, webhook subscriber, or outside service.",
-        "destructive_justification": "Only adds new revocable links; existing records are not changed or removed. The coach decides whether to share them with the lead."
+        "destructive_justification": "Replaces the booking's current links, so any link already shared with the lead stops working. The coach decides whether to share the new ones."
       }
     },
     "luca_bookings_guest_links_revoke": {
@@ -471,9 +471,9 @@
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Writes a coach decision onto one booking whose SetLuca record disagrees with the provider's: retry the sync, dismiss the duplicate, or set it confirmed, cancelled, completed, or no_show.",
-        "open_world_justification": "Can write the result back to the booking provider, emit a booking cancelled event to the coach's webhook subscribers, and a no_show can start recovery messages to the lead.",
-        "destructive_justification": "Overwrites the booking's status with the coach's choice; a cancelled event or no_show recovery message already sent cannot be unsent. Dismissing a duplicate removes it from the attention list. Refuses to run without confirm: true."
+        "read_only_justification": "Writes a coach decision onto one booking whose SetLuca record disagrees with the provider's: dismiss the duplicate, or set it confirmed, cancelled, completed, or no_show.",
+        "open_world_justification": "Can write the result back to the booking provider, a completed call sends lead.stage_changed to the coach's webhook subscribers, and a no_show can start recovery messages to the lead.",
+        "destructive_justification": "Overwrites the booking's status with the coach's choice; a no_show recovery message already sent cannot be unsent. Dismissing a duplicate removes it from the attention list. Refuses to run without confirm: true."
       }
     },
     "luca_bookings_list": {
@@ -496,7 +496,7 @@
       },
       "justifications": {
         "read_only_justification": "Only reads open slots for one SetLuca call type; it creates, changes, deletes, and books nothing.",
-        "open_world_justification": "Reads busy times from the coach's connected Google calendar to remove conflicts from the open slots. It writes nothing to the calendar.",
+        "open_world_justification": "Reads busy times from the coach's connected Google calendar to remove conflicts from the open slots, or open slots from Cal.com or Calendly for a call type on those providers. It writes nothing to the calendar.",
         "destructive_justification": "Only reads; it overwrites and deletes nothing."
       }
     },
@@ -579,8 +579,8 @@
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Writes the outcome of one call (won, lost with a reason, or still open) on the booking in the coach's SetLuca workspace.",
-        "open_world_justification": "A won or lost outcome queues a deal-stage change in the coach's connected CRM; an open outcome stays inside SetLuca.",
+        "read_only_justification": "Writes the outcome of one call (won, lost with a reason, or still open) on the booking in the coach's SetLuca workspace. A won or lost outcome also moves the lead to that stage.",
+        "open_world_justification": "A won or lost outcome queues a deal-stage change in the coach's connected CRM and sends lead.stage_changed to the coach's webhook subscribers; an open outcome stays inside SetLuca.",
         "destructive_justification": "Records a new outcome; a correction sends the expectedVersion and appends rather than erasing history. A won or lost outcome can overwrite the deal stage in the connected CRM, which SetLuca does not undo. Only won or lost calls need confirm. Refuses to run without confirm: true."
       }
     },
@@ -592,8 +592,8 @@
       },
       "justifications": {
         "read_only_justification": "Creates a booking request for one exact slot on the coach's calendar provider and records it in the coach's SetLuca workspace.",
-        "open_world_justification": "Creates the event on the coach's Calendly, Cal.com, or Google Calendar, which emails the invite to the lead; the lead also gets SetLuca's booking confirmation.",
-        "destructive_justification": "Books a real call and emails the lead an invite and confirmation; a sent invite cannot be unsent. A slot taken in the meantime is rejected with 409. Refuses to run without confirm: true."
+        "open_world_justification": "Creates the event on the coach's Calendly, Cal.com, or Google Calendar, which emails the invite to the lead; SetLuca can also queue a booking confirmation draft for the coach to review.",
+        "destructive_justification": "Books a real call and emails the lead an invite; a sent invite cannot be unsent. A slot taken in the meantime is rejected with 409. Refuses to run without confirm: true."
       }
     },
     "luca_bookings_provider_requests_get": {
@@ -665,7 +665,7 @@
       "justifications": {
         "read_only_justification": "Stops one booking's no-show recovery in the coach's SetLuca workspace so no further follow-up is scheduled.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Cancels the recovery's remaining scheduled follow-ups; they cannot be resumed, and a follow-up already being sent may still reach the lead. Needs the recovery id and version read earlier, and stopping twice changes nothing more."
+        "destructive_justification": "Cancels the recovery's remaining scheduled follow-ups and rejects follow-up drafts waiting in the review queue; they cannot be resumed, and a follow-up already being sent may still reach the lead. Needs the recovery id and version read earlier, and stopping twice changes nothing more."
       }
     },
     "luca_bookings_types_attendees": {
@@ -684,12 +684,12 @@
       "annotations": {
         "readOnlyHint": false,
         "openWorldHint": false,
-        "destructiveHint": false
+        "destructiveHint": true
       },
       "justifications": {
         "read_only_justification": "Adds a standing attendee to one booking type in the coach's SetLuca workspace and returns the attendee list.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace; the call itself contacts no calendar, lead, or outside service.",
-        "destructive_justification": "Only appends one attendee to the booking type's list; existing attendees and bookings are not changed or removed."
+        "destructive_justification": "Appends one attendee to the booking type's list; adding an email already listed overwrites that attendee's name and optional flag. Bookings are not changed or removed."
       }
     },
     "luca_bookings_types_attendees_remove": {
@@ -708,12 +708,12 @@
       "annotations": {
         "readOnlyHint": false,
         "openWorldHint": false,
-        "destructiveHint": false
+        "destructiveHint": true
       },
       "justifications": {
         "read_only_justification": "Creates a new bookable call type (length, location, look) in the coach's SetLuca workspace. It needs a schedule added afterwards before it offers slots.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace; it messages no lead and reaches no calendar, CRM, webhook subscriber, or outside service.",
-        "destructive_justification": "Only adds a new booking type; no existing booking type or booking is changed or removed."
+        "destructive_justification": "Adds a new booking type. With isDefault it also clears the default flag on the coach's other types, which this tool does not restore. No booking is changed or removed."
       }
     },
     "luca_bookings_types_delete": {
@@ -725,7 +725,7 @@
       "justifications": {
         "read_only_justification": "Removes one booking type from the coach's SetLuca workspace and returns the types that are left. It sends nothing.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Deletes the booking type and its definition; this tool cannot restore it, so it would have to be created again by hand. Calls already booked against it are not cancelled."
+        "destructive_justification": "Deletes the booking type and its definition, along with its schedule, attendees, open slot holds, type-specific outcome reasons, and any booking invitations already sent; this tool cannot restore them, so they would have to be created again by hand. Calls already booked against it are not cancelled."
       }
     },
     "luca_bookings_types_list": {
@@ -784,7 +784,7 @@
       },
       "justifications": {
         "read_only_justification": "Changes an existing booking in the coach's SetLuca workspace: its time or status, and re-arms the lead's reminder. A provider-backed booking is changed on the calendar too.",
-        "open_world_justification": "For a Google Calendar or Cal.com booking, the change is written to the coach's calendar, and the calendar provider can email the lead the updated invite.",
+        "open_world_justification": "For a Google Calendar or Cal.com booking, the change is written to the coach's calendar, and the calendar provider can email the lead the updated invite. It also sends booking.updated to the coach's webhook subscribers.",
         "destructive_justification": "Overwrites the booking's time or status, and on a connected calendar overwrites the event there; the previous time is not restored automatically, though it can be rescheduled back. A calendar email to the lead cannot be unsent. Refuses to run without confirm: true."
       }
     },
@@ -884,6 +884,18 @@
         "destructive_justification": "Replaces the broadcast's previous recipient and sample-message preview with a fresh one; the earlier snapshot is not kept. Nothing is sent, and the preview can be refreshed again."
       }
     },
+    "luca_broadcasts_resume": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Restarts a broadcast that billing paused, which sends its remaining messages to live leads and updates the broadcast's status in the coach's SetLuca workspace.",
+        "open_world_justification": "Messages reach real leads through their inbox channels (Instagram, Telegram, or Messenger).",
+        "destructive_justification": "Overwrites the broadcast's paused status and sends its remaining messages to live leads; once sent they cannot be unsent or recalled. Runs only on a broadcast that billing paused, and recipients already sent are left alone. Refuses to run without confirm: true."
+      }
+    },
     "luca_broadcasts_retry": {
       "annotations": {
         "readOnlyHint": false,
@@ -891,9 +903,9 @@
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Retries the failed recipients of a broadcast, re-sending the message to those leads through their channels.",
+        "read_only_justification": "Retries the failed recipients of a broadcast, or resumes a broadcast paused by hand, sending the message to those leads through their channels.",
         "open_world_justification": "Sends real messages to leads through their inboxes (Instagram, Telegram, or Messenger), and broadcast changes reach the coach's webhook subscribers.",
-        "destructive_justification": "Re-sends the broadcast to recipients whose earlier send failed; delivered messages cannot be unsent. It is meant to follow operator review of the failures. Refuses to run without confirm: true."
+        "destructive_justification": "Re-sends the broadcast to recipients whose earlier send failed and, on a paused broadcast, sends to recipients not yet reached; delivered messages cannot be unsent. It is meant to follow operator review of the failures. Refuses to run without confirm: true."
       }
     },
     "luca_cadences_pause": {
@@ -1035,7 +1047,7 @@
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Clears a mistaken attendance mark on a call event and puts the call back in the post-call queue in the coach's SetLuca workspace.",
+        "read_only_justification": "Clears a mistaken attendance mark on a call event and puts the call back in the post-call queue in the coach's SetLuca workspace. Undoing a no_show also stops its recovery and rejects any recovery drafts waiting for review.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace; it messages no lead and reaches no calendar, CRM, webhook subscriber, or outside service.",
         "destructive_justification": "Removes the recorded outcome and attendance mark and returns the call to the queue. It works only within 48 hours of when the outcome was set and contacts no one; the coach can file the report again afterwards."
       }
@@ -1068,12 +1080,12 @@
       "annotations": {
         "readOnlyHint": false,
         "openWorldHint": false,
-        "destructiveHint": false
+        "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Runs the comment-to-DM simulation suite on a campaign and saves the results as a new record in the coach's SetLuca workspace.",
+        "read_only_justification": "Runs the comment-to-DM simulation suite on a campaign, saves the results as a new record, and stamps the pass or fail verdict onto the campaign's draft in the coach's SetLuca workspace.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service. The simulation sends nothing to Instagram or any lead.",
-        "destructive_justification": "Only adds a new simulation result; the campaign and its earlier results are not overwritten or deleted, and nothing is sent to a lead."
+        "destructive_justification": "Overwrites the campaign draft's graph with the stamped verdict. Earlier results are kept, and nothing is sent to a lead."
       }
     },
     "luca_campaigns_create": {
@@ -1150,14 +1162,14 @@
     },
     "luca_campaigns_generate": {
       "annotations": {
-        "readOnlyHint": false,
+        "readOnlyHint": true,
         "openWorldHint": false,
         "destructiveHint": false
       },
       "justifications": {
-        "read_only_justification": "Builds a suggested campaign plan from the coach's brief with fixed rules and returns it; the only write is an audit entry.",
+        "read_only_justification": "Only computes a suggested campaign plan from the coach's brief with fixed rules and returns it; it saves nothing, and creates no campaign, draft, or other record.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Creates no campaign and sends nothing; the plan is only returned. It overwrites and deletes nothing, apart from the audit entry it adds."
+        "destructive_justification": "Only computes and returns a plan; it sends, overwrites, and deletes nothing."
       }
     },
     "luca_campaigns_get": {
@@ -1204,8 +1216,8 @@
       },
       "justifications": {
         "read_only_justification": "Freezes a campaign draft as a new immutable version and points new enrollments at it in the coach's SetLuca workspace.",
-        "open_world_justification": "Publishing itself sends nothing, but it makes the campaign live so later enrollments message real leads through their channels.",
-        "destructive_justification": "Creates a published version that never changes afterwards, and new enrollments use it instead of the previous version. Enrolled leads get real messages. Refuses to run without confirm: true."
+        "open_world_justification": "Publishing itself sends nothing, but it makes the campaign live, so enrollments and inbound DMs, comments, or story replies that match its trigger can message real leads through their channels.",
+        "destructive_justification": "Creates a published version that never changes afterwards, and new enrollments use it instead of the previous version. Leads it enrolls or triggers on get real messages. Refuses to run without confirm: true."
       }
     },
     "luca_campaigns_set_status": {
@@ -1215,9 +1227,9 @@
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Changes one campaign's status to paused, published again, or archived in the coach's SetLuca workspace.",
-        "open_world_justification": "Resuming restarts the campaign's automatic sends to real leads' inboxes (Instagram, Telegram, or Messenger), and the status change can reach the coach's webhook subscribers.",
-        "destructive_justification": "Overwrites the campaign's current status. Pausing and archiving stop work and can be reversed; resuming restarts messaging to leads, and messages already sent cannot be unsent. Only resuming (status published) needs confirm. Refuses to run without confirm: true."
+        "read_only_justification": "Changes one campaign's status to paused or published again in the coach's SetLuca workspace. An API key or OAuth connection cannot archive a campaign.",
+        "open_world_justification": "Resuming restarts the campaign's automatic sends to real leads' inboxes (Instagram, Telegram, or Messenger).",
+        "destructive_justification": "Overwrites the campaign's current status. Pausing stops work and can be reversed; resuming restarts messaging to leads, and messages already sent cannot be unsent. Only resuming (status published) needs confirm. Refuses to run without confirm: true."
       }
     },
     "luca_campaigns_simulations_create": {
@@ -1335,8 +1347,8 @@
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Turns Luca's DM auto-send on or off for one channel account, and turning it on also sets the workspace auto-send switch, in the coach's SetLuca workspace.",
-        "open_world_justification": "When on, drafts that pass safety checks go to leads' Instagram, Telegram, or Messenger inboxes without review, on this account and every other account whose own switch is on.",
+        "read_only_justification": "Turns Luca's DM auto-send on or off for one channel account in the coach's SetLuca workspace. The workspace auto-send switch stays as it was.",
+        "open_world_justification": "When on, and while the workspace switch is also on, drafts that pass safety checks go to leads' Instagram, Telegram, or Messenger inboxes on this account without review.",
         "destructive_justification": "Overwrites the auto-send setting. Turning it on lets later drafts reach leads without review, and a sent message cannot be unsent. Turning it off is safe: drafts go to the review queue. A call that turns it on refuses to run without confirm: true."
       }
     },
@@ -1349,7 +1361,7 @@
       "justifications": {
         "read_only_justification": "Files a call's attendance on the call event and, if given, records the booking outcome (won with an amount, lost with a reason, or open with a follow-up) in the coach's SetLuca workspace.",
         "open_world_justification": "A no_show can start recovery that messages the lead, a completed call's summary can sync to the connected CRM, and a won or lost outcome queues a CRM deal-stage update. The tool sends no message itself.",
-        "destructive_justification": "Overwrites the call's recorded attendance and outcome, and a lost outcome also moves the lead to lost. Recovery messages and CRM updates it starts cannot be recalled. Needed only for no_show, won, or lost. Refuses to run without confirm: true."
+        "destructive_justification": "Overwrites the call's recorded attendance and outcome, and a won or lost outcome also moves the lead to that stage. Recovery messages and CRM updates it starts cannot be recalled. Needed only for no_show, won, or lost. Refuses to run without confirm: true."
       }
     },
     "luca_coach_audit_log": {
@@ -1565,7 +1577,7 @@
       "justifications": {
         "read_only_justification": "Writes a new draft reply for a lead into the coach's SetLuca review queue, where it waits for the coach to approve it.",
         "open_world_justification": "The lead's conversation goes to OpenRouter's language model to write the draft. Nothing is sent to the lead, whatever the channel's auto-send setting.",
-        "destructive_justification": "Replaces this lead's earlier unapproved draft from this tool, and the old text is not kept. It never sends a message, and an approved or sent draft is not touched. Needs no confirm."
+        "destructive_justification": "Closes this lead's earlier unapproved draft from this tool as superseded, so it can no longer be approved. It never sends a message, and an approved or sent draft is not touched. Needs no confirm."
       }
     },
     "luca_find_leads": {
@@ -1707,8 +1719,8 @@
         "destructiveHint": false
       },
       "justifications": {
-        "read_only_justification": "Writes the latest health result onto the coach's CRM connection record in the SetLuca workspace after probing the provider.",
-        "open_world_justification": "Probes the coach's connected CRM live to see whether its credential is valid or the provider is down. It changes nothing in the CRM.",
+        "read_only_justification": "Writes the latest health result onto the coach's CRM connection record in the SetLuca workspace after checking its stored credentials and scopes.",
+        "open_world_justification": "Can refresh an expired OAuth token with the coach's connected CRM. It otherwise checks only what SetLuca holds, so it cannot detect a provider outage, and it changes nothing in the CRM.",
         "destructive_justification": "Only records a fresh health reading on the connection; no CRM data, lead, or setting is overwritten or deleted."
       }
     },
@@ -1739,13 +1751,13 @@
     "luca_integrations_crm_connections_webhooks_setup": {
       "annotations": {
         "readOnlyHint": false,
-        "openWorldHint": true,
+        "openWorldHint": false,
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Configures webhook status on the coach's connected CRM account and updates the connection record in the coach's SetLuca workspace.",
-        "open_world_justification": "Registers or repairs a webhook in the coach's connected CRM account, an outside system.",
-        "destructive_justification": "Changes the existing webhook configuration in the CRM, replacing its current status; the earlier setting is not kept. It does not message any lead. Refuses to run without confirm: true."
+        "read_only_justification": "Saves a webhook target and secret as pending on the coach's CRM connection record in the SetLuca workspace. It registers nothing in the CRM.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace; it saves settings on the connection record and does not contact the CRM or any outside service.",
+        "destructive_justification": "Overwrites the webhook settings saved on the connection, and the earlier settings are not kept. It does not message any lead. Refuses to run without confirm: true."
       }
     },
     "luca_integrations_crm_mappings_confirm": {
@@ -1757,7 +1769,7 @@
       "justifications": {
         "read_only_justification": "Saves the CRM field mapping for one connection in the coach's SetLuca workspace.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Replaces the connection's previous mapping with the confirmed one, and future CRM syncs use the new mapping. The old mapping is not kept but can be re-entered. It does not contact the CRM."
+        "destructive_justification": "Overwrites the saved mapping for each SetLuca field and CRM field pair it names, and future CRM syncs use it. Mappings it does not name stay as they are. The old values are not kept but can be re-entered. It does not contact the CRM."
       }
     },
     "luca_integrations_crm_mappings_suggest": {
@@ -1839,9 +1851,9 @@
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Deletes one knowledge source from the coach's SetLuca workspace, along with its pending suggestions.",
+        "read_only_justification": "Deletes one knowledge source from the coach's SetLuca workspace, along with every suggestion it produced.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service. It sends nothing.",
-        "destructive_justification": "Deletes the source and its pending suggestions, and this tool cannot restore them. Values the coach already approved stay in the profile. Repeating the call changes nothing more."
+        "destructive_justification": "Deletes the source and every suggestion it produced, whatever their status, and this tool cannot restore them. Values the coach already approved stay in the profile. Repeating the call changes nothing more."
       }
     },
     "luca_knowledge_sources_list": {
@@ -1863,9 +1875,9 @@
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Queues a re-read of one connected knowledge source and returns once the job is queued; the refreshed content and new suggestions are written to the coach's SetLuca workspace later.",
-        "open_world_justification": "The re-read fetches the source from the outside service the coach connected (Notion, Google Docs, a website, or an Instagram bio). Nothing is written back to it.",
-        "destructive_justification": "Replaces the source's stored copy and sync state with the freshly read version, so the earlier snapshot is not kept. The outside source is only read and nothing is sent or deleted."
+        "read_only_justification": "Queues a re-read of one connected knowledge source and returns once the job is queued; the new suggestions and sync state are written to the coach's SetLuca workspace later.",
+        "open_world_justification": "The re-read fetches the source from the outside service the coach connected (Notion, Google Docs, a website, or an Instagram bio), sends the content to a language model to extract suggestions, and sends the coach a push notification when they are ready. Nothing is written back to the source.",
+        "destructive_justification": "Updates the source's content hash and sync state and adds new suggestions. The outside source is only read, and nothing is sent to a lead or deleted."
       }
     },
     "luca_knowledge_suggestions": {
@@ -1912,7 +1924,7 @@
       },
       "justifications": {
         "read_only_justification": "Writes a lead record (channel and external user id) into the coach's SetLuca workspace; if that lead already exists it updates the same record. It sends no message to the lead.",
-        "open_world_justification": "Fires a lead.created event to the coach's own webhook subscribers outside SetLuca. The lead is not contacted.",
+        "open_world_justification": "Fires a lead.created event, and lead.stage_changed when the request moves the stage, to the coach's own webhook subscribers outside SetLuca. The lead is not contacted.",
         "destructive_justification": "Upsert: when the lead already exists, the supplied fields replace the stored ones and the earlier values are not kept. A new lead is only added. Only the coach can edit it back by hand; no message is sent."
       }
     },
@@ -1925,19 +1937,19 @@
       "justifications": {
         "read_only_justification": "Writes a new Luca draft reply into the SetLuca review queue for the coach to approve. It never sends the message, whatever the channel's auto-send setting.",
         "open_world_justification": "Sends the lead's conversation to OpenRouter's language model to write the draft. Nothing reaches the lead.",
-        "destructive_justification": "Drafting again replaces this lead's earlier unapproved draft from this tool, and the old text is not kept. Approved or sent drafts are untouched and nothing is sent."
+        "destructive_justification": "Drafting again closes this lead's earlier unapproved draft from this tool as superseded, so it can no longer be approved. Approved or sent drafts are untouched and nothing is sent."
       }
     },
     "luca_leads_drafting_pause": {
       "annotations": {
         "readOnlyHint": false,
-        "openWorldHint": false,
+        "openWorldHint": true,
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Writes a pause onto one lead (1h, 24h, 7d, 30d, or until resumed) that stops drafting, follow-up cadences, and campaign messages for that lead. It sends nothing.",
-        "open_world_justification": "Stays inside the coach's SetLuca workspace; the pause is a stored setting and nothing reaches the lead or an outside service.",
-        "destructive_justification": "Pausing again replaces the earlier pause, so the previous end time is lost. It is reversible: a timed pause ends by itself, and the resume tool clears it sooner. Nothing is deleted or sent."
+        "read_only_justification": "Writes a pause onto one lead (1h, 24h, 7d, 30d, or until resumed) that stops drafting, follow-up cadences, and campaign messages for that lead. The pause itself sends nothing.",
+        "open_world_justification": "The pause is a stored setting, but a timed pause resumes by itself when it ends: a language model on OpenRouter then drafts a reply from the lead's conversation, and with auto-send on for the channel it can reach the lead without review. A pause until resumed reaches nothing.",
+        "destructive_justification": "Pausing again replaces the earlier pause, so the previous end time is lost. It is reversible: a timed pause ends by itself, and the resume tool clears it sooner. Nothing is deleted, and the pause itself sends nothing."
       }
     },
     "luca_leads_drafting_resume": {
@@ -2141,7 +2153,7 @@
       "justifications": {
         "read_only_justification": "Dismisses one learning proposal in the coach's SetLuca workspace so it drops out of the default list.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Overwrites the proposal's state with dismissed. The proposal is kept and can still be listed by asking for dismissed ones, but no tool here un-dismisses it. Repeating the call changes nothing more."
+        "destructive_justification": "Records a dismissal, which drops the proposal out of the default list. The proposal is kept and can still be listed by asking for dismissed ones, but no tool here un-dismisses it. Repeating the call changes nothing more."
       }
     },
     "luca_learning_proposals_list": {
@@ -2189,7 +2201,7 @@
       "justifications": {
         "read_only_justification": "Edits one memory Luca holds in the coach's SetLuca workspace: its fact, disputed flag, archived state, or priority over a conflicting memory.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Overwrites the fields sent on that memory, including the fact text, and the earlier wording is not kept (it can be re-entered). Other memories are untouched, and nothing is sent to any lead."
+        "destructive_justification": "Overwrites the fields sent on that memory, including the fact text, and the earlier wording is not kept (it can be re-entered). Making it win over a conflict also disputes or archives the other memories that conflict with it. Nothing is sent to any lead."
       }
     },
     "luca_morning_report": {
@@ -2213,7 +2225,7 @@
       "justifications": {
         "read_only_justification": "Cancels one lead's running rescue cadence in the coach's SetLuca workspace and stores the optional reason on it, so no further follow-up touches go out.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace; it stops future touches and contacts no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Changes the cadence from running to cancelled and it is not resumed by this tool; a new rescue cadence would have to be started. Nothing is sent or deleted, and calling it twice changes nothing more."
+        "destructive_justification": "Changes the cadence from running to cancelled and it is not resumed by this tool; a new rescue cadence would have to be started. Nothing is sent or deleted, and calling it again only updates the stored time and reason."
       }
     },
     "luca_post_call_queue": {
@@ -2272,8 +2284,8 @@
       },
       "justifications": {
         "read_only_justification": "Enrolls up to 100 silent leads into a multi-day rescue cadence of follow-up messages.",
-        "open_world_justification": "Starts outbound follow-up messages to the leads' inboxes (Instagram, Telegram, or Messenger) over the coming days.",
-        "destructive_justification": "Starts real outbound messages to leads that cannot be unsent once delivered; the remaining touches can be stopped with the pause tool. Leads not in the coach's workspace are skipped. Refuses to run without confirm: true."
+        "open_world_justification": "Starts follow-up messages to the leads' inboxes (Instagram, Telegram, or Messenger) over the coming days. With auto-send off, each touch waits in the review queue first.",
+        "destructive_justification": "Messages that reach leads cannot be unsent once delivered; the remaining touches can be stopped with the pause tool. Leads not in the coach's workspace are skipped. Refuses to run without confirm: true."
       }
     },
     "luca_review_queue_approve": {
@@ -2309,7 +2321,7 @@
       "justifications": {
         "read_only_justification": "Marks several pending drafts in the SetLuca review queue as rejected so none of them sends, with no reason recorded.",
         "open_world_justification": "Sends a review.rejected event for each rejected draft to the coach's own webhook subscribers outside SetLuca.",
-        "destructive_justification": "Overwrites each pending draft's state with rejected so it never sends; the drafts stay in the queue and can be brought back with the restore tool. Drafts already handled are skipped, so repeating the call changes nothing more."
+        "destructive_justification": "Overwrites each pending draft's state with rejected so it never sends; the drafts stay in the queue and can be brought back with the restore tool, except booking messages. Drafts already handled are skipped, so repeating the call changes nothing more."
       }
     },
     "luca_review_queue_changes": {
@@ -2429,7 +2441,7 @@
       "justifications": {
         "read_only_justification": "Replaces a pending draft in the SetLuca review queue with a newly drafted one, using the coach's optional hint.",
         "open_world_justification": "The new draft is written by a language model on OpenRouter from the lead's conversation. With auto-send on for the channel, the new draft can go to the lead's inbox without review.",
-        "destructive_justification": "Discards the pending draft and overwrites it with a new one; the old text is not kept. With auto-send on the new draft can reach the lead, and a sent message cannot be unsent. An approved or sent draft cannot be replaced. Refuses to run without confirm: true."
+        "destructive_justification": "Closes the pending draft as superseded, so it can no longer be approved, and replaces it with a new one. With auto-send on the new draft can reach the lead, and a sent message cannot be unsent. An approved or sent draft cannot be replaced. Refuses to run without confirm: true."
       }
     },
     "luca_review_queue_reject": {
@@ -2441,7 +2453,7 @@
       "justifications": {
         "read_only_justification": "Marks one pending draft in the SetLuca review queue as rejected so it never sends, and stops any related booking-recovery cadence.",
         "open_world_justification": "Sends a review.rejected event to the coach's own webhook subscribers outside SetLuca. No message goes to the lead.",
-        "destructive_justification": "Changes the draft from pending to rejected and cancels a related booking-recovery cadence. The draft can be put back to pending with the restore tool unless its booking recovery window has passed."
+        "destructive_justification": "Changes the draft from pending to rejected and cancels a related booking-recovery cadence. The draft can be put back to pending with the restore tool, unless it is a booking message."
       }
     },
     "luca_review_queue_restore": {
@@ -2453,7 +2465,7 @@
       "justifications": {
         "read_only_justification": "Changes one rejected review-queue item back to pending in the coach's SetLuca review queue; it sends nothing.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Overwrites the item's rejected state with pending. The change is reversible because the draft can be rejected again, and it fails for a booking message whose recovery window has passed. Nothing is sent or deleted."
+        "destructive_justification": "Overwrites the item's rejected state with pending. The change is reversible because the draft can be rejected again, and it always fails for a booking message. Nothing is sent or deleted."
       }
     },
     "luca_review_queue_sla": {
@@ -2502,18 +2514,6 @@
         "read_only_justification": "Only reads the coach's prioritized SetLuca review queue with lead context and explanations for the top drafts; it creates, changes, and deletes nothing.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
         "destructive_justification": "Only reads the coach's prioritized SetLuca review queue with lead context and explanations for the top drafts, so it overwrites and deletes nothing."
-      }
-    },
-    "luca_usage_messages": {
-      "annotations": {
-        "readOnlyHint": true,
-        "openWorldHint": false,
-        "destructiveHint": false
-      },
-      "justifications": {
-        "read_only_justification": "Reads the message pool for this period: used, allowed, and remaining; it creates, changes, and deletes nothing.",
-        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Only reads; it overwrites and deletes nothing."
       }
     },
     "luca_usage_spend": {
@@ -2585,7 +2585,7 @@
       "justifications": {
         "read_only_justification": "Re-posts past webhook events, chosen by type and time range, to the coach's webhook subscribers.",
         "open_world_justification": "Posts many past events to the coach's own outside webhook URLs, where subscribers can re-trigger their own automations.",
-        "destructive_justification": "Deliveries already posted cannot be recalled, and subscribers may act on the same event twice. It changes no SetLuca record; it only re-sends events in the chosen range. Refuses to run without confirm: true."
+        "destructive_justification": "Deliveries already posted cannot be recalled, and subscribers may act on the same event twice. It changes no existing SetLuca record; it adds new delivery attempts and an audit entry for the chosen range. Refuses to run without confirm: true."
       }
     },
     "luca_webhooks_events_list": {

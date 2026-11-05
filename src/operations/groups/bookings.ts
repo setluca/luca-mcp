@@ -172,7 +172,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
     confirm: "always",
     mutatesExisting: true,
     description:
-      "Settle one booking whose record disagrees with the provider's: retry the sync, dismiss the duplicate, or keep Luca's version.",
+      "Settle one booking whose record disagrees with the provider's: dismiss the duplicate, or set it confirmed, cancelled, completed, or no_show. To retry the sync, use luca_bookings_provider_sync_retry.",
     // Each booking carries a cancellation reason the invitee may have written.
     untrustedContent: true,
   }),
@@ -187,9 +187,11 @@ export const bookingsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "bookings.guestLinks.create",
+    // Replaces the booking's live links, so any already shared stop working.
+    mutatesExisting: true,
     title: "Create a guest link for a booking",
     description:
-      "Mint revocable reschedule and cancel links for one booking, so a lead can move the call without an account.",
+      "Mint revocable reschedule and cancel links for one booking, so a lead can move the call without an account. This replaces the booking's current links, so any link already shared stops working.",
   }),
   op({
     id: "bookings.guestLinks.revoke",
@@ -213,6 +215,8 @@ export const bookingsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "bookings.types.create",
+    // With isDefault it clears the default flag on the coach's other types.
+    mutatesExisting: true,
     title: "Create a booking type",
     description:
       "Define a bookable call: how long it runs, where it happens, and how it looks to the lead. Give it a schedule next \u2014 a booking type with no schedule offers no slots and will never appear in availability.",
@@ -229,7 +233,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
     title: "Delete a booking type",
     idempotent: true,
     description:
-      "Remove a booking type and get back the types that are left. Calls already booked against it are not cancelled.",
+      "Remove a booking type and get back the types that are left. Its schedule, attendees, open slot holds, type-specific outcome reasons, and any booking invitations already sent go with it. Calls already booked against it are not cancelled.",
   }),
   op({
     id: "bookings.types.schedule.replace",
@@ -241,6 +245,8 @@ export const bookingsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "bookings.types.attendees.add",
+    // Adding an email already listed overwrites that attendee's name and flag.
+    mutatesExisting: true,
     title: "Add a booking type attendee",
     description:
       "Add a standing attendee to one booking type, so they are invited to every call booked against it. Returns the full attendee list.",
@@ -283,7 +289,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
     idempotent: true,
     mutatesExisting: true,
     description:
-      "Stop a booking's no-show recovery so no further follow-up is scheduled. A follow-up already being sent may still arrive. Send recovery.id as recoveryCaseId and recovery.outcomeVersion from luca_bookings_recovery_get; a recovery that changed since that read returns 409 booking_recovery_changed.",
+      "Stop a booking's no-show recovery so no further follow-up is scheduled, and reject follow-up drafts waiting in the review queue. A follow-up already being sent may still arrive. Send recovery.id as recoveryCaseId and recovery.outcomeVersion from luca_bookings_recovery_get; a recovery that changed since that read returns 409 booking_recovery_changed.",
   }),
   op({
     id: "bookings.providerRequests.create",
@@ -292,7 +298,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
     openWorld: true,
     confirm: "always",
     description:
-      "Book one exact slot from luca_bookings_managed_availability on the coach's Calendly, Cal.com, or Google Calendar, which sends the invite to the lead's email; the lead also gets Luca's booking confirmation. Pass the slot's id, startsAt, endsAt, and timezone as returned by a read of exactly that slot's window, since a slot id is tied to the window it was read in. The answer is usually pending while the provider confirms; read it again with luca_bookings_provider_requests_get. A slot taken in the meantime returns 409 slot_unavailable.",
+      "Book one exact slot from luca_bookings_managed_availability on the coach's Calendly, Cal.com, or Google Calendar, which sends the invite to the lead's email; Luca can also queue a booking confirmation draft for the coach to review. Pass the slot's id, startsAt, endsAt, and timezone as returned by a read of exactly that slot's window, since a slot id is tied to the window it was read in. The answer is usually pending while the provider confirms; read it again with luca_bookings_provider_requests_get. A slot taken in the meantime returns 409 slot_unavailable.",
   }),
   op({
     id: "bookings.providerRequests.get",
