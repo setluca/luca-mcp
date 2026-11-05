@@ -89,6 +89,12 @@ input schema, or changing what a tool does to a workspace.
   the coach-webhook tools and on the OpenRouter drafting and media retry tools
   do not change.
 
+### Security
+
+- The MCP SDK now resolves Zod 4.6.6, which fixes
+  [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5),
+  memory exhaustion when validating oversized collections.
+
 ## [0.6.0] - 2026-10-24
 
 ### Breaking
