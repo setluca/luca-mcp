@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 
 import * as Arr from "effect/Array";
@@ -120,7 +121,7 @@ const INSPECTOR_BIN = new URL(
   import.meta.url
 ).pathname;
 
-const BUILT_SERVER = new URL("../../dist/index.js", import.meta.url).pathname;
+const BUILT_SERVER = resolve(import.meta.dirname, "../../dist/index.js");
 
 /** No call the sweep makes should take longer; a slower one is a failure too. */
 export const CALL_LIMIT_MS = 30_000;
