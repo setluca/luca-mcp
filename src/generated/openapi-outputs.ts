@@ -2568,6 +2568,10 @@ export const OPENAPI_OUTPUTS = {
             ]
           }
         ]
+      },
+      "isDemo": {
+        "type": "boolean",
+        "default": false
       }
     },
     "required": [
@@ -5506,6 +5510,21 @@ export const OPENAPI_OUTPUTS = {
             "updatedAt"
           ]
         }
+      },
+      "unreadProviders": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "calendly",
+            "cal_com",
+            "google_calendar",
+            "iclosed",
+            "gohighlevel"
+          ]
+        },
+        "default": []
       }
     },
     "required": [
@@ -9124,6 +9143,21 @@ export const OPENAPI_OUTPUTS = {
             "updatedAt"
           ]
         }
+      },
+      "unreadProviders": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "calendly",
+            "cal_com",
+            "google_calendar",
+            "iclosed",
+            "gohighlevel"
+          ]
+        },
+        "default": []
       }
     },
     "required": [
@@ -12075,6 +12109,8 @@ export const OPENAPI_OUTPUTS = {
                 "provider_whatsapp_interactive_unsupported",
                 "provider_whatsapp_template_quality_warning",
                 "provider_booking_connection_missing",
+                "provider_booking_provider_mismatch",
+                "provider_booking_provider_unset",
                 "provider_booking_degraded",
                 "provider_crm_connection_missing",
                 "provider_crm_scope_missing",
@@ -12142,6 +12178,8 @@ export const OPENAPI_OUTPUTS = {
                 "provider_whatsapp_interactive_unsupported",
                 "provider_whatsapp_template_quality_warning",
                 "provider_booking_connection_missing",
+                "provider_booking_provider_mismatch",
+                "provider_booking_provider_unset",
                 "provider_booking_degraded",
                 "provider_crm_connection_missing",
                 "provider_crm_scope_missing",
@@ -13610,6 +13648,12 @@ export const OPENAPI_OUTPUTS = {
       "draftGraphHash": {
         "type": "string"
       },
+      "simulatedFrom": {
+        "type": "string",
+        "enum": [
+          "draft"
+        ]
+      },
       "campaignVersionId": {
         "type": [
           "string",
@@ -13841,6 +13885,7 @@ export const OPENAPI_OUTPUTS = {
       "createdAt",
       "updatedAt",
       "draftGraphHash",
+      "simulatedFrom",
       "campaignVersionId",
       "replayedEnrollmentId",
       "input",
@@ -15714,6 +15759,12 @@ export const OPENAPI_OUTPUTS = {
       "draftGraphHash": {
         "type": "string"
       },
+      "simulatedFrom": {
+        "type": "string",
+        "enum": [
+          "draft"
+        ]
+      },
       "campaignVersionId": {
         "type": [
           "string",
@@ -15945,6 +15996,7 @@ export const OPENAPI_OUTPUTS = {
       "createdAt",
       "updatedAt",
       "draftGraphHash",
+      "simulatedFrom",
       "campaignVersionId",
       "replayedEnrollmentId",
       "input",
@@ -16331,6 +16383,12 @@ export const OPENAPI_OUTPUTS = {
             "draftGraphHash": {
               "type": "string"
             },
+            "simulatedFrom": {
+              "type": "string",
+              "enum": [
+                "draft"
+              ]
+            },
             "campaignVersionId": {
               "type": [
                 "string",
@@ -16562,6 +16620,7 @@ export const OPENAPI_OUTPUTS = {
             "createdAt",
             "updatedAt",
             "draftGraphHash",
+            "simulatedFrom",
             "campaignVersionId",
             "replayedEnrollmentId",
             "input",
@@ -31664,13 +31723,119 @@ export const OPENAPI_OUTPUTS = {
           "string",
           "null"
         ]
+      },
+      "style": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "sampleCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lengthChars": {
+            "type": "object",
+            "properties": {
+              "p25": {
+                "type": "number",
+                "minimum": 0
+              },
+              "median": {
+                "type": "number",
+                "minimum": 0
+              },
+              "p75": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "p25",
+              "median",
+              "p75"
+            ]
+          },
+          "emojiRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "capitalization": {
+            "type": "string",
+            "enum": [
+              "lowercase",
+              "sentence",
+              "mixed"
+            ]
+          },
+          "questionRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "contractionRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "signOffRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "dominantLanguage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "en",
+              "es",
+              "pt-BR",
+              "fr",
+              "de",
+              "it",
+              "nl",
+              "hi",
+              "ja",
+              "ko",
+              "zh-CN",
+              "ar",
+              "tr",
+              "vi",
+              "pl",
+              "th",
+              null
+            ]
+          }
+        },
+        "required": [
+          "sampleCount",
+          "lengthChars",
+          "emojiRate",
+          "capitalization",
+          "questionRate",
+          "contractionRate",
+          "signOffRate",
+          "dominantLanguage"
+        ]
+      },
+      "brief": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "x-luca-sensitive": "null"
       }
     },
     "required": [
       "version",
       "personaSummary",
       "corpusExampleCount",
-      "lastRefreshedAt"
+      "lastRefreshedAt",
+      "style",
+      "brief"
     ]
   },
   "GET /api/voice": {
@@ -35485,6 +35650,12 @@ export const OPENAPI_OUTPUTS = {
                 "null"
               ]
             },
+            "lastAttemptAt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "createdAt": {
               "type": "string"
             }
@@ -35496,6 +35667,7 @@ export const OPENAPI_OUTPUTS = {
             "status",
             "lastSyncedAt",
             "lastError",
+            "lastAttemptAt",
             "createdAt"
           ]
         }
@@ -37037,6 +37209,24 @@ export const OPENAPI_OUTPUTS = {
           "null"
         ]
       },
+      "uneditedShare": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "reviewedEditDistanceP50": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "autoSendReplyRate": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
       "rejectionRate": {
         "type": [
           "number",
@@ -37062,6 +37252,9 @@ export const OPENAPI_OUTPUTS = {
       "window",
       "approvalRate",
       "editDistanceP50",
+      "uneditedShare",
+      "reviewedEditDistanceP50",
+      "autoSendReplyRate",
       "rejectionRate",
       "autoSendEnabled",
       "approvedCount",
@@ -38232,6 +38425,9 @@ export const OPENAPI_REDACTED_FIELDS = {
   ],
   "GET /api/integrations/events": [
     "events[].payload"
+  ],
+  "GET /api/voice/profile": [
+    "brief"
   ],
   "GET /api/voice": [
     "entries[].content"

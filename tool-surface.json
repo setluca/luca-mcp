@@ -131,7 +131,7 @@
         "openWorldHint": false
       },
       "inputSchema": "00d1a3822d450ced",
-      "outputSchema": "98abec7e9f20d072",
+      "outputSchema": "2cff398849780690",
       "meta": "b378caa8dc624177"
     },
     "luca_analytics_forecast": {
@@ -369,7 +369,7 @@
         "openWorldHint": false
       },
       "inputSchema": "b10990f1747e4f79",
-      "outputSchema": "499ed33e707930b5",
+      "outputSchema": "161ab483908a8ea5",
       "meta": "b378caa8dc624177"
     },
     "luca_approve_and_send": {
@@ -859,7 +859,7 @@
         "openWorldHint": false
       },
       "inputSchema": "6061a0f46ab87b2a",
-      "outputSchema": "35b3662a4e9bad01",
+      "outputSchema": "aa3435309144750c",
       "meta": "1b5a56c606a88080"
     },
     "luca_bookings_types_list": {
@@ -873,7 +873,7 @@
         "openWorldHint": false
       },
       "inputSchema": "3fbac634759b99de",
-      "outputSchema": "35b3662a4e9bad01",
+      "outputSchema": "aa3435309144750c",
       "meta": "b378caa8dc624177"
     },
     "luca_bookings_types_schedule": {
@@ -1278,7 +1278,7 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
-      "inputSchema": "4ba6c03eee2851de",
+      "inputSchema": "6061a0f46ab87b2a",
       "outputSchema": "4ad208b09d4a071b",
       "meta": "1b5a56c606a88080"
     },
@@ -1461,7 +1461,7 @@
         "openWorldHint": false
       },
       "inputSchema": "dc7a01bb373a77eb",
-      "outputSchema": "bb824277a88d0f4c",
+      "outputSchema": "edf47b722a7ba69c",
       "meta": "1b5a56c606a88080"
     },
     "luca_campaigns_simulations_get": {
@@ -1475,7 +1475,7 @@
         "openWorldHint": false
       },
       "inputSchema": "d75f995ea854d8e8",
-      "outputSchema": "bb824277a88d0f4c",
+      "outputSchema": "edf47b722a7ba69c",
       "meta": "b378caa8dc624177"
     },
     "luca_campaigns_simulations_list": {
@@ -1727,7 +1727,7 @@
         "openWorldHint": false
       },
       "inputSchema": "c3555e757deacd72",
-      "outputSchema": "e403a6e372ba176b",
+      "outputSchema": "f88fc5dff8bebe8d",
       "meta": "b378caa8dc624177"
     },
     "luca_conversations_list": {
@@ -2987,7 +2987,7 @@
         "openWorldHint": false
       },
       "inputSchema": "3fbac634759b99de",
-      "outputSchema": "feb04eb17a89d43b",
+      "outputSchema": "c30b2a19ba25da4f",
       "meta": "b378caa8dc624177"
     },
     "luca_webhooks_deliveries_list": {

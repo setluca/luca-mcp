@@ -5409,15 +5409,6 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "id"
       ]
-    },
-    "body": {
-      "type": "object",
-      "properties": {
-        "autoSend": {
-          "type": "boolean",
-          "default": false
-        }
-      }
     }
   },
   "POST /api/campaigns/{id}/publish": {

@@ -10,7 +10,7 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
-## [0.7.0] - 2026-11-05
+## [0.7.0] - 2026-11-06
 
 ### Breaking
 
@@ -18,6 +18,8 @@ input schema, or changing what a tool does to a workspace.
   so no call that worked is lost. `luca_usage_spend` is what remains for usage.
 - `luca_campaigns_generate` no longer takes `idempotencyKey`. The route no
   longer has one to dedupe, because it saves nothing.
+- `luca_campaigns_comment_simulation_suite_run` no longer takes `body`. Luca
+  removed `autoSend`, the only field it held.
 
 ### Added
 
@@ -80,11 +82,11 @@ input schema, or changing what a tool does to a workspace.
 
 ### Changed
 
-- Contracts are pinned to the Luca production release that serves
-  `luca_campaigns_generate` as a read. `luca_reports_scorecard` gains an optional
-  `period` query, `luca_conversations_list` gains `channels`, `unread`, and
-  `status` filters, and results across conversations, the review queue, bookings,
-  usage, and revenue gain fields.
+- Contracts are pinned to Luca `7c4c258`, the v0.9.1 production release, which
+  serves `luca_campaigns_generate` as a read. `luca_reports_scorecard` gains an
+  optional `period` query, `luca_conversations_list` gains `channels`, `unread`,
+  and `status` filters, and results across conversations, the review queue,
+  bookings, campaigns, voice, knowledge, usage, and revenue gain fields.
 - The ChatGPT package moves to `0.1.5` for the next resubmission. The hints on
   the coach-webhook tools and on the OpenRouter drafting and media retry tools
   do not change.

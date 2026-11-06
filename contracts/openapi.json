@@ -4997,6 +4997,24 @@
               "null"
             ]
           },
+          "uneditedShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "reviewedEditDistanceP50": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "autoSendReplyRate": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "rejectionRate": {
             "type": [
               "number",
@@ -5022,6 +5040,9 @@
           "window",
           "approvalRate",
           "editDistanceP50",
+          "uneditedShare",
+          "reviewedEditDistanceP50",
+          "autoSendReplyRate",
           "rejectionRate",
           "autoSendEnabled",
           "approvedCount",
@@ -7196,13 +7217,119 @@
               "string",
               "null"
             ]
+          },
+          "style": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "sampleCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "lengthChars": {
+                "type": "object",
+                "properties": {
+                  "p25": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "median": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "p75": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "p25",
+                  "median",
+                  "p75"
+                ]
+              },
+              "emojiRate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "capitalization": {
+                "type": "string",
+                "enum": [
+                  "lowercase",
+                  "sentence",
+                  "mixed"
+                ]
+              },
+              "questionRate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "contractionRate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "signOffRate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "dominantLanguage": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "en",
+                  "es",
+                  "pt-BR",
+                  "fr",
+                  "de",
+                  "it",
+                  "nl",
+                  "hi",
+                  "ja",
+                  "ko",
+                  "zh-CN",
+                  "ar",
+                  "tr",
+                  "vi",
+                  "pl",
+                  "th",
+                  null
+                ]
+              }
+            },
+            "required": [
+              "sampleCount",
+              "lengthChars",
+              "emojiRate",
+              "capitalization",
+              "questionRate",
+              "contractionRate",
+              "signOffRate",
+              "dominantLanguage"
+            ]
+          },
+          "brief": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-luca-sensitive": "null"
           }
         },
         "required": [
           "version",
           "personaSummary",
           "corpusExampleCount",
-          "lastRefreshedAt"
+          "lastRefreshedAt",
+          "style",
+          "brief"
         ]
       },
       "VoiceCorpusAddResponse": {
@@ -9828,6 +9955,14 @@
           "unansweredBeforeTrial": {
             "type": "integer",
             "minimum": 0
+          },
+          "demoDraftGone": {
+            "type": "boolean",
+            "default": false
+          },
+          "draftStepsBlocked": {
+            "type": "boolean",
+            "default": false
           }
         },
         "required": [
@@ -14951,6 +15086,12 @@
                     "null"
                   ]
                 },
+                "lastAttemptAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "createdAt": {
                   "type": "string"
                 }
@@ -14962,6 +15103,7 @@
                 "status",
                 "lastSyncedAt",
                 "lastError",
+                "lastAttemptAt",
                 "createdAt"
               ]
             }
@@ -15034,6 +15176,12 @@
               "null"
             ]
           },
+          "lastAttemptAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "createdAt": {
             "type": "string"
           }
@@ -15045,6 +15193,7 @@
           "status",
           "lastSyncedAt",
           "lastError",
+          "lastAttemptAt",
           "createdAt"
         ]
       },
@@ -16635,6 +16784,19 @@
           "updatedAt"
         ]
       },
+      "MemoryCreate": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
       "MemoryPatch": {
         "type": "object",
         "properties": {
@@ -17738,6 +17900,21 @@
                 "updatedAt"
               ]
             }
+          },
+          "unreadProviders": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "manual",
+                "calendly",
+                "cal_com",
+                "google_calendar",
+                "iclosed",
+                "gohighlevel"
+              ]
+            },
+            "default": []
           }
         },
         "required": [
@@ -26408,6 +26585,8 @@
                     "provider_whatsapp_interactive_unsupported",
                     "provider_whatsapp_template_quality_warning",
                     "provider_booking_connection_missing",
+                    "provider_booking_provider_mismatch",
+                    "provider_booking_provider_unset",
                     "provider_booking_degraded",
                     "provider_crm_connection_missing",
                     "provider_crm_scope_missing",
@@ -26475,6 +26654,8 @@
                     "provider_whatsapp_interactive_unsupported",
                     "provider_whatsapp_template_quality_warning",
                     "provider_booking_connection_missing",
+                    "provider_booking_provider_mismatch",
+                    "provider_booking_provider_unset",
                     "provider_booking_degraded",
                     "provider_crm_connection_missing",
                     "provider_crm_scope_missing",
@@ -27156,6 +27337,12 @@
           "draftGraphHash": {
             "type": "string"
           },
+          "simulatedFrom": {
+            "type": "string",
+            "enum": [
+              "draft"
+            ]
+          },
           "campaignVersionId": {
             "type": [
               "string",
@@ -27387,6 +27574,7 @@
           "createdAt",
           "updatedAt",
           "draftGraphHash",
+          "simulatedFrom",
           "campaignVersionId",
           "replayedEnrollmentId",
           "input",
@@ -27654,6 +27842,12 @@
                 "draftGraphHash": {
                   "type": "string"
                 },
+                "simulatedFrom": {
+                  "type": "string",
+                  "enum": [
+                    "draft"
+                  ]
+                },
                 "campaignVersionId": {
                   "type": [
                     "string",
@@ -27885,6 +28079,7 @@
                 "createdAt",
                 "updatedAt",
                 "draftGraphHash",
+                "simulatedFrom",
                 "campaignVersionId",
                 "replayedEnrollmentId",
                 "input",
@@ -27903,15 +28098,6 @@
           "cases",
           "simulations"
         ]
-      },
-      "CampaignCommentSimulationSuiteCreate": {
-        "type": "object",
-        "properties": {
-          "autoSend": {
-            "type": "boolean",
-            "default": false
-          }
-        }
       },
       "CampaignDraftUpdate": {
         "type": "object",
@@ -31915,6 +32101,10 @@
                 ]
               }
             ]
+          },
+          "isDemo": {
+            "type": "boolean",
+            "default": false
           }
         },
         "required": [
@@ -48694,7 +48884,7 @@
           "Voice"
         ],
         "summary": "Remove a voice corpus entry",
-        "description": "Removes one corpus entry. Drafts stop drawing on it after the next refresh.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
+        "description": "Removes one corpus entry. Drafts stop drawing on it after the next refresh. Returns 404 when the entry does not exist.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
         "parameters": [
           {
             "schema": {
@@ -48723,6 +48913,16 @@
           },
           "401": {
             "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -50882,7 +51082,7 @@
           "First run"
         ],
         "summary": "First-session state and Day-1 checklist for the trial coach",
-        "description": "One read for everything the Getting Started view needs. That's first-session state, the Day-1 checklist, plan and trial dates, the coach's niche for personalized copy, the demo lead's name, and sticky experiment variants. It also backfills experiment assignments for a coach who signed up before a test shipped.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
+        "description": "One read for everything the Getting Started view needs. That's first-session state, the Day-1 checklist, plan and trial dates, the coach's niche for personalized copy, the demo lead's name, whether any draft is waiting, and sticky experiment variants. It also backfills experiment assignments for a coach who signed up before a test shipped.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
         "responses": {
           "200": {
             "description": "ok",
@@ -56678,7 +56878,7 @@
           "Knowledge"
         ],
         "summary": "Connect a new knowledge source",
-        "description": "Registers a content source for the extraction pipeline to read. Sources start in `connected` status. The sync that produces suggestions runs on its own schedule, or on demand through the sync route.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
+        "description": "Registers a content source for the extraction pipeline to read. Sources start in `connected` status and a first sync is queued at once. A workspace has one Instagram bio source, so connecting it again returns the existing source. A repeat queues a sync only when that source has never synced or failed.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
         "requestBody": {
           "required": true,
           "content": {
@@ -58600,6 +58800,96 @@
           }
         ],
         "operationId": "getMemory"
+      },
+      "post": {
+        "tags": [
+          "Memory"
+        ],
+        "summary": "Add a long-term memory",
+        "description": "The coach tells Luca a fact in their own words. It is stored as a manual, coach-written memory about the coach, not a lead, and Luca recalls it in drafts like any other active memory. Adding words that match an active memory returns that memory instead of a copy.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemoryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryRow"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "operationId": "postMemory",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/LucaApiVersion"
+          }
+        ]
       }
     },
     "/api/memory/{id}": {
@@ -60066,7 +60356,7 @@
           "Booking types"
         ],
         "summary": "List managed booking types",
-        "description": "The call types the coach offers when Luca books through its own scheduler instead of an external provider.\n\n**API key scopes:** `bookings:read`.",
+        "description": "The call types the coach offers. Cal.com and Calendly event types are read from the connected account and listed here too. `unreadProviders` names any connected tool that could not be read, so its types may be behind.\n\n**API key scopes:** `bookings:read`.",
         "responses": {
           "200": {
             "description": "ok",
@@ -66801,7 +67091,7 @@
             }
           },
           "400": {
-            "description": "validation failed",
+            "description": "bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -66822,6 +67112,16 @@
           },
           "429": {
             "description": "rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
             "content": {
               "application/json": {
                 "schema": {
@@ -68213,16 +68513,6 @@
             "$ref": "#/components/parameters/LucaApiVersion"
           }
         ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CampaignCommentSimulationSuiteCreate"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "ok",
@@ -68441,7 +68731,7 @@
           "Campaigns"
         ],
         "summary": "Autosave a campaign draft",
-        "description": "Autosave for the draft editor. If someone else edited in the meantime you'll get a 409, so nobody's work gets quietly overwritten.\n\n**API key scopes:** `campaigns:write`. You also need an `Idempotency-Key` header.",
+        "description": "Autosave for the draft editor. Send `expectedDraftUpdatedAt` with the `draft.updatedAt` you last read: a request without it gets a 428 and writes nothing. If someone else edited in the meantime you'll get a 409, so nobody's work gets quietly overwritten.\n\n**API key scopes:** `campaigns:write`. You also need an `Idempotency-Key` header.",
         "parameters": [
           {
             "schema": {
@@ -68510,6 +68800,16 @@
           },
           "409": {
             "description": "conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "428": {
+            "description": "precondition required",
             "content": {
               "application/json": {
                 "schema": {
@@ -76953,7 +77253,7 @@
           "Channels"
         ],
         "summary": "Remove a channel account",
-        "description": "Disconnects the account if it is still connected and hides it from the channel list after provider cleanup completes. Instagram, Messenger, and Telegram history is deleted at disconnect; WhatsApp history remains available.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
+        "description": "Disconnects the account if it is still connected and hides it from the channel list right away. Provider cleanup that cannot finish stays queued and is reported as cleanup status queued. If the cleanup task cannot be saved, the account stays visible and the request fails with channel_cleanup_not_persisted. Removing an account that is already disconnected makes no provider call. A cleanup that is queued or running keeps its credentials, and so does an account whose credentials have no cleanup yet, which the recovery sweep cleans up; both report cleanup status queued. A dead-lettered cleanup is abandoned and its credentials are scrubbed. Instagram, Messenger, and Telegram history is deleted at disconnect; history that cannot be linked to the account is kept and sent to an operator. WhatsApp history remains available.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
         "parameters": [
           {
             "schema": {

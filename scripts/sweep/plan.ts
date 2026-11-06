@@ -1018,7 +1018,7 @@ const create: readonly SweepStep[] = [
   {
     tool: "luca_campaigns_comment_simulation_suite_run",
     phase: "create",
-    ...idFrom("campaign", () => ({ body: { autoSend: false } })),
+    ...idFrom("campaign"),
   },
   { tool: "luca_campaigns_duplicate", phase: "create", ...idFrom("campaign") },
   {
