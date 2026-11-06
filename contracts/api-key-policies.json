@@ -919,6 +919,15 @@
     "requireIdempotency": true
   },
   {
+    "id": "campaigns.enrollments.resume",
+    "method": "POST",
+    "path": "/api/campaigns/{id}/enrollments/{enrollmentId}/resume",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
     "id": "campaigns.enrollments.list",
     "method": "GET",
     "path": "/api/campaigns/{id}/enrollments",

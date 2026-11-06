@@ -39818,6 +39818,25 @@
         ],
         "title": "ErrorEnvelope",
         "description": "The response body of every failure, on every status. Branch on `error.code`; `error.message` is written for a human and can change. Quote `error.requestId` in a support ticket."
+      },
+      "CampaignEnrollmentResumeResponse": {
+        "type": "object",
+        "properties": {
+          "enrollmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "resumed": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "enrollmentId",
+          "resumed"
+        ]
       }
     },
     "parameters": {
@@ -67986,6 +68005,128 @@
           }
         ],
         "operationId": "getCampaignsByIdEnrollmentsByEnrollmentIdTimeline"
+      }
+    },
+    "/api/campaigns/{id}/enrollments/{enrollmentId}/resume": {
+      "post": {
+        "tags": [
+          "Campaigns"
+        ],
+        "summary": "Resume an enrollment a safety approval kept parked",
+        "description": "When the coach approves a safety review on a lead's reply, the lead's Campaign waits stay parked. Resuming takes the wait's \"lead replied\" path with that reply, so the Campaign sends its next step to the lead. Answers 409 when the enrollment is not kept parked, or has already moved on or timed out.\n\n**API key scopes:** `campaigns:write`. You also need an `Idempotency-Key` header.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path",
+            "description": "Identifier of the campaign this operation targets."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "enrollmentId",
+            "in": "path",
+            "description": "Identifier of the enrollment this operation targets."
+          },
+          {
+            "$ref": "#/components/parameters/LucaApiVersion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignEnrollmentResumeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": [
+              "campaigns:write"
+            ]
+          },
+          {
+            "bearerAuth": [
+              "campaigns:write"
+            ]
+          }
+        ],
+        "operationId": "postCampaignsByIdEnrollmentsByEnrollmentIdResume"
       }
     },
     "/api/campaigns/{id}": {

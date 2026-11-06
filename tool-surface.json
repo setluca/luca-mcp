@@ -1352,6 +1352,20 @@
       "outputSchema": "1f4c9392df0f3921",
       "meta": "b378caa8dc624177"
     },
+    "luca_campaigns_enrollments_resume": {
+      "title": "Resume an enrollment a safety approval kept paused",
+      "description": "Resume a campaign enrollment that stayed paused after the coach approved a safety review on the lead's reply. Use it once the coach has approved the review and decided the lead is ready for the campaign again. It sends the campaign's next message to the lead. Luca answers 404 when the enrollment does not exist. It answers 409 when the enrollment is not waiting on a safety approval, or when it has already moved on from its wait.\n\nLuca operation: POST /api/campaigns/{id}/enrollments/{enrollmentId}/resume\nRequired scopes: campaigns:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Resume an enrollment a safety approval kept paused",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "inputSchema": "ca861216d6eb3937",
+      "outputSchema": "9911f1a3dd6e4ce0",
+      "meta": "1b5a56c606a88080"
+    },
     "luca_campaigns_enrollments_timeline": {
       "title": "Read an enrollment timeline",
       "description": "Read every step one enrollment has been through: what got sent, when, and how the lead responded.\n\nLuca operation: GET /api/campaigns/{id}/enrollments/{enrollmentId}/timeline\nRequired scopes: campaigns:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",

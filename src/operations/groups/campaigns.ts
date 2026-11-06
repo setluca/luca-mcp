@@ -51,6 +51,15 @@ export const campaignsOperations: readonly LucaOperation[] = [
       "Enroll a lead in the latest published campaign version. Triggers the live campaign's automation for that lead.",
   }),
   op({
+    id: "campaigns.enrollments.resume",
+    title: "Resume an enrollment a safety approval kept paused",
+    openWorld: true,
+    mutatesExisting: true,
+    confirm: "always",
+    description:
+      "Resume a campaign enrollment that stayed paused after the coach approved a safety review on the lead's reply. Use it once the coach has approved the review and decided the lead is ready for the campaign again. It sends the campaign's next message to the lead. Luca answers 404 when the enrollment does not exist. It answers 409 when the enrollment is not waiting on a safety approval, or when it has already moved on from its wait.",
+  }),
+  op({
     id: "campaigns.analytics",
     title: "Read a campaign's results",
     description: "Read campaign attribution and performance analytics.",

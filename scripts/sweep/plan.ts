@@ -1417,6 +1417,20 @@ const change: readonly SweepStep[] = [
     args: (fx) => ({ id: fx.sweepCampaign, enrollmentId: fx.enrollment }),
   },
   {
+    tool: "luca_campaigns_enrollments_resume",
+    phase: "change",
+    gated: true,
+    needs: ["sweepCampaign", "enrollment"],
+    args: (fx) => ({ id: fx.sweepCampaign, enrollmentId: fx.enrollment }),
+    expect: {
+      kind: "refused",
+      because:
+        "The sweep's enrollment was never held by a safety review, so it is not kept paused.",
+      match:
+        /campaign_enrollment_not_kept_parked|not waiting on a safety approval/i,
+    },
+  },
+  {
     tool: "luca_campaigns_simulations_get",
     phase: "change",
     needs: ["campaign", "simulation"],

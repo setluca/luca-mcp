@@ -30,8 +30,8 @@ tier when that is higher.
 | ---------------- | --------------: | ---------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `luca:read`      |             107 |          7 | `analytics:read`, `bookings:read`, `broadcasts:read`, `call_events:read`, `campaigns:read`, `channels:read`, `coach:read`, `conversations:read`, `integrations:read`, `knowledge:read`, `leads:read`, `learning:read`, `memory:read`, `reports:read`, `review_queue:read`, `safety:read`, `usage:read`, `voice:read`, `webhooks:read` |
 | `luca:draft`     |             128 |          9 | `call_events:write`, `insights:write`, `leads:write`, `learning:write`, `memory:write`                                                                                                                                                                                                                                                |
-| `luca:queue_ops` |             190 |         15 | `bookings:write`, `broadcasts:write`, `cadences:write`, `campaigns:write`, `conversations:write`, `knowledge:write`, `review_queue:write`                                                                                                                                                                                             |
-| `luca:full`      |             208 |         15 | `channels:write`, `integrations:write`, `webhooks:write`                                                                                                                                                                                                                                                                              |
+| `luca:queue_ops` |             191 |         15 | `bookings:write`, `broadcasts:write`, `cadences:write`, `campaigns:write`, `conversations:write`, `knowledge:write`, `review_queue:write`                                                                                                                                                                                             |
+| `luca:full`      |             209 |         15 | `channels:write`, `integrations:write`, `webhooks:write`                                                                                                                                                                                                                                                                              |
 
 Two scopes grant no API scopes at all:
 
@@ -56,7 +56,7 @@ The middle column is the least-privilege answer.
 | `call_events:read`    | `luca:read`                    |     4 | Call Events                    |
 | `call_events:write`   | `luca:draft`                   |     6 | Call Events                    |
 | `campaigns:read`      | `luca:read`                    |    11 | Campaigns, Capabilities        |
-| `campaigns:write`     | `luca:queue_ops`               |     8 | Campaigns                      |
+| `campaigns:write`     | `luca:queue_ops`               |     9 | Campaigns                      |
 | `channels:read`       | `luca:read`                    |     4 | Channels                       |
 | `channels:write`      | `luca:full`                    |     1 | Channels                       |
 | `coach:read`          | `luca:read`                    |     8 | Coach                          |

@@ -870,6 +870,14 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": true
   },
+  "campaigns.enrollments.resume": {
+    "method": "POST",
+    "path": "/api/campaigns/{id}/enrollments/{enrollmentId}/resume",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "idempotencyRequired": true
+  },
   "campaigns.enrollments.list": {
     "method": "GET",
     "path": "/api/campaigns/{id}/enrollments",

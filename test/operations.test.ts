@@ -486,6 +486,7 @@ describe("operation manifest", () => {
     expect(sorted(Arr.dedupe(gated))).toEqual(
       sorted([
         "campaigns.enroll",
+        "campaigns.enrollments.resume",
         "broadcasts.launch",
         "broadcasts.resume",
         "broadcasts.retry",
@@ -729,6 +730,7 @@ describe("operation manifest", () => {
         "conversations.partial_send_retry",
         "reviewQueue.approve",
         "campaigns.enroll",
+        "campaigns.enrollments.resume",
         "campaigns.publish",
         "campaigns.setStatus",
         "broadcasts.launch",

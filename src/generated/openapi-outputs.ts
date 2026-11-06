@@ -16091,6 +16091,25 @@ export const OPENAPI_OUTPUTS = {
       "created"
     ]
   },
+  "POST /api/campaigns/{id}/enrollments/{enrollmentId}/resume": {
+    "type": "object",
+    "properties": {
+      "enrollmentId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "resumed": {
+        "type": "boolean",
+        "enum": [
+          true
+        ]
+      }
+    },
+    "required": [
+      "enrollmentId",
+      "resumed"
+    ]
+  },
   "GET /api/campaigns/{id}/enrollments": {
     "type": "object",
     "properties": {

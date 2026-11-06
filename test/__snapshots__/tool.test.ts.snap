@@ -97,6 +97,7 @@ exports[`tool auth metadata > pins the OAuth scope every tool asks for 1`] = `
   "luca_campaigns_duplicate": "luca:queue_ops",
   "luca_campaigns_enroll": "luca:queue_ops",
   "luca_campaigns_enrollments_list": "luca:read",
+  "luca_campaigns_enrollments_resume": "luca:queue_ops",
   "luca_campaigns_enrollments_timeline": "luca:read",
   "luca_campaigns_generate": "luca:draft",
   "luca_campaigns_get": "luca:read",

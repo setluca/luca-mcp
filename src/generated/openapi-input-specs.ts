@@ -5369,6 +5369,25 @@ export const OPENAPI_INPUT_SPECS = {
     },
     "bodyRequired": true
   },
+  "POST /api/campaigns/{id}/enrollments/{enrollmentId}/resume": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "enrollmentId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id",
+        "enrollmentId"
+      ]
+    }
+  },
   "GET /api/campaigns/{id}/enrollments": {
     "path": {
       "type": "object",
