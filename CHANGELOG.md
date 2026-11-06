@@ -36,18 +36,6 @@ input schema, or changing what a tool does to a workspace.
   same tokens `mcp.setluca.com` does, OAuth included, instead of developer keys
   only.
 
-### Changed
-
-- `luca_campaigns_draft_update` tells the agent to read the campaign first and
-  send its `draft.updatedAt` as `body.expectedDraftUpdatedAt`. An upcoming Luca
-  release refuses a draft save without it, with a 428, so an agent cannot
-  overwrite a coach's edits it never saw. The API already accepts the field, so
-  this works before that release too.
-- `luca_campaigns_generate` tells the agent that a new brief has to say where
-  leads come from, in `body.source` or `body.prompt`, and that a comment campaign
-  has to name its word in `body.prompt`. The same Luca release answers 400
-  without them. Briefs that follow this work before that release too.
-
 ### Fixed
 
 - `luca_campaigns_generate` reads as what it does: `readOnlyHint: true`,
@@ -112,6 +100,13 @@ input schema, or changing what a tool does to a workspace.
   optional `period` query, `luca_conversations_list` gains `channels`, `unread`,
   and `status` filters, and results across conversations, the review queue,
   bookings, campaigns, voice, knowledge, usage, and revenue gain fields.
+- `luca_campaigns_draft_update` tells the agent to read the campaign first and
+  send its `draft.updatedAt` as `body.expectedDraftUpdatedAt`. Luca now refuses a
+  draft save without it, with a 428, so an agent cannot overwrite a coach's edits
+  it never saw.
+- `luca_campaigns_generate` tells the agent that a new brief has to say where
+  leads come from, in `body.source` or `body.prompt`, and that a comment campaign
+  has to name its word in `body.prompt`. Luca now answers 400 without them.
 - The ChatGPT package moves to `0.1.5` for the next resubmission. The hints on
   the coach-webhook tools and on the OpenRouter drafting and media retry tools
   do not change.
