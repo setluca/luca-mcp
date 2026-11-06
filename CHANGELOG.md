@@ -20,6 +20,9 @@ input schema, or changing what a tool does to a workspace.
   longer has one to dedupe, because it saves nothing.
 - `luca_campaigns_comment_simulation_suite_run` no longer takes `body`. Luca
   removed `autoSend`, the only field it held.
+- `luca_bookings_types_list` needs `luca:draft`, up from `luca:read`, because
+  running it changes call types. New connections have both by default, so only a
+  read-only connection loses it.
 
 ### Added
 
@@ -42,6 +45,16 @@ input schema, or changing what a tool does to a workspace.
   the route as a read, with no audit row and no stored idempotency response, so
   it needs `campaigns:read` and `luca:draft` instead of `campaigns:write` and
   `luca:queue_ops`.
+- `luca_bookings_types_list` reads as what its route now does: `readOnlyHint:
+  false`, `destructiveHint: true`, `openWorldHint: true`, and the title "Sync and
+  list call types". Since Luca v0.8.0 the route copies event types from a
+  connected Cal.com or Calendly account into the coach's call types before it
+  answers, adding, updating, and switching them off. It was still marked as a
+  read that stays inside the workspace.
+- `luca_voice_profile` and the `luca://voice/profile` resource frame their output
+  as untrusted. Luca added a style brief that a model writes from the coach's
+  replies, which can quote leads. The text now names the brief and the measured
+  style, and a redacted-tier key reads the brief as null.
 - Six hints now match what their routes do, after every tool was compared with
   its handler:
   - `destructiveHint: true` on `luca_bookings_guest_links_create`, which

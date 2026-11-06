@@ -863,18 +863,18 @@
       "meta": "1b5a56c606a88080"
     },
     "luca_bookings_types_list": {
-      "title": "List call types",
-      "description": "List the call types a booking can use, with their duration and provider.\n\nLuca operation: GET /api/bookings/types\nRequired scopes: bookings:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "title": "Sync and list call types",
+      "description": "List the call types a booking can use, with their duration and provider, after copying in the event types of a connected Cal.com or Calendly account. A new event type gets a call type, a changed one updates its call type's name and duration, and one the account no longer lists has its call type switched off, not deleted. unreadProviders names any connected account that could not be read: its call types stay as they were and may be behind.\n\nLuca operation: GET /api/bookings/types\nRequired scopes: bookings:read\nRequired OAuth scope: luca:draft; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
-        "title": "List call types",
-        "readOnlyHint": true,
-        "destructiveHint": false,
+        "title": "Sync and list call types",
+        "readOnlyHint": false,
+        "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": false
+        "openWorldHint": true
       },
       "inputSchema": "3fbac634759b99de",
       "outputSchema": "aa3435309144750c",
-      "meta": "b378caa8dc624177"
+      "meta": "55ca42dc0cc1c859"
     },
     "luca_bookings_types_schedule": {
       "title": "Read a call type's schedule",
@@ -2978,7 +2978,7 @@
     },
     "luca_voice_profile": {
       "title": "Read the coach's voice fingerprint",
-      "description": "Read a non-verbatim voice-fingerprint summary: version, example count, and last refresh. No corpus text.\n\nLuca operation: GET /api/voice/profile\nRequired scopes: voice:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Read a non-verbatim voice-fingerprint summary: version, example count, last refresh, the measured style of the coach's replies, and the short brief Luca drafts from. A model writes the brief from those replies, and a redacted-tier key reads it as null. No corpus text.\n\nLuca operation: GET /api/voice/profile\nRequired scopes: voice:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Read the coach's voice fingerprint",
         "readOnlyHint": true,
@@ -2987,7 +2987,7 @@
         "openWorldHint": false
       },
       "inputSchema": "3fbac634759b99de",
-      "outputSchema": "c30b2a19ba25da4f",
+      "outputSchema": "22c83967a9e06555",
       "meta": "b378caa8dc624177"
     },
     "luca_webhooks_deliveries_list": {
@@ -3256,7 +3256,7 @@
       "uri": "luca://voice/profile",
       "name": "luca-voice-profile",
       "title": "Luca voice profile",
-      "description": "A non-verbatim summary of the coach's voice fingerprint: version, example count, and last refresh. No corpus text.",
+      "description": "A non-verbatim summary of the coach's voice fingerprint: version, example count, last refresh, measured style, and the brief Luca drafts from, which a redacted-tier key reads as null. No corpus text.",
       "mimeType": "application/json"
     }
   },

@@ -758,6 +758,7 @@ describe("operation manifest", () => {
         "bookings.availability",
         "bookings.managedAvailability",
         "bookings.providers.get",
+        "bookings.types.list",
         "bookings.update",
         "bookings.cancel",
         "bookings.providerSync.retry",
@@ -877,7 +878,21 @@ describe("operation manifest", () => {
         operation.mutatesExisting
     );
 
-    const reads = hints.filter(({ operation }) => operation.method === "GET");
+    const reads = hints.filter(
+      ({ operation }) =>
+        operation.method === "GET" && !operation.mutatesExisting
+    );
+
+    // A GET that changes existing records is rare enough to name. Luca copies
+    // Cal.com and Calendly event types over the call types when this one runs.
+    expect(
+      hints
+        .filter(
+          ({ operation }) =>
+            operation.method === "GET" && operation.mutatesExisting
+        )
+        .map(({ operation }) => operation.id)
+    ).toEqual(["bookings.types.list"]);
 
     Arr.forEach(mutating, ({ destructiveHint, operation }) => {
       expect([operation.id, destructiveHint]).toEqual([operation.id, true]);
@@ -949,6 +964,9 @@ describe("operation manifest", () => {
       "analytics.objections",
       "analytics.objectionDrilldown",
       "analytics.recommendations",
+      // The voice brief is written by a model handed the coach's replies, and
+      // Luca's own prompt treats those as untrusted because they can quote leads.
+      "voice.profile",
       // `ghostedLeads` carries top-killer cluster labels drawn from lead
       // messages. `needsOutcome` rows carry a lead's name, and every booking
       // record carries a cancellation reason the invitee may have written.
@@ -1381,6 +1399,8 @@ describe("operation manifest", () => {
         "callEvents.backfill",
         // Refreshes the same cached copy of the CRM schema.
         "integrations.crm.connections.schema",
+        // Copies in the same event types the connected tool lists.
+        "bookings.types.list",
       ])
     );
 

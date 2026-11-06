@@ -81,7 +81,7 @@ export const LUCA_RESOURCES: readonly LucaResourceDef[] = [
     name: "luca-voice-profile",
     title: "Luca voice profile",
     description:
-      "A non-verbatim summary of the coach's voice fingerprint: version, example count, and last refresh. No corpus text.",
+      "A non-verbatim summary of the coach's voice fingerprint: version, example count, last refresh, measured style, and the brief Luca drafts from, which a redacted-tier key reads as null. No corpus text.",
     operationId: "voice.profile",
     uri: "luca://voice/profile",
     buildInput: () => ({}),

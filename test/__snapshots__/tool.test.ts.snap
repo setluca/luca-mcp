@@ -62,7 +62,7 @@ exports[`tool auth metadata > pins the OAuth scope every tool asks for 1`] = `
   "luca_bookings_types_attendees_remove": "luca:queue_ops",
   "luca_bookings_types_create": "luca:queue_ops",
   "luca_bookings_types_delete": "luca:queue_ops",
-  "luca_bookings_types_list": "luca:read",
+  "luca_bookings_types_list": "luca:draft",
   "luca_bookings_types_schedule": "luca:read",
   "luca_bookings_types_schedule_replace": "luca:queue_ops",
   "luca_bookings_types_update": "luca:queue_ops",

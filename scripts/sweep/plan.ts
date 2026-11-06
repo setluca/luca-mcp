@@ -458,12 +458,14 @@ const discover: readonly SweepStep[] = [
     provides: {
       bookingUpcoming: firstOf("bookings", slotIs("future")),
       bookingCompleted: firstOf("bookings", slotIs("past")),
+      // luca_bookings_types_list can write, so it cannot run in discovery. The
+      // seeded bookings name the seeded call type.
+      bookingType: firstOf(
+        "bookings",
+        (item) => P.isString(item.bookingTypeId),
+        "bookingTypeId"
+      ),
     },
-  },
-  {
-    tool: "luca_bookings_types_list",
-    phase: "discover",
-    provides: { bookingType: firstOf("bookingTypes") },
   },
   {
     tool: "luca_bookings_calendars_list",
@@ -1287,6 +1289,7 @@ const change: readonly SweepStep[] = [
       body: { label: "Sweep reason (edited)" },
     })),
   },
+  { tool: "luca_bookings_types_list", phase: "change" },
   {
     tool: "luca_bookings_types_update",
     phase: "change",

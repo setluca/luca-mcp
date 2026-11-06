@@ -49,9 +49,17 @@ export const bookingsOperations: readonly LucaOperation[] = [
   }),
   op({
     id: "bookings.types.list",
-    title: "List call types",
+    title: "Sync and list call types",
+    // Before it answers, this GET copies Cal.com and Calendly event types over
+    // the coach's call types. A repeat copies the same list, so it is
+    // idempotent, and a read-only connection must not be able to run it.
+    readOnly: false,
+    mutatesExisting: true,
+    idempotent: true,
+    openWorld: true,
+    capability: "draft",
     description:
-      "List the call types a booking can use, with their duration and provider.",
+      "List the call types a booking can use, with their duration and provider, after copying in the event types of a connected Cal.com or Calendly account. A new event type gets a call type, a changed one updates its call type's name and duration, and one the account no longer lists has its call type switched off, not deleted. unreadProviders names any connected account that could not be read: its call types stay as they were and may be behind.",
   }),
   op({
     id: "bookings.types.schedule",

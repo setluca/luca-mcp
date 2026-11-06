@@ -320,7 +320,9 @@ not: nothing it touches existed before the call.
 `src/tool-profile.ts` owns the rule and both kinds of Luca tool read it from
 there. A catalog-wide test asserts that every `DELETE`, `PATCH`, and `PUT` tool
 reads destructive and every `GET` does not, so a new mutating route cannot ship
-announcing itself as safe.
+announcing itself as safe. The test names the one exception:
+`luca_bookings_types_list`, whose `GET` copies Cal.com and Calendly event types
+over the coach's call types before it answers.
 
 ### `idempotentHint` and `openWorldHint`
 

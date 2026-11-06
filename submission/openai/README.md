@@ -67,6 +67,9 @@ read-only. Package `0.1.5` is the resubmission. The same release:
   workspace switch, which an API key or OAuth token no longer does;
 - corrects 37 tools, six of them hints, after every tool was compared with its
   Luca handler (see the changelog);
+- marks `luca_bookings_types_list` as a write that reaches outside the workspace,
+  and raises it to `luca:draft`: since Luca v0.8.0, reading the list copies Cal.com
+  and Calendly event types into the coach's call types;
 - keeps `openWorldHint` true on the tools that fire the coach's webhooks and on
   the OpenRouter drafting and media retry tools, which also stay
   `destructiveHint` true.

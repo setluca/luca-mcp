@@ -730,14 +730,14 @@
     },
     "luca_bookings_types_list": {
       "annotations": {
-        "readOnlyHint": true,
-        "openWorldHint": false,
-        "destructiveHint": false
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Only reads the call types a booking can use, with duration and provider, from the coach's SetLuca workspace; it creates, changes, and deletes nothing.",
-        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Only reads the call types a booking can use, with duration and provider, from the coach's SetLuca workspace, so it overwrites and deletes nothing."
+        "read_only_justification": "Copies event types from the coach's connected Cal.com or Calendly account into their SetLuca call types before listing them. It adds new ones, updates changed ones, and switches off ones the account no longer lists.",
+        "open_world_justification": "Reads event types from the coach's connected Cal.com and Calendly accounts. It writes nothing to those accounts.",
+        "destructive_justification": "Overwrites a call type's name and duration when its event type changed on Cal.com or Calendly, and switches off a call type the account no longer lists, unless it is the coach's default. It deletes nothing, and a type the account lists again switches back on."
       }
     },
     "luca_bookings_types_schedule": {
@@ -2547,7 +2547,7 @@
         "destructiveHint": false
       },
       "justifications": {
-        "read_only_justification": "Only reads a summary of the coach's voice fingerprint (version, example count, last refresh), with no corpus text; it changes nothing.",
+        "read_only_justification": "Only reads a summary of the coach's voice fingerprint (version, example count, last refresh, measured style, and the brief Luca drafts from), with no corpus text; it changes nothing.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
         "destructive_justification": "Only reads; it overwrites and deletes nothing."
       }

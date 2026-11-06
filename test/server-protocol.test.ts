@@ -243,6 +243,8 @@ describe("MCP protocol", () => {
         false
       ),
       luca_campaigns_generate: hint(true, false, true, false),
+      // Copies Cal.com and Calendly event types over the coach's call types.
+      luca_bookings_types_list: hint(false, true, true, true),
       luca_leads_identities_attach: hint(false, true, false, true),
       luca_review_queue_reject: hint(false, true, false, true),
       luca_review_queue_bulk_reject: hint(false, true, true, true),
@@ -357,6 +359,8 @@ describe("MCP protocol", () => {
               personaSummary: "2 approved voice example(s) shaping drafts",
               corpusExampleCount: 2,
               lastRefreshedAt: "2026-07-01T00:00:00.000Z",
+              style: null,
+              brief: "Keeps replies to one or two lines.",
             }
           : { ok: true }
       )
@@ -378,8 +382,8 @@ describe("MCP protocol", () => {
     };
 
     expect(parsed.result?.corpusExampleCount).toBe(2);
-    // Read-only summary — not lead-authored, so no untrusted framing.
-    expect(parsed.provenance).toBeUndefined();
+    // A model writes the brief from replies that can quote leads, so it is framed.
+    expect(parsed.provenance).toBeDefined();
   });
 
   it("answers a read of a missing record as resource-not-found", async () => {
