@@ -72,7 +72,12 @@ tool before a directory reviewer tests it (LUC-515). Run it only against the
 **sweep workspace**: a production workspace seeded with synthetic records, with
 a Google calendar connected on a SetLuca-owned account and no connected channel
 or CRM. Never run it against a coach's workspace or the reviewer workspaces,
-because write tools change what they touch.
+because write tools change what they touch. Before any other call, the sweep reads
+the account behind its key or sign-in and stops unless it is `sweep@setluca.com`.
+
+Create that workspace once, through the normal sign-up as `sweep@setluca.com`:
+finish onboarding, then connect the Google calendar. Make its developer keys only
+after that, while signed in as that account.
 
 The seed lives in setluca/luca (`scripts/seed-sweep-workspace.ts`). Run it
 again after a sweep to put back what the sweep used up.

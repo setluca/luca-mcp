@@ -202,6 +202,16 @@ key_reaches_server() {
     --header "Authorization: Bearer $1" --method tools/list --format json >/dev/null 2>&1
 }
 
+# key_is_sweep_account KEY: true when the key belongs to the sweep account. A sweep
+# calls every write tool on the key's workspace, so the wrong account is a real risk.
+key_is_sweep_account() {
+  local profile
+  profile=$(bunx mcp-inspector --cli --server-url "$HOSTED_SERVER" --transport http \
+    --header "Authorization: Bearer $1" --method tools/call --tool-name luca_coach_profile \
+    --tool-args-json '{}' --format json 2>/dev/null) || return 1
+  [[ "$profile" =~ \"email\":[[:space:]]*\"sweep@setluca\.com\" ]]
+}
+
 banner "MCP drift checks setup"
 
 stage "Check your tools"
@@ -209,6 +219,8 @@ say "This sets up the credentials for the live tool check, the scheduled sweep,"
 say "and the contract sync. No secret is written to disk or shown on screen."
 say "You need admin access to $MCP_REPO and $LUCA_REPO, and the sign-in for"
 say "sweep@setluca.com."
+say "That workspace has to exist first: sign up as sweep@setluca.com, finish onboarding,"
+say "and connect a Google calendar on a SetLuca-owned account. Connect no channel or CRM."
 if ! command -v gh >/dev/null 2>&1 || ! gh auth status >/dev/null 2>&1; then
   warn "gh is missing or signed out. Run 'gh auth login', then start again."
   exit 1
@@ -291,11 +303,11 @@ else
   warn "The live check key could not list tools on $HOSTED_SERVER."
   SKIPPED+=("Check the LUCA_MCP_LIVE_KEY key")
 fi
-if key_reaches_server "$LUCA_SWEEP_API_KEY"; then
-  say "The sweep key reaches the hosted server."
+if key_is_sweep_account "$LUCA_SWEEP_API_KEY"; then
+  say "The sweep key belongs to sweep@setluca.com."
 else
-  warn "The sweep key could not list tools on $HOSTED_SERVER."
-  SKIPPED+=("Check the LUCA_SWEEP_API_KEY key")
+  warn "The sweep key does not belong to sweep@setluca.com, or could not read its profile."
+  SKIPPED+=("Revoke the 'MCP sweep' key and make a new one signed in as sweep@setluca.com, then: gh secret set LUCA_SWEEP_API_KEY --repo $LUCA_REPO")
 fi
 pause "Press Enter to finish"
 
