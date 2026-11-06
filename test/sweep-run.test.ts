@@ -5,6 +5,7 @@ import {
   auditRowsOf,
   judgeAuditLog,
   hostedConnection,
+  workspaceRefusal,
 } from "../scripts/sweep/run.ts";
 import type { JsonValue } from "../src/serialization.ts";
 
@@ -16,6 +17,37 @@ const answered = (result: JsonValue): InspectorOutcome => ({
   output: { result: { structuredContent: { result } } },
   error: undefined,
   text: "",
+});
+
+describe("the sweep's workspace check", () => {
+  const coach = "someone@example.com";
+
+  it("lets only the sweep account through", () => {
+    expect(
+      workspaceRefusal(answered({ email: "sweep@setluca.com" }))
+    ).toBeUndefined();
+    expect(workspaceRefusal(answered({ email: coach }))).toContain(
+      "does not belong to sweep@setluca.com"
+    );
+  });
+
+  it("leaves out whose account it found, because CI logs keep it", () => {
+    expect(workspaceRefusal(answered({ email: coach }))).not.toContain(coach);
+  });
+
+  it("refuses when it cannot tell whose account it is", () => {
+    const unreadable = "could not read which account this is";
+
+    expect(
+      workspaceRefusal({
+        ...answered({ email: "sweep@setluca.com" }),
+        exitCode: 5,
+      })
+    ).toContain(unreadable);
+    expect(workspaceRefusal(answered({ error: "nope" }))).toContain(
+      "does not belong to sweep@setluca.com"
+    );
+  });
 });
 
 describe("the sweep's read-only audit check", () => {
