@@ -14,6 +14,7 @@ import { clearToolBuildCache } from "../src/tool-cache.ts";
 import { toolProfile } from "../src/tool-profile.ts";
 import { registerTool, type ToolSurface } from "../src/tool.ts";
 import { parseJsonRecord } from "./helpers.ts";
+import { encodeUnknownJson } from "./json.ts";
 
 const stubLayer = Layer.succeed(LucaApi, {
   request: () => Effect.succeed({ ok: true }),
@@ -396,6 +397,104 @@ function failingWith(status: number, body: unknown) {
       ),
   });
 }
+
+describe("luca_campaigns_draft_update and the version it replaces", () => {
+  const draftUpdate = () => operationByToolName("luca_campaigns_draft_update");
+
+  const toolInput = {
+    body: {
+      expectedDraftUpdatedAt: "2026-11-05T10:00:00.000Z",
+      graph: { edges: [], nodes: [], startNodeId: "trigger", version: 1 },
+    },
+    id: "campaign-1",
+  };
+
+  // Luca refuses a save without this field, and nothing in the input schema can
+  // say so: the API checks it, so the field stays optional in the contract. The
+  // description is the only place an agent learns it has to send one.
+  it("tells the agent to read the version and send it", () => {
+    const { description } = capture(draftUpdate()).config;
+
+    expect(description).toContain("luca_campaigns_get");
+    expect(description).toContain("draft.updatedAt");
+    expect(description).toContain("body.expectedDraftUpdatedAt");
+  });
+
+  it("points at a tool that exists", () => {
+    expect(operationByToolName("luca_campaigns_get").readOnly).toBe(true);
+  });
+
+  it("sends the version the agent passed", () => {
+    expect(draftUpdate().buildRequest(toolInput).body).toEqual(toolInput.body);
+  });
+
+  // The API says what to do next, so the agent has to see its answer whole.
+  it.each([
+    [
+      428,
+      "campaign_draft_precondition_required",
+      "send expectedDraftUpdatedAt, the draft.updatedAt you last read",
+    ],
+    [409, "campaign_draft_conflict", "this draft changed since you read it"],
+  ])("relays the API's %i to the agent", async (status, code, message) => {
+    const result = await capture(
+      draftUpdate(),
+      failingWith(status, { error: { code, message } })
+    ).handler(toolInput);
+
+    expect(result).toMatchObject({ isError: true });
+
+    const text = encodeUnknownJson(result);
+
+    expect(text).toContain(String(status));
+    expect(text).toContain(code);
+    expect(text).toContain(message);
+  });
+});
+
+describe("luca_campaigns_generate and what a new brief has to name", () => {
+  const generate = () => operationByToolName("luca_campaigns_generate");
+
+  const toolInput = {
+    body: {
+      mode: "new",
+      prompt: "Check in with leads who asked about prices.",
+      source: "instagram_dm",
+    },
+  };
+
+  // Luca refuses a new brief that names neither, and the input schema cannot
+  // say so: source stays optional because a prompt can name it instead.
+  it("tells the agent a brief has to say where leads come from", () => {
+    const { description } = capture(generate()).config;
+
+    expect(description).toContain("body.source");
+    expect(description).toContain("body.prompt");
+    expect(description).toContain('comment "GUIDE"');
+    expect(description).toContain("400");
+  });
+
+  it("sends the source the agent passed", () => {
+    expect(generate().buildRequest(toolInput).body).toEqual(toolInput.body);
+  });
+
+  it("relays the API's 400 to the agent", async () => {
+    const message =
+      "Say how people reach you, a comment on a post or a DM, or pick it from the list.";
+
+    const result = await capture(
+      generate(),
+      failingWith(400, { error: { code: "validation_error", message } })
+    ).handler(toolInput);
+
+    expect(result).toMatchObject({ isError: true });
+
+    const text = encodeUnknownJson(result);
+
+    expect(text).toContain("400");
+    expect(text).toContain(message);
+  });
+});
 
 const RESOURCE_METADATA_URL =
   "https://mcp.example.com/.well-known/oauth-protected-resource/mcp";

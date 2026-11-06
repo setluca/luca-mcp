@@ -26,12 +26,13 @@ export const campaignsOperations: readonly LucaOperation[] = [
     // nothing.
     readOnly: true,
     description:
-      "Build a campaign plan from a brief with fixed rules, not an AI model. Nothing is created or published: create the draft from the plan, review it, and publish it yourself.",
+      'Build a campaign plan from a brief with fixed rules, not an AI model. Nothing is created or published: create the draft from the plan, review it, and publish it yourself. A new brief has to say where leads come from: set body.source, or say it in body.prompt, for example a comment on a post or a DM. A comment campaign also has to name the word people comment in body.prompt, for example comment "GUIDE". If either is missing, Luca answers 400 and says what to add.',
   }),
   op({
     id: "campaigns.draft.update",
     title: "Edit a campaign draft",
-    description: "Autosave a campaign draft.",
+    description:
+      "Save a campaign draft. Read the campaign with luca_campaigns_get first and send its draft.updatedAt as body.expectedDraftUpdatedAt, so this cannot overwrite an edit made since. Without that field Luca refuses the call with a 428. If the draft has changed since you read it, Luca answers 409: read the campaign again and reapply your change.",
   }),
   op({
     id: "campaigns.enrollments.list",
