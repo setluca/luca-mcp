@@ -1,11 +1,14 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
 import { parseArgs } from "node:util";
 
 import * as Arr from "effect/Array";
 import * as DateTime from "effect/DateTime";
 import * as Match from "effect/Match";
+import * as Option from "effect/Option";
 import * as Order from "effect/Order";
+import * as Schema from "effect/Schema";
 
 import { LUCA_OPERATIONS } from "../../src/operations/catalog.ts";
 import { LUCA_PROMPTS } from "../../src/prompts.ts";
@@ -16,15 +19,16 @@ import {
   type JsonValue,
 } from "../../src/serialization.ts";
 import { LUCA_TASK_TOOLS } from "../../src/task-tools.ts";
-import { isEntryPoint } from "../lib/script.ts";
 import {
   CALL_LIMIT_MS,
   INSPECTOR_EXIT,
   type InspectorAuth,
+  type InspectorConnection,
   type InspectorOutcome,
   type InspectorRequest,
   runInspector,
-} from "./inspector.ts";
+} from "../lib/inspector.ts";
+import { isEntryPoint } from "../lib/script.ts";
 import {
   type ApiBody,
   type Capture,
@@ -32,6 +36,7 @@ import {
   type Expectation,
   type Fixture,
   type Fixtures,
+  isReadStep,
   SCOPE_REFUSAL,
   SWEEP_PHASES,
   SWEEP_PLAN,
@@ -45,9 +50,11 @@ const USAGE = `Usage: bun run sweep -- [options]
 
 Calls every SetLuca MCP tool, resource, and prompt through the MCP Inspector CLI
 and reports each against the outcome the plan expects. Sign in once in the web
-Inspector first (see docs/inspector.md); every call reuses that stored token.
+Inspector first (see docs/inspector.md); every call reuses that stored token. Set
+LUCA_SWEEP_API_KEY to sign in with a developer key instead, as CI does.
 
   --server-url <url>   MCP server (default https://mcp.setluca.com/mcp)
+  --stdio              Sweep this checkout's build instead; needs LUCA_SWEEP_API_KEY
   --webhook-url <url>  SetLuca-owned URL webhook steps deliver to
   --only <tools>       Comma-separated tool names; discovery always runs
   --scope-check        Signed in with a read-only grant: every write must be refused
@@ -72,7 +79,7 @@ type CheckResult = Judgement & {
 };
 
 type RunOptions = {
-  readonly serverUrl: string;
+  readonly connection: InspectorConnection;
   readonly webhookUrl: string;
   readonly only: ReadonlySet<string> | undefined;
   readonly scopeCheck: boolean;
@@ -165,22 +172,52 @@ function judge(outcome: InspectorOutcome, expect: Expectation): Judgement {
 }
 
 /**
- * Sends requests one at a time. The first call refreshes the stored sign-in,
+ * How a run reaches the hosted server: with `LUCA_SWEEP_API_KEY` when it is set,
+ * and otherwise with the sign-in the web Inspector stored.
+ */
+export function hostedConnection(
+  serverUrl: string,
+  apiKey: string | undefined
+): InspectorConnection {
+  return apiKey === undefined || apiKey === ""
+    ? { kind: "oauth", serverUrl, auth: "refresh" }
+    : { kind: "bearer", serverUrl, token: apiKey };
+}
+
+/** What a report names as the server it swept. */
+function sweptTarget(connection: InspectorConnection): string {
+  return connection.kind === "stdio"
+    ? "this checkout's build"
+    : connection.serverUrl;
+}
+
+/**
+ * Sends requests one at a time. On a stored sign-in the first call refreshes it,
  * the rest reuse it, and a call refused for auth retries once after a refresh.
  */
-function makeCaller(serverUrl: string) {
+function makeCaller(connection: InspectorConnection) {
+  if (connection.kind !== "oauth") {
+    return (request: InspectorRequest): Promise<InspectorOutcome> =>
+      runInspector(connection, request);
+  }
+
+  const signedIn = (auth: InspectorAuth): InspectorConnection => ({
+    ...connection,
+    auth,
+  });
+
   let refreshed = false;
 
   return async (request: InspectorRequest): Promise<InspectorOutcome> => {
     const auth: InspectorAuth = refreshed ? "stored" : "refresh";
-    const outcome = await runInspector(serverUrl, request, auth);
+    const outcome = await runInspector(signedIn(auth), request);
 
     if (!refreshed && outcome.exitCode !== INSPECTOR_EXIT.authRequired) {
       refreshed = true;
     }
 
     if (auth === "stored" && outcome.exitCode === INSPECTOR_EXIT.authRequired) {
-      return runInspector(serverUrl, request, "refresh");
+      return runInspector(signedIn("refresh"), request);
     }
 
     return outcome;
@@ -215,9 +252,8 @@ function effectiveExpectation(
   scopeCheck: boolean
 ): Expectation {
   const expect = step.expect ?? { kind: "ok" };
-  const isWrite = step.phase !== "discover" && step.phase !== "read";
 
-  if (!scopeCheck || !isWrite || expect.kind === "pending") {
+  if (!scopeCheck || isReadStep(step) || expect.kind === "pending") {
     return expect;
   }
 
@@ -525,7 +561,7 @@ function markdownReport(
   return [
     `# SetLuca MCP tool sweep, ${DateTime.formatIso(ctx.now)}`,
     "",
-    `Server: ${options.serverUrl}${scope}`,
+    `Server: ${sweptTarget(options.connection)}${scope}`,
     "",
     summaryLine(summarize(results)),
     "",
@@ -546,6 +582,7 @@ function readOptions(argv: readonly string[]): RunOptions {
         default: "https://mcp.setluca.com/sweep/webhook",
       },
       only: { type: "string" },
+      stdio: { type: "boolean", default: false },
       "scope-check": { type: "boolean", default: false },
       "dry-run": { type: "boolean", default: false },
       "report-dir": { type: "string", default: "sweep-reports" },
@@ -558,8 +595,17 @@ function readOptions(argv: readonly string[]): RunOptions {
     process.exit(0);
   }
 
+  const apiKey = process.env.LUCA_SWEEP_API_KEY;
+
+  if (values.stdio && (apiKey === undefined || apiKey === "")) {
+    console.error("--stdio needs a developer key in LUCA_SWEEP_API_KEY");
+    process.exit(2);
+  }
+
   return {
-    serverUrl: values["server-url"],
+    connection: values.stdio
+      ? { kind: "stdio", apiKey }
+      : hostedConnection(values["server-url"], apiKey),
     webhookUrl: values["webhook-url"],
     only:
       values.only === undefined ? undefined : new Set(values.only.split(",")),
@@ -617,7 +663,7 @@ function writeReport(
     join(options.reportDir, `sweep-${stamp}.json`),
     JSON.stringify(
       {
-        serverUrl: options.serverUrl,
+        server: sweptTarget(options.connection),
         scopeCheck: options.scopeCheck,
         startedAt: DateTime.formatIso(ctx.now),
         counts: summarize(results),
@@ -631,6 +677,71 @@ function writeReport(
   writeFileSync(markdownPath, markdownReport(options, ctx, results));
 
   return markdownPath;
+}
+
+/** Luca writes an audit row just after the response, so give it time to land. */
+const AUDIT_SETTLE_MS = 3000;
+
+const AuditLogPage = Schema.Struct({
+  items: Schema.Array(
+    Schema.Struct({ id: Schema.String, action: Schema.String })
+  ),
+});
+
+type AuditRows = (typeof AuditLogPage.Type)["items"];
+
+const decodeAuditLogPage = Schema.decodeUnknownOption(AuditLogPage);
+
+/** The rows an audit log read returned, or nothing when it can't be read. */
+export function auditRowsOf(outcome: InspectorOutcome): AuditRows | undefined {
+  return outcome.exitCode === INSPECTOR_EXIT.ok
+    ? Option.getOrUndefined(decodeAuditLogPage(apiBody(outcome)))?.items
+    : undefined;
+}
+
+/**
+ * Only rows an API key wrote, which covers the sweep's own calls. Luca's background
+ * jobs write rows too, as `system`, and those say nothing about a tool.
+ */
+function readNewestAuditRow(call: Caller): Promise<InspectorOutcome> {
+  return call({
+    method: "tools/call",
+    name: "luca_coach_audit_log",
+    args: { query: { limit: 1, actorType: "api_key" }, maxPages: 1 },
+  });
+}
+
+/** Whether the read-only phases left the audit log as they found it. */
+export function judgeAuditLog(
+  before: AuditRows | undefined,
+  after: AuditRows | undefined
+): CheckResult {
+  const base = {
+    phase: "read",
+    target: "luca_coach_audit_log",
+    check: "read-only tools",
+    expected: "no new audit row",
+  };
+
+  if (before === undefined || after === undefined) {
+    return {
+      ...base,
+      verdict: "fail",
+      note: "could not read the audit log, so the read-only phases went unchecked",
+    };
+  }
+
+  return before[0]?.id === after[0]?.id
+    ? {
+        ...base,
+        verdict: "pass",
+        note: "the newest audit row did not change",
+      }
+    : {
+        ...base,
+        verdict: "fail",
+        note: `a tool marked read-only changed the audit log: ${after[0]?.action ?? "it is now empty"}`,
+      };
 }
 
 export async function runSweep(options: RunOptions): Promise<number> {
@@ -650,16 +761,39 @@ export async function runSweep(options: RunOptions): Promise<number> {
     return 0;
   }
 
-  const call = makeCaller(options.serverUrl);
+  const call = makeCaller(options.connection);
+
   const fixtures: FoundFixtures = {};
   const results: CheckResult[] = [];
 
-  for (const step of steps) {
-    for (const result of await runStep(step, call, fixtures, ctx, options)) {
-      results.push(result);
-      printResult(result);
+  const runSteps = async (selected: readonly SweepStep[]) => {
+    for (const step of selected) {
+      for (const result of await runStep(step, call, fixtures, ctx, options)) {
+        results.push(result);
+        printResult(result);
+      }
     }
-  }
+  };
+
+  const reads = steps.filter(isReadStep);
+  const writes = steps.filter((step) => !isReadStep(step));
+  const auditBefore = auditRowsOf(await readNewestAuditRow(call));
+
+  await runSteps(reads);
+
+  // Every tool in these phases is marked read-only, and sweep-plan.test.ts holds
+  // the plan to that, so a new row here means one of them is not.
+  await sleep(AUDIT_SETTLE_MS);
+
+  const auditCheck = judgeAuditLog(
+    auditBefore,
+    auditRowsOf(await readNewestAuditRow(call))
+  );
+
+  results.push(auditCheck);
+  printResult(auditCheck);
+
+  await runSteps(writes);
 
   if (options.only === undefined && !options.scopeCheck) {
     for (const surface of SWEEP_SURFACES) {

@@ -866,6 +866,10 @@ export const OPENAPI_INPUT_SPECS = {
             "whatsapp"
           ]
         },
+        "channels": {
+          "type": "string",
+          "minLength": 1
+        },
         "channelAccountId": {
           "type": "string",
           "format": "uuid"
@@ -881,6 +885,21 @@ export const OPENAPI_INPUT_SPECS = {
         "leadId": {
           "type": "string",
           "format": "uuid"
+        },
+        "unread": {
+          "type": "string",
+          "enum": [
+            "true",
+            "false"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "needs-input",
+            "luca",
+            "you"
+          ]
         }
       }
     }
@@ -5390,15 +5409,6 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "id"
       ]
-    },
-    "body": {
-      "type": "object",
-      "properties": {
-        "autoSend": {
-          "type": "boolean",
-          "default": false
-        }
-      }
     }
   },
   "POST /api/campaigns/{id}/publish": {
@@ -5887,6 +5897,29 @@ export const OPENAPI_INPUT_SPECS = {
         "failedOnly": {
           "type": "boolean",
           "default": true
+        }
+      }
+    }
+  },
+  "POST /api/broadcasts/{id}/resume": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }
@@ -6684,7 +6717,6 @@ export const OPENAPI_INPUT_SPECS = {
       }
     }
   },
-  "GET /api/usage/messages": {},
   "GET /api/account-safety": {},
   "GET /api/channels": {},
   "GET /api/channels/catalog": {},
@@ -6730,7 +6762,20 @@ export const OPENAPI_INPUT_SPECS = {
     "bodyRequired": true
   },
   "GET /api/reports/morning": {},
-  "GET /api/reports/scorecard": {},
+  "GET /api/reports/scorecard": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "period": {
+          "type": "string",
+          "enum": [
+            "last_7_days",
+            "this_month"
+          ]
+        }
+      }
+    }
+  },
   "GET /api/insights/unread-count": {},
   "POST /api/insights/{id}/read": {
     "path": {

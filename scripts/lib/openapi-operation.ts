@@ -34,6 +34,7 @@ export type OpenApiParameter = typeof OpenApiParameter.Type;
 
 /** The parts of one OpenAPI operation the scripts read, with references inlined. */
 const OpenApiOperation = Schema.Struct({
+  description: Schema.optional(Schema.String),
   parameters: Schema.optional(Schema.Array(OpenApiParameter)),
   requestBody: Schema.optional(OpenApiBody),
   responses: Schema.optional(Schema.Record(Schema.String, OpenApiBody)),

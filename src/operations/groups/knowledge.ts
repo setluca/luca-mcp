@@ -36,6 +36,6 @@ export const knowledgeOperations: readonly LucaOperation[] = [
     idempotent: true,
     mutatesExisting: true,
     description:
-      "Delete a knowledge source. Its pending suggestions go with it; values the coach already approved stay in the profile, because approving copies them there.",
+      "Delete a knowledge source and every suggestion it produced, whatever their status; values the coach already approved stay in the profile, because approving copies them there.",
   }),
 ];

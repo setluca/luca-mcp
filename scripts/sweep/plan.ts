@@ -174,6 +174,11 @@ export type SurfaceStep =
     }
   | { readonly method: "prompts/get"; readonly name: string };
 
+/** Steps in these phases call only read-only tools, which a test holds them to. */
+export function isReadStep(step: SweepStep): boolean {
+  return step.phase === "discover" || step.phase === "read";
+}
+
 // ---------------------------------------------------------------------------
 // Reading values out of API bodies.
 
@@ -453,12 +458,14 @@ const discover: readonly SweepStep[] = [
     provides: {
       bookingUpcoming: firstOf("bookings", slotIs("future")),
       bookingCompleted: firstOf("bookings", slotIs("past")),
+      // luca_bookings_types_list can write, so it cannot run in discovery. The
+      // seeded bookings name the seeded call type.
+      bookingType: firstOf(
+        "bookings",
+        (item) => P.isString(item.bookingTypeId),
+        "bookingTypeId"
+      ),
     },
-  },
-  {
-    tool: "luca_bookings_types_list",
-    phase: "discover",
-    provides: { bookingType: firstOf("bookingTypes") },
   },
   {
     tool: "luca_bookings_calendars_list",
@@ -647,6 +654,19 @@ const read: readonly SweepStep[] = [
   },
   { tool: "luca_campaigns_analytics", phase: "read", ...idFrom("campaign") },
   {
+    tool: "luca_campaigns_generate",
+    phase: "read",
+    args: () => ({
+      body: {
+        mode: "new",
+        prompt:
+          "A short check-in campaign for leads who asked about coaching prices.",
+        // Luca is about to refuse a new brief that names no source.
+        source: "instagram_dm",
+      },
+    }),
+  },
+  {
     tool: "luca_campaigns_provider_capabilities",
     phase: "read",
     ...idFrom("campaign"),
@@ -684,7 +704,6 @@ const read: readonly SweepStep[] = [
   { tool: "luca_coach_post_call_deal_sync", phase: "read" },
   { tool: "luca_coach_audit_log", phase: "read" },
   { tool: "luca_usage_spend", phase: "read" },
-  { tool: "luca_usage_messages", phase: "read" },
   { tool: "luca_safety_accounts", phase: "read" },
   { tool: "luca_channels_catalog", phase: "read" },
   { tool: "luca_channels_features", phase: "read" },
@@ -991,17 +1010,6 @@ const create: readonly SweepStep[] = [
     provides: { sweepCampaign: valueAt("id") },
   },
   {
-    tool: "luca_campaigns_generate",
-    phase: "create",
-    args: () => ({
-      body: {
-        mode: "new",
-        prompt:
-          "A short check-in campaign for leads who asked about coaching prices.",
-      },
-    }),
-  },
-  {
     tool: "luca_campaigns_simulations_create",
     phase: "create",
     ...idFrom("campaign", () => ({
@@ -1012,7 +1020,7 @@ const create: readonly SweepStep[] = [
   {
     tool: "luca_campaigns_comment_simulation_suite_run",
     phase: "create",
-    ...idFrom("campaign", () => ({ body: { autoSend: false } })),
+    ...idFrom("campaign"),
   },
   { tool: "luca_campaigns_duplicate", phase: "create", ...idFrom("campaign") },
   {
@@ -1281,6 +1289,7 @@ const change: readonly SweepStep[] = [
       body: { label: "Sweep reason (edited)" },
     })),
   },
+  { tool: "luca_bookings_types_list", phase: "change" },
   {
     tool: "luca_bookings_types_update",
     phase: "change",
@@ -1431,6 +1440,17 @@ const change: readonly SweepStep[] = [
     tool: "luca_broadcasts_pause",
     phase: "change",
     ...idFrom("sweepBroadcast", () => ({ body: { reason: "Sweep check" } })),
+  },
+  {
+    tool: "luca_broadcasts_resume",
+    phase: "change",
+    gated: true,
+    ...idFrom("sweepBroadcast"),
+    expect: {
+      kind: "refused",
+      because: "the sweep paused this broadcast by hand, not billing",
+      match: /broadcast_not_billing_paused|billing paused/i,
+    },
   },
   {
     tool: "luca_broadcasts_retry",

@@ -38,11 +38,10 @@ export { requiredScopeForPolicy } from "./route-policies/policy";
 const PLATFORM_LIMIT_EXEMPT_PATHS = [
   /^\/api\/billing(?:\/|$)/,
   /^\/api\/copilot\/settings(?:\/|$)/,
-  /^\/api\/copilot\/packs(?:\/|$)/,
   /^\/api\/usage(?:\/|$)/,
   /^\/api\/capabilities(?:\/|$)/,
-  /^\/api\/workspaces\/?$/,
-  /^\/api\/members\/invitations\/[^/]+\/(accept|decline)\/?$/,
+  /^\/api\/workspaces(\/overview)?\/?$/,
+  /^\/api\/members\/invitations\/[^/]+(\/(accept|decline))?\/?$/,
 ];
 
 /**

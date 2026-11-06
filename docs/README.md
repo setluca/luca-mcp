@@ -30,6 +30,7 @@ short checklist for agents working in this repository.
 | Release npm and the Worker               | [Release](./release.md)                         |
 | Understand the hosted endpoint and OAuth | [Remote transport](./remote.md)                 |
 | Update MCP registry metadata             | [Registry listing](./registry.md)               |
+| Audit tool claims before a submission    | [Tool audit](./runbooks/tool-audit.md)          |
 | List the connector in a directory        | [Connector directory](./connector-directory.md) |
 
 The decisions behind the current design live in [ADRs](./adr/). Operational

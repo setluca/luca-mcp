@@ -888,9 +888,8 @@
     "method": "POST",
     "path": "/api/campaigns/generate",
     "scopes": [
-      "campaigns:write"
-    ],
-    "requireIdempotency": true
+      "campaigns:read"
+    ]
   },
   {
     "id": "campaigns.draft.update",
@@ -1044,6 +1043,15 @@
     "id": "broadcasts.retry",
     "method": "POST",
     "path": "/api/broadcasts/{id}/retry",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "broadcasts.resume",
+    "method": "POST",
+    "path": "/api/broadcasts/{id}/resume",
     "scopes": [
       "broadcasts:write"
     ],
@@ -1364,14 +1372,6 @@
     "id": "usage.spend",
     "method": "GET",
     "path": "/api/usage",
-    "scopes": [
-      "usage:read"
-    ]
-  },
-  {
-    "id": "usage.messages",
-    "method": "GET",
-    "path": "/api/usage/messages",
     "scopes": [
       "usage:read"
     ]

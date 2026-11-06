@@ -487,6 +487,7 @@ describe("operation manifest", () => {
       sorted([
         "campaigns.enroll",
         "broadcasts.launch",
+        "broadcasts.resume",
         "broadcasts.retry",
         "webhooks.deliveries.replay",
         "webhooks.events.replay",
@@ -731,13 +732,16 @@ describe("operation manifest", () => {
         "campaigns.publish",
         "campaigns.setStatus",
         "broadcasts.launch",
+        "broadcasts.resume",
         "broadcasts.retry",
         "cadences.rescueStart",
         "conversations.reply_failure_retry",
         "reviewQueue.bulkApprove",
         // A restarted draft goes back through the channel's auto-send policy,
-        // and the switch decides whether Luca's replies skip review at all.
+        // and the switch decides whether Luca's replies skip review at all. A
+        // timed pause restarts drafting by itself when it ends.
         "leads.drafting.resume",
+        "leads.drafting.pause",
         "reviewQueue.drafting.retry",
         "reviewQueue.regenerate",
         "channels.set_ai_dm_auto_send",
@@ -754,6 +758,7 @@ describe("operation manifest", () => {
         "bookings.availability",
         "bookings.managedAvailability",
         "bookings.providers.get",
+        "bookings.types.list",
         "bookings.update",
         "bookings.cancel",
         "bookings.providerSync.retry",
@@ -765,7 +770,6 @@ describe("operation manifest", () => {
         "callEvents.pushToCrm",
         "callEvents.summary.generate",
         "callEvents.backfill",
-        "integrations.crm.connections.webhooksSetup",
         // The coach's webhook subscribers, which hear about the change.
         "leads.create",
         "leads.update",
@@ -794,7 +798,8 @@ describe("operation manifest", () => {
     // own webhook subscribers hear about, a summary that reaches the CRM only
     // after its review window, a voice note sent for transcription, and a
     // conversation sent to the drafting model are open-world without being a
-    // write Luca cannot take back.
+    // write Luca cannot take back. Nor is a timed pause: when it ends, Luca only
+    // resumes what it would have done without the pause.
     const ungated = LUCA_OPERATIONS.filter(
       (operation) =>
         operation.method !== "GET" &&
@@ -815,6 +820,7 @@ describe("operation manifest", () => {
             "conversations.media_retry",
             "reviewQueue.media.retry",
             "leads.draft",
+            "leads.drafting.pause",
           ],
           operation.id
         ) &&
@@ -872,7 +878,21 @@ describe("operation manifest", () => {
         operation.mutatesExisting
     );
 
-    const reads = hints.filter(({ operation }) => operation.method === "GET");
+    const reads = hints.filter(
+      ({ operation }) =>
+        operation.method === "GET" && !operation.mutatesExisting
+    );
+
+    // A GET that changes existing records is rare enough to name. Luca copies
+    // Cal.com and Calendly event types over the call types when this one runs.
+    expect(
+      hints
+        .filter(
+          ({ operation }) =>
+            operation.method === "GET" && operation.mutatesExisting
+        )
+        .map(({ operation }) => operation.id)
+    ).toEqual(["bookings.types.list"]);
 
     Arr.forEach(mutating, ({ destructiveHint, operation }) => {
       expect([operation.id, destructiveHint]).toEqual([operation.id, true]);
@@ -917,6 +937,7 @@ describe("operation manifest", () => {
       "broadcasts.approve",
       "broadcasts.launch",
       "broadcasts.pause",
+      "broadcasts.resume",
       "broadcasts.retry",
       "broadcasts.cancel",
       // CRM rows and webhook bodies hold contact fields people other than the
@@ -943,6 +964,9 @@ describe("operation manifest", () => {
       "analytics.objections",
       "analytics.objectionDrilldown",
       "analytics.recommendations",
+      // The voice brief is written by a model handed the coach's replies, and
+      // Luca's own prompt treats those as untrusted because they can quote leads.
+      "voice.profile",
       // `ghostedLeads` carries top-killer cluster labels drawn from lead
       // messages. `needsOutcome` rows carry a lead's name, and every booking
       // record carries a cancellation reason the invitee may have written.
@@ -1375,6 +1399,8 @@ describe("operation manifest", () => {
         "callEvents.backfill",
         // Refreshes the same cached copy of the CRM schema.
         "integrations.crm.connections.schema",
+        // Copies in the same event types the connected tool lists.
+        "bookings.types.list",
       ])
     );
 
@@ -1383,6 +1409,14 @@ describe("operation manifest", () => {
       readOnlyHint: true,
       destructiveHint: false,
       idempotentHint: true,
+    });
+    // A POST only so the brief fits in a body. OpenAI rejects a tool that says
+    // nothing is created while marked as a write.
+    expect(annotationsOf(getOperation("campaigns.generate"))).toMatchObject({
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
     });
     expect(annotationsOf(getOperation("leads.create"))).toMatchObject({
       idempotentHint: false,

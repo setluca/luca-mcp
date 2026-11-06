@@ -30,8 +30,9 @@ export const channelsOperations: readonly LucaOperation[] = [
   op({
     id: "channels.set_ai_dm_auto_send",
     title: "Turn auto-send on or off for a channel",
-    // Turning it on lets Luca's replies reach leads without review, on this
-    // account and on every other account whose own switch is on.
+    // Turning it on lets Luca's replies reach leads on this account without
+    // review, while the workspace switch is on. An API key leaves that switch
+    // as it was.
     openWorld: true,
     confirm: {
       applies: (input) =>
@@ -40,6 +41,6 @@ export const channelsOperations: readonly LucaOperation[] = [
         "enabled is true (lets Luca's replies reach leads without review)",
     },
     description:
-      "Turn Luca's DM auto-send on or off for one channel account. Off puts every Luca draft on that account in the review queue. On lets drafts that pass Luca's safety checks send without review, and also turns on the workspace switch, so every other account with its own switch on starts sending too. Campaign sends follow their own policy. WhatsApp and disconnected accounts answer 404.",
+      "Turn Luca's DM auto-send on or off for one channel account. Off puts every Luca draft on that account in the review queue. On lets drafts that pass Luca's safety checks send without review while the workspace switch is also on; this tool leaves that switch as it was. Campaign sends follow their own policy. WhatsApp and disconnected accounts answer 404.",
   }),
 ];

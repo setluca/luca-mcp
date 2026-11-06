@@ -2,7 +2,7 @@
 
 `luca-mcp/` is the source for the OpenAI portal upload of SetLuca's remote MCP
 server. The ZIP holds that directory as its single root. From this directory,
-build it with `zip -r luca-mcp-0.1.4.zip luca-mcp`. The icon is the public
+build it with `zip -r luca-mcp-0.1.5.zip luca-mcp`. The icon is the public
 SetLuca wordmark, the same file as `setluca.com/android-chrome-512x512.png`.
 No credentials or challenge token belong in the package. `mcp.json` declares
 OAuth with a client ID metadata document (`extensions["com.openai"].auth`),
@@ -55,6 +55,25 @@ signing in again, and moving `0.1.4` into review did not clear it, so it is
 OpenAI's to explain. If review raises it, give OpenAI support the app ID
 `asdk_app_6ac4983d2bd08191a746893a52c91ef9` and the failed run IDs on LUC-319.
 
+OpenAI rejected package `0.1.4` on or around November 5, 2026 for another
+annotation mismatch. A re-audit of `0.6.0` (LUC-618) found
+`luca_campaigns_generate` marked as a write while its description said nothing
+is created. Luca now serves that route as a read, and MCP `0.7.0` marks it
+read-only. Package `0.1.5` is the resubmission. The same release:
+
+- syncs the contracts to Luca production, which removes `luca_usage_messages`
+  and adds `luca_broadcasts_resume`, so the JSON still lists 223 tools;
+- stops `luca_channels_set_ai_dm_auto_send` claiming that it turns on the
+  workspace switch, which an API key or OAuth token no longer does;
+- corrects 37 tools, six of them hints, after every tool was compared with its
+  Luca handler (see the changelog);
+- marks `luca_bookings_types_list` as a write that reaches outside the workspace,
+  and raises it to `luca:draft`: since Luca v0.8.0, reading the list copies Cal.com
+  and Calendly event types into the coach's call types;
+- keeps `openWorldHint` true on the tools that fire the coach's webhooks and on
+  the OpenRouter drafting and media retry tools, which also stay
+  `destructiveHint` true.
+
 OpenAI verified `mcp.setluca.com` on October 6, 2026. The business publisher is
 `SetLuca, LLC`, status Approved.
 
@@ -85,11 +104,18 @@ the test cases allow for either.
 
 ## Resubmit
 
-1. Deploy the MCP release that `chatgpt-app-submission.json` matches, and
-   check `/.well-known/mcp/server-card.json` reports it.
+Run the [handler audit](../../docs/runbooks/tool-audit.md) first. A rejection costs
+about two weeks, and OpenAI's email does not say which tool it flagged.
+
+1. Deploy the Luca release the contract pin names, then the MCP release that
+   `chatgpt-app-submission.json` matches, and check
+   `/.well-known/mcp/server-card.json` reports it. The release workflow compares the
+   live tool list with the release; `bun run surface:live` repeats that by hand.
 2. Build the ZIP above and upload it. The portal shows the package version.
 3. Under **MCPs**, run **Scan Tools** (or **Rescan**) and confirm it finds
-   every tool with the hints in the JSON.
+   every tool with the hints in the JSON. A scan from before the deploy can
+   still expect a removed tool, such as `luca_knowledge_approve_suggestion` or
+   `luca_usage_messages`, so always rescan after deploying.
 4. Import `chatgpt-app-submission.json` if the form offers it. Otherwise enter
    each tool's three justifications from it.
 5. In **Review details**, confirm the reviewer credentials from Infisical.

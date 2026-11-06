@@ -55,8 +55,9 @@ access; local checks cannot read the GitHub environment secrets.
    instead, as 0.3.0 and 0.5.0 did, and the changelog lists it under Breaking.
 2. Refresh `contracts/` from the Luca commit currently deployed. Run
    `bun run contracts:sync --repo /path/to/luca --deployed --write`,
-   then `bun run openapi:generate` and `bun run docs:generate`. Review the
-   generated diff. The API allowlist and OpenAPI snapshot must come from the
+   then `bun run openapi:generate`, `bun run docs:generate`, `bun run build`, and
+   `bun run surface:generate`. Review the generated diff, and
+   `bun run contracts:report` for what each route change means for its tool. The API allowlist and OpenAPI snapshot must come from the
    same Luca commit. `contracts/source.json` records their hashes, and `verify`
    requires the commit and OpenAPI document to match Luca production.
 3. Run `bun run verify`, `bun run deploy:dry-run`, and `npm pack --dry-run`.
@@ -64,6 +65,17 @@ access; local checks cannot read the GitHub environment secrets.
    `CHANGELOG.md`, `LICENSE`, and `package.json`.
 4. Merge the release pull request after `Verify MCP` passes. Tag the resulting
    commit on `main` as `mcp-vX.Y.Z`, matching `package.json`, and push the tag.
+
+The tag first sweeps the build in setluca/luca and publishes only if that passes.
+After the Worker deploys, the workflow compares the live tool list with
+`tool-surface.json` before it publishes to the registry.
+
+The live Claude listing follows the deploy, with no resubmission. If a tool was
+added, removed, or renamed, also edit the tool names on the listing, which a
+reviewer approves
+([Anthropic's guide](https://claude.com/docs/connectors/building/after-publishing)).
+It does not say whether changing a hint or a description needs review, so recheck
+the listing after each release that does.
 
 The release workflow skips npm publication when that version already exists,
 which allows an Actions rerun to finish a partial release. After deploying, it

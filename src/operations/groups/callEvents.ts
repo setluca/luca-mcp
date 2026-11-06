@@ -92,7 +92,7 @@ export const callEventsOperations: readonly LucaOperation[] = [
     mutatesExisting: true,
     untrustedContent: true,
     description:
-      "Clear a mistaken attendance mark and put the call back in the queue. The window is 48 hours from when the outcome was set.",
+      "Clear a mistaken attendance mark and put the call back in the queue. Undoing a no_show also stops its recovery and rejects any recovery drafts waiting for review. The window is 48 hours from when the outcome was set.",
   }),
   op({
     id: "callEvents.backfill",

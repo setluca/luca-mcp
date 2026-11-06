@@ -6,6 +6,7 @@ import * as R from "effect/Record";
 import * as Schema from "effect/Schema";
 import { describe, expect, it, onTestFinished } from "vitest";
 
+import { LUCA_OPERATIONS } from "../src/operations/catalog.ts";
 import { connect } from "./helpers.ts";
 
 /**
@@ -129,7 +130,125 @@ async function listedTools() {
   return tools;
 }
 
+type SubmissionTool = typeof Tool.Type;
+
+type ToolText = "description" | keyof SubmissionTool["justifications"];
+
+const ALL_TEXT: readonly ToolText[] = [
+  "description",
+  "read_only_justification",
+  "open_world_justification",
+  "destructive_justification",
+];
+
+/**
+ * Wording that contradicts a tool's hints, which is what OpenAI's review
+ * rejects. Each phrase is one we have written by mistake or could copy from a
+ * neighboring tool, so this catches known patterns, not every contradiction.
+ */
+const CONTRADICTIONS: readonly {
+  readonly rule: string;
+  readonly hint: keyof SubmissionTool["annotations"];
+  readonly when: boolean;
+  readonly in: readonly ToolText[];
+  readonly phrase: RegExp;
+}[] = [
+  {
+    rule: "a write says it saves nothing",
+    hint: "readOnlyHint",
+    when: false,
+    in: ALL_TEXT,
+    phrase:
+      /\bnothing is (?:created|saved)\b|\b(?:creates|saves) nothing\b|\bthe only write\b/iu,
+  },
+  {
+    rule: "a write justifies itself as a read",
+    hint: "readOnlyHint",
+    when: false,
+    in: ["read_only_justification"],
+    phrase: /^only reads\b/iu,
+  },
+  {
+    rule: "a read justifies itself as a write",
+    hint: "readOnlyHint",
+    when: true,
+    in: ["read_only_justification"],
+    phrase:
+      /^(?:creates?|updates?|changes?|deletes?|removes?|writes?|sends?|records?|saves?|overwrites?)\b/iu,
+  },
+  {
+    rule: "a closed-world tool says it reaches outside",
+    hint: "openWorldHint",
+    when: false,
+    in: ["description", "read_only_justification", "destructive_justification"],
+    phrase: /\bopenrouter\b|\blanguage model\b|\bwebhook subscribers\b/iu,
+  },
+  {
+    rule: "an open-world tool says it stays inside",
+    hint: "openWorldHint",
+    when: true,
+    in: ["open_world_justification"],
+    phrase: /^stays inside\b/iu,
+  },
+  {
+    rule: "a destructive tool says it loses nothing",
+    hint: "destructiveHint",
+    when: true,
+    in: ["destructive_justification"],
+    phrase: /\boverwrites and deletes nothing\b/iu,
+  },
+  {
+    rule: "a non-destructive tool says it loses something",
+    hint: "destructiveHint",
+    when: false,
+    in: ["destructive_justification"],
+    phrase:
+      /^(?:overwrites|deletes|removes|permanently)\b|\bcannot be (?:undone|unsent|recalled)\b/iu,
+  },
+];
+
 describe("OpenAI app submission", () => {
+  it("says nothing its hints contradict", async () => {
+    const tools = await listedTools();
+
+    const descriptions = R.fromEntries(
+      tools.map((tool) => [tool.name, tool.description ?? ""])
+    );
+
+    const contradictions = R.toEntries(submission.tools).flatMap(
+      ([name, tool]) => {
+        const text = {
+          description: descriptions[name] ?? "",
+          ...tool.justifications,
+        };
+
+        return CONTRADICTIONS.flatMap((contradiction) =>
+          tool.annotations[contradiction.hint] === contradiction.when &&
+          contradiction.in.some((field) =>
+            contradiction.phrase.test(text[field])
+          )
+            ? [`${name}: ${contradiction.rule}`]
+            : []
+        );
+      }
+    );
+
+    expect(contradictions).toEqual([]);
+  });
+
+  it("keeps a read-only tool off write scopes and idempotency keys", () => {
+    // A tool's description prints its route's scopes and idempotency rule, so
+    // a reviewer reads them right beside readOnlyHint.
+    expect(
+      LUCA_OPERATIONS.filter(
+        (operation) =>
+          operation.readOnly &&
+          (operation.idempotencyRequired ||
+            operation.scopes.some((scope) => scope.endsWith(":write")))
+      ).map((operation) => operation.toolName)
+    ).toEqual([]);
+  });
+
   it("justifies every listed tool and no other", async () => {
     const tools = await listedTools();
 

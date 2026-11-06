@@ -5,6 +5,41 @@ identity changes.
 
 ## Drift checks
 
+Each of these catches a different way for what we say to stop being true:
+
+| Check                                     | Runs                                            | Fails when                                                                        |
+| ----------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------- |
+| `bun run schema:strict`                   | `verify`                                        | A tool schema is one a client would refuse or mangle                              |
+| `bun run surface:check`                   | `verify`                                        | The build, in either protocol era, differs from `tool-surface.json`               |
+| `test/openai-submission.test.ts`          | `verify`                                        | A hint differs from the submission, or text uses wording that contradicts a hint  |
+| `bun run contracts:deployed:check`        | `verify`, daily, and before each deploy         | The Luca pin or OpenAPI snapshot differs from production                          |
+| `bun run surface:live`                    | After each deploy, and daily                    | The hosted server, in either protocol era, differs from its release               |
+| `bun run sweep`                           | Weekly and before each release, in setluca/luca | A tool does not do what the plan expects, or a read-only tool writes an audit row |
+| [Handler audit](./runbooks/tool-audit.md) | Before each directory submission                | A hint or a claim does not match what the handler does                            |
+
+None of the automatic checks can tell whether a hint is true of the handler,
+because they compare what we wrote with other things we wrote. The sweep comes
+closest, and only for audit rows. That is what the audit is for. Moving hints into
+Luca's route policy, where a test can hold them to the route, is the fix for that.
+
+A scheduled check that fails opens one GitHub issue, and closes it when it passes
+again. `scripts/setup-drift-checks.sh` sets up the keys and tokens these need; run it
+again to rotate one. Until then the checks that need one skip with a warning.
+
+### The tool surface
+
+`tool-surface.json` is what the server tells a client, as the MCP Inspector CLI
+reads it: every tool's hints, title, and description, hashes of its schemas, and the
+prompts, resources, and server instructions. A change to any of them shows up in the
+pull request that makes it. After an intended change:
+
+```bash
+bun run build
+bun run surface:generate
+```
+
+### The Luca contract
+
 The server depends on Luca's public API contract.
 
 `contracts/source.json` pins the exact commit reported by Luca production's
@@ -14,12 +49,22 @@ deployed API, then check the local digests. The live OpenAPI and snapshot are
 compared as JSON because their formatting differs. A Luca release can change
 production without changing `master` at the same moment, and a rollback can
 move it back.
-To refresh after a deployed release or rollback, use a local Luca checkout:
+Each production deploy of Luca opens a pull request here with the contracts it now
+serves (`.github/workflows/mcp-contract-sync.yml` in setluca/luca). If nothing a tool
+exposes changed, it merges itself once `verify` passes. Otherwise its body lists each
+changed route next to its tool, and a person has to compare the route's new text with
+the tool's hints and text, because a route can change what it does while only its
+description says so.
+
+To refresh by hand after a deployed release or rollback, use a local Luca checkout:
 
 ```bash
 bun run contracts:sync --repo /path/to/luca --deployed --write
 bun run openapi:generate
 bun run docs:generate
+bun run build
+bun run surface:generate
+bun run contracts:report
 bun run verify
 ```
 

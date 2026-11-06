@@ -842,9 +842,9 @@ export const ROUTE_CATALOG = {
     "method": "POST",
     "path": "/api/campaigns/generate",
     "scopes": [
-      "campaigns:write"
+      "campaigns:read"
     ],
-    "idempotencyRequired": true
+    "idempotencyRequired": false
   },
   "campaigns.draft.update": {
     "method": "PATCH",
@@ -985,6 +985,14 @@ export const ROUTE_CATALOG = {
   "broadcasts.retry": {
     "method": "POST",
     "path": "/api/broadcasts/{id}/retry",
+    "scopes": [
+      "broadcasts:write"
+    ],
+    "idempotencyRequired": true
+  },
+  "broadcasts.resume": {
+    "method": "POST",
+    "path": "/api/broadcasts/{id}/resume",
     "scopes": [
       "broadcasts:write"
     ],
@@ -1289,14 +1297,6 @@ export const ROUTE_CATALOG = {
   "usage.spend": {
     "method": "GET",
     "path": "/api/usage",
-    "scopes": [
-      "usage:read"
-    ],
-    "idempotencyRequired": false
-  },
-  "usage.messages": {
-    "method": "GET",
-    "path": "/api/usage/messages",
     "scopes": [
       "usage:read"
     ],

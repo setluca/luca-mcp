@@ -477,7 +477,7 @@ function operationGroupForId(id: LucaOperationId): LucaOperationGroup {
  * tools are named the same way, and one casing across the list is what
  * clients and models see.
  */
-function toolNameFor(id: LucaRouteId) {
+export function toolNameFor(id: string) {
   return `luca_${id.split(".").map(Str.camelToSnake).join("_")}`;
 }
 

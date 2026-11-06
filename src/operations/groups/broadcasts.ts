@@ -62,15 +62,26 @@ export const broadcastsOperations: readonly LucaOperation[] = [
     description: "Pause a running broadcast with an optional operator reason.",
   }),
   op({
-    id: "broadcasts.retry",
-    title: "Retry a broadcast's failed sends",
+    id: "broadcasts.resume",
+    title: "Resume a broadcast billing paused",
     openWorld: true,
     mutatesExisting: true,
     confirm: "always",
     // Recipient snapshot, see the note above this list.
     untrustedContent: true,
     description:
-      "Retry failed broadcast recipients after operator review. Re-sends messages to leads.",
+      "Resume a broadcast that billing paused, after buying a pack or updating the card. Sends the remaining messages to live leads; recipients already sent are left alone. A broadcast paused by hand is resumed with luca_broadcasts_retry instead.",
+  }),
+  op({
+    id: "broadcasts.retry",
+    title: "Retry or resume a broadcast",
+    openWorld: true,
+    mutatesExisting: true,
+    confirm: "always",
+    // Recipient snapshot, see the note above this list.
+    untrustedContent: true,
+    description:
+      "Retry failed broadcast recipients after operator review, or resume a broadcast paused by hand, which also sends to recipients not yet reached. Sends messages to leads.",
   }),
   op({
     id: "broadcasts.cancel",
