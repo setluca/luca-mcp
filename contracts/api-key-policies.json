@@ -270,6 +270,14 @@
     ]
   },
   {
+    "id": "reviewQueue.keptCampaigns",
+    "method": "GET",
+    "path": "/api/review-queue/{id}/kept-campaigns",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
     "id": "reviewQueue.explain",
     "method": "GET",
     "path": "/api/review-queue/{id}/explain",

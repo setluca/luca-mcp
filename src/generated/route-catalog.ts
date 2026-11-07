@@ -262,6 +262,14 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": false
   },
+  "reviewQueue.keptCampaigns": {
+    "method": "GET",
+    "path": "/api/review-queue/{id}/kept-campaigns",
+    "scopes": [
+      "review_queue:read"
+    ],
+    "idempotencyRequired": false
+  },
   "reviewQueue.explain": {
     "method": "GET",
     "path": "/api/review-queue/{id}/explain",

@@ -1586,6 +1586,20 @@ export const OPENAPI_INPUT_SPECS = {
       }
     }
   },
+  "GET /api/review-queue/{id}/kept-campaigns": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
   "GET /api/review-queue/{id}/explain": {
     "path": {
       "type": "object",

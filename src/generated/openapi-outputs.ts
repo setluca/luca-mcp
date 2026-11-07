@@ -2529,6 +2529,9 @@ export const OPENAPI_OUTPUTS = {
                 "enum": [
                   "open"
                 ]
+              },
+              "openedAt": {
+                "type": "string"
               }
             },
             "required": [
@@ -2567,6 +2570,28 @@ export const OPENAPI_OUTPUTS = {
               "reason"
             ]
           }
+        ]
+      },
+      "followUpSkip": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "at": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "messaging_window_closed"
+            ]
+          }
+        },
+        "default": null,
+        "required": [
+          "at",
+          "reason"
         ]
       },
       "isDemo": {
@@ -3193,6 +3218,9 @@ export const OPENAPI_OUTPUTS = {
                 "enum": [
                   "open"
                 ]
+              },
+              "openedAt": {
+                "type": "string"
               }
             },
             "required": [
@@ -3816,6 +3844,20 @@ export const OPENAPI_OUTPUTS = {
               "default": null,
               "x-luca-sensitive": "null"
             },
+            "holdKind": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "safety_review",
+                "unchecked",
+                "safety_block",
+                "media_review",
+                null
+              ],
+              "default": null
+            },
             "category": {
               "type": "string"
             },
@@ -4130,6 +4172,46 @@ export const OPENAPI_OUTPUTS = {
     "required": [
       "items",
       "nextCursor"
+    ]
+  },
+  "GET /api/review-queue/{id}/kept-campaigns": {
+    "type": "object",
+    "properties": {
+      "campaigns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "campaignId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "campaignName": {
+              "type": "string"
+            },
+            "enrollmentId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "stillParked": {
+              "type": "boolean"
+            },
+            "resumedByCoach": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "campaignId",
+            "campaignName",
+            "enrollmentId",
+            "stillParked",
+            "resumedByCoach"
+          ]
+        }
+      }
+    },
+    "required": [
+      "campaigns"
     ]
   },
   "GET /api/review-queue/{id}/explain": {
@@ -16055,6 +16137,10 @@ export const OPENAPI_OUTPUTS = {
               "null"
             ]
           },
+          "keptParkedByCoach": {
+            "type": "boolean",
+            "default": false
+          },
           "startedAt": {
             "type": "string"
           },
@@ -16160,6 +16246,10 @@ export const OPENAPI_OUTPUTS = {
                 "string",
                 "null"
               ]
+            },
+            "keptParkedByCoach": {
+              "type": "boolean",
+              "default": false
             },
             "startedAt": {
               "type": "string"
@@ -17945,6 +18035,10 @@ export const OPENAPI_OUTPUTS = {
               "string",
               "null"
             ]
+          },
+          "keptParkedByCoach": {
+            "type": "boolean",
+            "default": false
           },
           "startedAt": {
             "type": "string"

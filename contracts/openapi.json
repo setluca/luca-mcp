@@ -26761,6 +26761,10 @@
                     "null"
                   ]
                 },
+                "keptParkedByCoach": {
+                  "type": "boolean",
+                  "default": false
+                },
                 "startedAt": {
                   "type": "string"
                 },
@@ -26853,6 +26857,10 @@
                   "string",
                   "null"
                 ]
+              },
+              "keptParkedByCoach": {
+                "type": "boolean",
+                "default": false
               },
               "startedAt": {
                 "type": "string"
@@ -27007,6 +27015,10 @@
                   "null"
                 ]
               },
+              "keptParkedByCoach": {
+                "type": "boolean",
+                "default": false
+              },
               "startedAt": {
                 "type": "string"
               },
@@ -27053,6 +27065,25 @@
         },
         "required": [
           "leadId"
+        ]
+      },
+      "CampaignEnrollmentResumeResponse": {
+        "type": "object",
+        "properties": {
+          "enrollmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "resumed": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "enrollmentId",
+          "resumed"
         ]
       },
       "CampaignSimulationListResponse": {
@@ -32062,6 +32093,9 @@
                     "enum": [
                       "open"
                     ]
+                  },
+                  "openedAt": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -32100,6 +32134,28 @@
                   "reason"
                 ]
               }
+            ]
+          },
+          "followUpSkip": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "at": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "messaging_window_closed"
+                ]
+              }
+            },
+            "default": null,
+            "required": [
+              "at",
+              "reason"
             ]
           },
           "isDemo": {
@@ -33945,6 +34001,20 @@
                   "default": null,
                   "x-luca-sensitive": "null"
                 },
+                "holdKind": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "safety_review",
+                    "unchecked",
+                    "safety_block",
+                    "media_review",
+                    null
+                  ],
+                  "default": null
+                },
                 "category": {
                   "type": "string"
                 },
@@ -34698,6 +34768,46 @@
           "ids"
         ]
       },
+      "ReviewKeptCampaignsResponse": {
+        "type": "object",
+        "properties": {
+          "campaigns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "campaignId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "campaignName": {
+                  "type": "string"
+                },
+                "enrollmentId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "stillParked": {
+                  "type": "boolean"
+                },
+                "resumedByCoach": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "campaignId",
+                "campaignName",
+                "enrollmentId",
+                "stillParked",
+                "resumedByCoach"
+              ]
+            }
+          }
+        },
+        "required": [
+          "campaigns"
+        ]
+      },
       "DraftExplainResponse": {
         "oneOf": [
           {
@@ -35416,6 +35526,9 @@
                     "enum": [
                       "open"
                     ]
+                  },
+                  "openedAt": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -39818,25 +39931,6 @@
         ],
         "title": "ErrorEnvelope",
         "description": "The response body of every failure, on every status. Branch on `error.code`; `error.message` is written for a human and can change. Quote `error.requestId` in a support ticket."
-      },
-      "CampaignEnrollmentResumeResponse": {
-        "type": "object",
-        "properties": {
-          "enrollmentId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "resumed": {
-            "type": "boolean",
-            "enum": [
-              true
-            ]
-          }
-        },
-        "required": [
-          "enrollmentId",
-          "resumed"
-        ]
       }
     },
     "parameters": {
@@ -75844,6 +75938,98 @@
             "$ref": "#/components/parameters/LucaApiVersion"
           }
         ]
+      }
+    },
+    "/api/review-queue/{id}/kept-campaigns": {
+      "get": {
+        "summary": "Campaigns a safety approval kept paused for the lead",
+        "description": "Approving a safety review keeps the lead's waiting Campaigns paused. Each one is listed with whether it is still paused; resume it through the enrollment resume route.\n\n**API key scopes:** `review_queue:read`.",
+        "tags": [
+          "Review queue"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path",
+            "description": "Identifier of the review queue item this operation targets."
+          },
+          {
+            "$ref": "#/components/parameters/LucaApiVersion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewKeptCampaignsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": [
+              "review_queue:read"
+            ]
+          },
+          {
+            "bearerAuth": [
+              "review_queue:read"
+            ]
+          }
+        ],
+        "operationId": "getReviewQueueByIdKeptCampaigns"
       }
     },
     "/api/review-queue/{id}/explain": {
