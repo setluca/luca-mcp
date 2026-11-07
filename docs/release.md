@@ -4,13 +4,21 @@ This repository owns both MCP transports. A release starts as a pull request
 against `main` with the version, registry metadata, and changelog changes.
 The `Verify MCP` check builds and tests both transports and dry-runs the
 production Worker bundle. Merge the reviewed pull request, then tag the merge
-commit. A `mcp-v*` tag runs
-`.github/workflows/publish-mcp.yml` in order: verify and publish the stdio
-package to npm, deploy the Cloudflare Worker at `mcp.setluca.com`, publish
-`server.json` to the MCP registry, then create a GitHub Release. The workflow
-rejects a tag that does not point to a commit on `main`.
-The `main release PR` repository ruleset requires a pull request and a passing
-`verify` check before merging to `main`.
+commit. The `main release PR` repository ruleset requires a pull request and a
+passing `verify` check before merging to `main`.
+
+A `mcp-v*` tag runs `.github/workflows/publish-mcp.yml`, whose jobs go in this
+order:
+
+1. Check the tag, which has to point to a commit on `main`.
+2. Sweep the release build in setluca/luca, and stop if it fails. Without a
+   `LUCA_REPO_TOKEN` secret this skips with a warning, and the release goes out
+   unswept.
+3. Run `verify` and publish the stdio package to npm.
+4. Deploy the Cloudflare Worker at `mcp.setluca.com`, then compare the live tool
+   list with `tool-surface.json`.
+5. Publish `server.json` to the MCP registry.
+6. Create a GitHub Release.
 
 The existing Cloudflare Worker is named `setluca-mcp`. The production
 `wrangler.toml` environment keeps that name and the `mcp.setluca.com` custom
@@ -53,6 +61,8 @@ access; local checks cannot read the GitHub environment secrets.
    minor for additive tools or fields, and major for a breaking tool contract.
    While the version is 0.x, a breaking tool contract takes a minor bump
    instead, as 0.3.0 and 0.5.0 did, and the changelog lists it under Breaking.
+   Then run `bun run build` and `bun run surface:generate`, because
+   `tool-surface.json` records the version.
 2. Refresh `contracts/` from the Luca commit currently deployed. Run
    `bun run contracts:sync --repo /path/to/luca --deployed --write`,
    then `bun run openapi:generate`, `bun run docs:generate`, `bun run build`, and
@@ -66,10 +76,6 @@ access; local checks cannot read the GitHub environment secrets.
 4. Merge the release pull request after `Verify MCP` passes. Tag the resulting
    commit on `main` as `mcp-vX.Y.Z`, matching `package.json`, and push the tag.
 
-The tag first sweeps the build in setluca/luca and publishes only if that passes.
-After the Worker deploys, the workflow compares the live tool list with
-`tool-surface.json` before it publishes to the registry.
-
 The live Claude listing follows the deploy, with no resubmission. If a tool was
 added, removed, or renamed, also edit the tool names on the listing, which a
 reviewer approves
@@ -81,8 +87,8 @@ The release workflow skips npm publication when that version already exists,
 which allows an Actions rerun to finish a partial release. After deploying, it
 checks the public server card version, OAuth metadata, and unauthenticated MCP
 challenge before publishing to the registry. It does not roll back npm if
-Worker deployment or registry publication fails. Check all four jobs before
-calling a release complete.
+Worker deployment or registry publication fails. Check every job before calling a
+release complete.
 
 ## Verify a release
 

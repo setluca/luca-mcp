@@ -16,7 +16,12 @@ import {
   type ToolField,
   type ToolFields,
 } from "../src/openapi-schema.ts";
-import { isJsonArray, isJsonObject, JsonValue } from "../src/serialization.ts";
+import {
+  isJsonArray,
+  isJsonObject,
+  type JsonObject,
+  JsonValue,
+} from "../src/serialization.ts";
 import { connect } from "./helpers.ts";
 
 function schema(spec: OpenApiInputSpec) {
@@ -760,6 +765,38 @@ const CONSTRAINING_KEYWORDS = [
   "$ref",
 ] as const;
 
+/** A node's direct sub-schemas, each with the path a failure names it by. */
+function childSchemas(
+  node: JsonObject,
+  path: string
+): readonly (readonly [string, JsonValue])[] {
+  const { properties, items, additionalProperties } = node;
+
+  const branches = (keyword: "anyOf" | "oneOf") => {
+    const list = node[keyword];
+
+    return isJsonArray(list)
+      ? list.map(
+          (branch, index) => [`${path}.${keyword}[${index}]`, branch] as const
+        )
+      : [];
+  };
+
+  return [
+    ...(isJsonObject(properties)
+      ? R.toEntries(properties).map(
+          ([key, child]) => [`${path}.properties.${key}`, child] as const
+        )
+      : []),
+    ...(items === undefined ? [] : [[`${path}.items`, items] as const]),
+    ...(isJsonObject(additionalProperties)
+      ? [[`${path}.additionalProperties`, additionalProperties] as const]
+      : []),
+    ...branches("anyOf"),
+    ...branches("oneOf"),
+  ];
+}
+
 /** The paths of every node under `node` that constrains nothing. */
 function unconstrainedNodes(node: JsonValue, path: string): readonly string[] {
   if (!isJsonObject(node)) {
@@ -770,35 +807,9 @@ function unconstrainedNodes(node: JsonValue, path: string): readonly string[] {
     ? []
     : [path];
 
-  const children: (readonly [string, JsonValue])[] = [];
-  const properties = node.properties;
-
-  const branches = [
-    ...(isJsonArray(node.anyOf) ? node.anyOf : []),
-    ...(isJsonArray(node.oneOf) ? node.oneOf : []),
-  ];
-
-  if (isJsonObject(properties)) {
-    for (const [key, child] of R.toEntries(properties)) {
-      children.push([`${path}.properties.${key}`, child]);
-    }
-  }
-
-  if (node.items !== undefined) {
-    children.push([`${path}.items`, node.items]);
-  }
-
-  if (isJsonObject(node.additionalProperties)) {
-    children.push([`${path}.additionalProperties`, node.additionalProperties]);
-  }
-
-  for (const [index, branch] of branches.entries()) {
-    children.push([`${path}.anyOf[${index}]`, branch]);
-  }
-
   return [
     ...here,
-    ...Arr.flatMap(children, ([childPath, child]) =>
+    ...Arr.flatMap(childSchemas(node, path), ([childPath, child]) =>
       unconstrainedNodes(child, childPath)
     ),
   ];

@@ -3,6 +3,8 @@ dist/
 coverage/
 .wrangler/
 .turbo/
+.stryker-tmp/
+reports/
 *.tsbuildinfo
 .env
 .env.*

@@ -11,10 +11,15 @@ criteria beside it. No credentials belong in this file.
 
 Published on October 24, 2026, the day it was submitted, from the owner's
 personal Claude account against MCP server `0.6.0`. The listing is live at
-<https://claude.ai/directory/connectors/setluca> as a Community connector,
-lists all 223 tools, and answers live calls. Reviewers can come back at any
-time, so keep the reviewer login unchanged, accept each new legal edition on
-it, and re-run the claude.ai checks after any MCP release or auth change.
+<https://claude.ai/directory/connectors/setluca> as a Community connector and
+answers live calls. Reviewers can come back at any time, so keep the reviewer
+login unchanged, accept each new legal edition on it, and re-run the claude.ai
+checks after any MCP release or auth change.
+
+The tool names on the listing still match `0.6.0`. Editing them needs a reviewer's
+approval, so do it once the next MCP release is live: remove `luca_usage_messages`,
+and add `luca_broadcasts_resume`, `luca_campaigns_enrollments_resume`, and
+`luca_review_queue_kept_campaigns`.
 
 ## Before submitting
 
@@ -27,10 +32,8 @@ it, and re-run the claude.ai checks after any MCP release or auth change.
     refresh token;
   - `serverInfo` no longer carries icons, which make claude.ai drop the session
     after `initialize` (anthropics/claude-ai-mcp#474).
-- The Luca API no longer caps Claude at read and draft (LUC-401;
-  setluca/luca#361, where ADR 0067 supersedes ADR 0065). Until it ships, a
-  claude.ai connection holds read and draft only, and every tool past that
-  answers 403.
+- The Luca API no longer caps Claude at read and draft (LUC-401; shipped in Luca
+  v0.4.0, setluca/luca#361, where ADR 0067 supersedes ADR 0065).
 - A real claude.ai connection has been tested (LUC-411): it lists the tools,
   a send-tier tool answers once granted, and it still works after the first
   hour.

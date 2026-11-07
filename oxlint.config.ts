@@ -54,7 +54,7 @@ export default defineConfig({
   ],
   options: {
     denyWarnings: false,
-    reportUnusedDisableDirectives: "off",
+    reportUnusedDisableDirectives: "warn",
     typeAware: false,
     typeCheck: false,
   },

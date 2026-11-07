@@ -99,11 +99,20 @@ bun run docs:check
 
 ## Dependency updates
 
-Dependency versions are managed in this repo's `package.json`. After updating, run:
+Dependency versions are managed in this repo's `package.json`. `bun outdated` lists
+what is behind. To update everything:
 
 ```bash
+bun update --latest
+bun run openapi:generate
+bun run build
+bun run surface:generate
 bun run verify
 ```
+
+An Effect upgrade can change the generated schema source, and a new Fallow or
+Oxlint version can add a check that fails, so expect to fix something. A change to
+`tool-surface.json` means a tool's schema moved, so read that diff closely.
 
 The server runtime is `@modelcontextprotocol/server`, the 2.0 package family
 implementing protocol revision 2026-07-28. Tests drive it through
@@ -147,7 +156,7 @@ method on `/mcp` behind bearer auth. Different audiences, so both stay.
 
 `LUCA_CACHE_HINTS` (also `src/server.ts`) tells a client how long it may reuse
 the static lists: one hour on `tools/list`, `prompts/list`, `resources/list`,
-`resources/templates/list`, and `server/discover`. The tool list is 225
+`resources/templates/list`, and `server/discover`. The tool list is hundreds of
 descriptions that change only on redeploy, so re-sending it per connection is
 waste. An hour bounds how long a redeploy stays invisible, and a client calling
 a tool the list no longer names gets an ordinary error rather than a wrong
@@ -163,8 +172,7 @@ client's responses are unchanged.
    `docs/prompts-and-resources.md`, and `docs/scopes.md`. `docs:check`, inside
    `verify`, names each one that is stale.
 2. `bun run verify`
-3. `bun run typecheck` and `bun run lint`.
-4. Check `README.md` and `docs/` for changed behavior.
+3. Check `README.md` and `docs/` for changed behavior.
 
 ## Changing the public API
 
@@ -178,8 +186,3 @@ When an `apps/api` change touches a public route:
 3. Run `bun run openapi:generate` and `bun run docs:generate` here.
 4. Commit the contract snapshots and regenerated MCP files together in this repo.
 5. Add a `CHANGELOG.md` entry under `Unreleased` for anything a client can see.
-
-## Future work
-
-- Add broader live integration fixtures once Luca test credentials and
-  disposable workspaces exist.

@@ -9,7 +9,7 @@ The deployed Worker is `setluca-mcp` at `https://mcp.setluca.com/mcp`.
 ## The handler
 
 `src/remote.ts` exports a Web Standard fetch handler, so it runs on Cloudflare
-Workers, Deno, Bun, and Node 18 or newer:
+Workers, Deno, Bun, and Node 20 or newer:
 
 ```ts
 import { bearerTokenResolver, createRemoteHandler } from "@setluca/mcp/remote";

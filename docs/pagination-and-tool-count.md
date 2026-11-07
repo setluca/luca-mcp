@@ -34,7 +34,7 @@ query schema, and the route's output schema once, when the catalog is built. It
 answers with a page shape or with nothing. A shape names two things: the query field the cursor
 goes back in, and the field the records arrive in. A route has one only when its response declares
 `nextCursor` alongside an array and its query takes a cursor field to send
-back. Thirteen operations qualify today. A route that declares `nextCursor` but
+back. A route that declares `nextCursor` but
 takes no cursor query parameter is not a paging route.
 
 An operation with a page shape is walkable, and the walk reads the page under

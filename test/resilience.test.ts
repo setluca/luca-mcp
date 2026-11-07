@@ -155,7 +155,6 @@ describe("resilient requests", () => {
   it("sends a read again after a network failure", async () => {
     const fetchMock = vi
       .fn()
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
       .mockRejectedValueOnce(new Error("socket closed"))
       .mockResolvedValue(new Response(encodeUnknownJson({ ok: true })));
 
@@ -173,7 +172,6 @@ describe("resilient requests", () => {
   it("sends a state-changing GET only once after a network failure", async () => {
     const fetchMock = vi
       .fn()
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
       .mockRejectedValueOnce(new Error("socket closed"))
       .mockResolvedValue(
         new Response(encodeUnknownJson({ authUrl: "unused" }))
@@ -352,7 +350,6 @@ describe("resilient requests", () => {
   it("replays a keyed write under the key the first attempt carried", async () => {
     const fetchMock = vi
       .fn()
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
       .mockRejectedValueOnce(new Error("socket closed"))
       .mockResolvedValue(new Response(encodeUnknownJson({ id: "lead" })));
 
@@ -406,7 +403,6 @@ describe("resilient requests", () => {
   });
 
   it("sends an unkeyed write exactly once", async () => {
-    // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
     const fetchMock = vi.fn().mockRejectedValue(new Error("socket closed"));
 
     // This route does not require an idempotency key, so nothing is minted and

@@ -170,15 +170,15 @@ export function surfaceDrift(
   actual: JsonValue
 ): readonly string[] {
   const want = new Map(leaves(expected, ""));
-  const got = new Map(leaves(actual, ""));
+  const have = new Map(leaves(actual, ""));
 
-  return Arr.dedupe([...want.keys(), ...got.keys()])
+  return Arr.dedupe([...want.keys(), ...have.keys()])
     .toSorted()
     .flatMap((path) =>
-      want.get(path) === got.get(path)
+      want.get(path) === have.get(path)
         ? []
         : [
-            `${path}: expected ${shown(want.get(path))}, server has ${shown(got.get(path))}`,
+            `${path}: expected ${shown(want.get(path))}, server has ${shown(have.get(path))}`,
           ]
     );
 }

@@ -44,6 +44,34 @@ const runOrder = Arr.sort(
   )
 );
 
+/** Each record a step or resource read needs before anything provides it. */
+function unmetNeeds(): readonly string[] {
+  const provided = new Set<Fixture>();
+
+  const unmet = (who: string, needs: readonly Fixture[] = []) =>
+    needs.flatMap((need) =>
+      provided.has(need) ? [] : [`${who} needs ${need}`]
+    );
+
+  const fromSteps = runOrder.flatMap((step) => {
+    const stepUnmet = unmet(step.tool, step.needs);
+
+    for (const name of Object.keys(step.provides ?? {})) {
+      provided.add(name as Fixture);
+    }
+
+    return stepUnmet;
+  });
+
+  const fromReads = SWEEP_SURFACES.flatMap((surface) =>
+    surface.method === "resources/read"
+      ? unmet("resource read", surface.needs)
+      : []
+  );
+
+  return [...fromSteps, ...fromReads];
+}
+
 describe("tool sweep plan", () => {
   it("has exactly one primary step for every listed tool", async () => {
     const tools = await listedTools();
@@ -92,32 +120,7 @@ describe("tool sweep plan", () => {
   });
 
   it("only uses records an earlier step provides", () => {
-    const provided = new Set<Fixture>();
-    const unmet: string[] = [];
-
-    for (const step of runOrder) {
-      for (const need of step.needs ?? []) {
-        if (!provided.has(need)) {
-          unmet.push(`${step.tool} needs ${need}`);
-        }
-      }
-
-      for (const name of Object.keys(step.provides ?? {})) {
-        provided.add(name as Fixture);
-      }
-    }
-
-    for (const surface of SWEEP_SURFACES) {
-      if (surface.method === "resources/read") {
-        for (const need of surface.needs ?? []) {
-          if (!provided.has(need)) {
-            unmet.push(`resource read needs ${need}`);
-          }
-        }
-      }
-    }
-
-    expect(unmet).toEqual([]);
+    expect(unmetNeeds()).toEqual([]);
   });
 
   it("explains every refusal and every pending step", () => {

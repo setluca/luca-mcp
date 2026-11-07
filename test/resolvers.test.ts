@@ -48,7 +48,6 @@ describe("apiKeyResolver", () => {
 
   const neverCalled = () =>
     vi.fn<typeof fetch>(async () => {
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- a plain throw fails the test if the resolver reaches fetch
       throw new Error("the API must not be called");
     });
 
@@ -118,11 +117,9 @@ describe("apiKeyResolver", () => {
   });
 
   it("declines a fabricated key the API answers 401 for", async () => {
-    const resolver = keyResolver(DEFAULT_SETTINGS, (async () =>
-      Response.json(
-        { error: "unauthorized" },
-        { status: 401 }
-      )) as typeof fetch);
+    const resolver = keyResolver(DEFAULT_SETTINGS, async () =>
+      Response.json({ error: "unauthorized" }, { status: 401 })
+    );
 
     expect(await resolve(resolver, VALID_API_KEY)).toBeNull();
   });
@@ -130,8 +127,9 @@ describe("apiKeyResolver", () => {
   it.each([404, 429, 500, 503])(
     "fails as unavailable when the API answers %i, which says nothing about the key",
     async (status) => {
-      const resolver = keyResolver(DEFAULT_SETTINGS, (async () =>
-        Response.json({}, { status })) as typeof fetch);
+      const resolver = keyResolver(DEFAULT_SETTINGS, async () =>
+        Response.json({}, { status })
+      );
 
       expect(await failureTag(resolver, VALID_API_KEY)).toBe(
         "TokenVerificationUnavailable"
@@ -152,8 +150,7 @@ describe("apiKeyResolver", () => {
     );
 
   it("accepts a key the API answers 403 for in its own error shape, since the key is valid", async () => {
-    const resolver = keyResolver(DEFAULT_SETTINGS, (async () =>
-      lucaForbidden()) as typeof fetch);
+    const resolver = keyResolver(DEFAULT_SETTINGS, async () => lucaForbidden());
 
     expect(await resolve(resolver, VALID_API_KEY)).toEqual({
       apiBaseUrl: "https://api.setluca.com",
@@ -163,11 +160,9 @@ describe("apiKeyResolver", () => {
   });
 
   it("accepts a key the API asks to name a workspace, since the key is valid", async () => {
-    const resolver = keyResolver(DEFAULT_SETTINGS, (async () =>
-      Response.json(
-        { error: "workspace_required" },
-        { status: 400 }
-      )) as typeof fetch);
+    const resolver = keyResolver(DEFAULT_SETTINGS, async () =>
+      Response.json({ error: "workspace_required" }, { status: 400 })
+    );
 
     expect(await resolve(resolver, VALID_API_KEY)).toEqual(
       expect.objectContaining({ apiKey: VALID_API_KEY })
@@ -175,18 +170,17 @@ describe("apiKeyResolver", () => {
   });
 
   it("declines a key that reaches no workspace", async () => {
-    const resolver = keyResolver(DEFAULT_SETTINGS, (async () =>
-      Response.json({ error: "forbidden" }, { status: 403 })) as typeof fetch);
+    const resolver = keyResolver(DEFAULT_SETTINGS, async () =>
+      Response.json({ error: "forbidden" }, { status: 403 })
+    );
 
     expect(await resolve(resolver, VALID_API_KEY)).toBeNull();
   });
 
   it("fails as unavailable on a 400 with any other body", async () => {
-    const resolver = keyResolver(DEFAULT_SETTINGS, (async () =>
-      Response.json(
-        { error: "bad_request" },
-        { status: 400 }
-      )) as typeof fetch);
+    const resolver = keyResolver(DEFAULT_SETTINGS, async () =>
+      Response.json({ error: "bad_request" }, { status: 400 })
+    );
 
     expect(await failureTag(resolver, VALID_API_KEY)).toBe(
       "TokenVerificationUnavailable"
@@ -227,8 +221,7 @@ describe("apiKeyResolver", () => {
     ],
     ["an empty body", () => new Response(null, { status: 403 })],
   ])("fails as unavailable on a 403 with %s", async (_name, answer) => {
-    const resolver = keyResolver(DEFAULT_SETTINGS, (async () =>
-      answer()) as typeof fetch);
+    const resolver = keyResolver(DEFAULT_SETTINGS, async () => answer());
 
     expect(await failureTag(resolver, VALID_API_KEY)).toBe(
       "TokenVerificationUnavailable"
@@ -347,7 +340,7 @@ describe("apiKeyResolver", () => {
       const checks = createKeyCheckCache();
       const resolver = keyResolver(DEFAULT_SETTINGS, acceptingFetch, checks);
 
-      // oxlint-disable-next-line effect/imperative-loops -- the passes are cached one at a time until the table is full
+      // The passes are cached one at a time until the table is full.
       for (let index = 0; index < 10_000; index += 1) {
         await resolve(resolver, `luca_${index.toString(16).padStart(64, "0")}`);
       }
@@ -366,7 +359,7 @@ describe("apiKeyResolver", () => {
       const checks = createKeyCheckCache();
       const resolver = keyResolver(DEFAULT_SETTINGS, acceptingFetch, checks);
 
-      // oxlint-disable-next-line effect/imperative-loops -- the passes are cached one at a time until the table is full
+      // The passes are cached one at a time until the table is full.
       for (let index = 0; index < 10_000; index += 1) {
         await resolve(resolver, `luca_${index.toString(16).padStart(64, "0")}`);
       }
@@ -379,9 +372,9 @@ describe("apiKeyResolver", () => {
   });
 
   it("fails as unavailable when the API cannot be reached", async () => {
-    const resolver = keyResolver(DEFAULT_SETTINGS, (() =>
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
-      Promise.reject(new Error("boom"))) as typeof fetch);
+    const resolver = keyResolver(DEFAULT_SETTINGS, () =>
+      Promise.reject(new Error("boom"))
+    );
 
     expect(await failureTag(resolver, VALID_API_KEY)).toBe(
       "TokenVerificationUnavailable"

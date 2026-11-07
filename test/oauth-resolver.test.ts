@@ -45,7 +45,7 @@ describe("oauthResolver", () => {
       Response.json({ apiKey: "luca_abc", scopes: ["luca:read"] })
     );
 
-    const resolve = oauthResolver(settings, fetchMock as typeof fetch);
+    const resolve = oauthResolver(settings, fetchMock);
     const config = await run(resolve, "some.jwt.token");
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.example.com/oauth/resolve",
@@ -72,16 +72,18 @@ describe("oauthResolver", () => {
   ])(
     "reads the capability tier from the grant's scopes %j",
     async (scopes, grant) => {
-      const resolve = oauthResolver(settings, (async () =>
-        Response.json({ apiKey: "luca_abc", scopes })) as typeof fetch);
+      const resolve = oauthResolver(settings, async () =>
+        Response.json({ apiKey: "luca_abc", scopes })
+      );
 
       expect((await run(resolve, "some.jwt.token"))?.grant).toBe(grant);
     }
   );
 
   it("falls back to the lowest tier when the response has no scopes", async () => {
-    const resolve = oauthResolver(settings, (async () =>
-      Response.json({ apiKey: "luca_abc" })) as typeof fetch);
+    const resolve = oauthResolver(settings, async () =>
+      Response.json({ apiKey: "luca_abc" })
+    );
 
     expect((await run(resolve, "some.jwt.token"))?.grant).toBe("luca:read");
   });
@@ -93,7 +95,7 @@ describe("oauthResolver", () => {
         LUCA_AUTH_HEADER: "bearer",
         LUCA_REQUEST_TIMEOUT_MS: "5000",
       }),
-      (async () => Response.json({ apiKey: "luca_abc" })) as typeof fetch
+      async () => Response.json({ apiKey: "luca_abc" })
     );
 
     expect(await run(resolve, "some.jwt.token")).toEqual({
@@ -143,19 +145,17 @@ describe("oauthResolver", () => {
   });
 
   it("returns null on 401", async () => {
-    const resolve = oauthResolver(settings, (async () =>
-      Response.json(
-        { error: "unauthorized" },
-        { status: 401 }
-      )) as typeof fetch);
+    const resolve = oauthResolver(settings, async () =>
+      Response.json({ error: "unauthorized" }, { status: 401 })
+    );
 
     expect(await run(resolve, "bad.jwt.token")).toBeNull();
   });
 
   it("fails as unavailable on network failure, so the client retries", async () => {
-    const resolve = oauthResolver(settings, (() =>
-      // oxlint-disable-next-line effect/avoid-untagged-errors -- fetch rejects with a plain Error, and this stub reproduces it
-      Promise.reject(new Error("boom"))) as typeof fetch);
+    const resolve = oauthResolver(settings, () =>
+      Promise.reject(new Error("boom"))
+    );
 
     expect(await failureTag(resolve, "some.jwt.token")).toBe(
       "TokenVerificationUnavailable"
@@ -165,8 +165,9 @@ describe("oauthResolver", () => {
   it.each([429, 500, 503])(
     "fails as unavailable when the API answers %i",
     async (status) => {
-      const resolve = oauthResolver(settings, (async () =>
-        Response.json({ error: "down" }, { status })) as typeof fetch);
+      const resolve = oauthResolver(settings, async () =>
+        Response.json({ error: "down" }, { status })
+      );
 
       expect(await failureTag(resolve, "some.jwt.token")).toBe(
         "TokenVerificationUnavailable"
@@ -177,7 +178,7 @@ describe("oauthResolver", () => {
   it("fails as unavailable when a 2xx body is not JSON", async () => {
     const resolve = oauthResolver(
       settings,
-      (async () => new Response("<html>", { status: 200 })) as typeof fetch
+      async () => new Response("<html>", { status: 200 })
     );
 
     expect(await failureTag(resolve, "some.jwt.token")).toBe(
@@ -189,8 +190,9 @@ describe("oauthResolver", () => {
     { name: "a numeric key", apiKey: 42 },
     { name: "an empty key", apiKey: "" },
   ])("fails as unavailable when a 2xx body has $name", async ({ apiKey }) => {
-    const resolve = oauthResolver(settings, (async () =>
-      Response.json({ apiKey })) as typeof fetch);
+    const resolve = oauthResolver(settings, async () =>
+      Response.json({ apiKey })
+    );
 
     expect(await failureTag(resolve, "some.jwt.token")).toBe(
       "TokenVerificationUnavailable"
@@ -202,8 +204,9 @@ describe("oauthResolver", () => {
     async (status) => {
       // Only a 401 is a verdict on the token. Reading a misrouted 404 or an
       // edge 403 as one would send every connected client back to sign-in.
-      const resolve = oauthResolver(settings, (async () =>
-        Response.json({ error: "nope" }, { status })) as typeof fetch);
+      const resolve = oauthResolver(settings, async () =>
+        Response.json({ error: "nope" }, { status })
+      );
 
       expect(await failureTag(resolve, "some.jwt.token")).toBe(
         "TokenVerificationUnavailable"
@@ -213,7 +216,7 @@ describe("oauthResolver", () => {
 
   it("refuses redirects so the bearer token stays on the named host", async () => {
     const fetchMock = vi.fn(async () => Response.json({ apiKey: "luca_abc" }));
-    const resolve = oauthResolver(settings, fetchMock as typeof fetch);
+    const resolve = oauthResolver(settings, fetchMock);
 
     await run(resolve, "some.jwt.token");
     expect(fetchMock).toHaveBeenCalledWith(
@@ -225,11 +228,11 @@ describe("oauthResolver", () => {
   it("fails closed on a redirect instead of accepting its response", async () => {
     const resolve = oauthResolver(
       settings,
-      (async () =>
+      async () =>
         new Response(null, {
           status: 302,
           headers: { location: "https://other.example/oauth/resolve" },
-        })) as typeof fetch
+        })
     );
 
     expect(await failureTag(resolve, "some.jwt.token")).toBe(
@@ -238,8 +241,9 @@ describe("oauthResolver", () => {
   });
 
   it("returns null when the response has no apiKey", async () => {
-    const resolve = oauthResolver(settings, (async () =>
-      Response.json({ scopes: [] })) as typeof fetch);
+    const resolve = oauthResolver(settings, async () =>
+      Response.json({ scopes: [] })
+    );
 
     expect(await run(resolve, "some.jwt.token")).toBeNull();
   });
@@ -249,7 +253,7 @@ describe("oauthResolver", () => {
 
     const resolve = oauthResolver(
       settingsFor({ LUCA_API_BASE_URL: "https://api.example.com///" }),
-      fetchMock as typeof fetch
+      fetchMock
     );
 
     await run(resolve, "some.jwt.token");
@@ -262,7 +266,7 @@ describe("oauthResolver", () => {
   it("defaults the base URL when LUCA_API_BASE_URL is unset", async () => {
     const fetchMock = vi.fn(async () => Response.json({ apiKey: "luca_abc" }));
 
-    const resolve = oauthResolver(settingsFor({}), fetchMock as typeof fetch);
+    const resolve = oauthResolver(settingsFor({}), fetchMock);
     await run(resolve, "some.jwt.token");
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.setluca.com/oauth/resolve",
@@ -271,11 +275,12 @@ describe("oauthResolver", () => {
   });
 
   it("returns null for a non-ok response even when the body has an apiKey", async () => {
-    const resolve = oauthResolver(settings, (async () =>
+    const resolve = oauthResolver(settings, async () =>
       Response.json(
         { apiKey: "luca_x", scopes: ["luca:read"] },
         { status: 401 }
-      )) as typeof fetch);
+      )
+    );
 
     expect(await run(resolve, "bad.jwt.token")).toBeNull();
   });

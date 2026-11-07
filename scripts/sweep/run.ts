@@ -11,6 +11,7 @@ import * as Order from "effect/Order";
 import * as Schema from "effect/Schema";
 
 import { LUCA_OPERATIONS } from "../../src/operations/catalog.ts";
+import { fieldsWhen } from "../../src/optional-field.ts";
 import { LUCA_PROMPTS } from "../../src/prompts.ts";
 import { LUCA_RESOURCES } from "../../src/resources.ts";
 import {
@@ -333,6 +334,27 @@ async function checkRetry(
   };
 }
 
+/** Why a step is not called: it is pending, or a record it needs is missing. */
+function reasonNotCalled(
+  step: SweepStep,
+  expect: Expectation,
+  fixtures: FoundFixtures,
+  scopeCheck: boolean
+): Judgement | undefined {
+  if (expect.kind === "pending") {
+    return { verdict: "pending", note: expect.because };
+  }
+
+  const missing = missingNeeds(step.needs, fixtures);
+
+  return Arr.isReadonlyArrayNonEmpty(missing)
+    ? {
+        verdict: scopeCheck ? "skipped" : "blocked",
+        note: `needs ${missing.join(", ")}`,
+      }
+    : undefined;
+}
+
 async function runStep(
   step: SweepStep,
   call: Caller,
@@ -343,46 +365,25 @@ async function runStep(
   const expect = effectiveExpectation(step, options.scopeCheck);
   const base = { phase: step.phase, target: stepLabel(step) };
   const expected = describe(expect);
+  const notCalled = reasonNotCalled(step, expect, fixtures, options.scopeCheck);
 
-  if (expect.kind === "pending") {
-    return [
-      {
-        ...base,
-        check: "call",
-        expected,
-        verdict: "pending",
-        note: expect.because,
-      },
-    ];
-  }
-
-  const missing = missingNeeds(step.needs, fixtures);
-
-  if (Arr.isReadonlyArrayNonEmpty(missing)) {
-    return [
-      {
-        ...base,
-        check: "call",
-        expected,
-        verdict: options.scopeCheck ? "skipped" : "blocked",
-        note: `needs ${missing.join(", ")}`,
-      },
-    ];
+  if (notCalled !== undefined) {
+    return [{ ...base, check: "call", expected, ...notCalled }];
   }
 
   const args = step.args?.(presentFixtures(fixtures), ctx) ?? {};
-  const results: CheckResult[] = [];
 
-  if (step.gated && !options.scopeCheck) {
-    results.push(await checkGate(step, call, args, base));
-  }
+  const gate =
+    step.gated && !options.scopeCheck
+      ? [await checkGate(step, call, args, base)]
+      : [];
 
   const callArgs = {
     ...args,
-    ...(step.gated ? { confirm: true } : undefined),
-    ...(step.repeat
-      ? { idempotencyKey: `sweep-${ctx.runId}-${step.tool}` }
-      : undefined),
+    ...fieldsWhen(step.gated === true, { confirm: true }),
+    ...fieldsWhen(step.repeat === true, {
+      idempotencyKey: `sweep-${ctx.runId}-${step.tool}`,
+    }),
   };
 
   const outcome = await call({
@@ -393,14 +394,17 @@ async function runStep(
 
   const judgement = judge(outcome, expect);
 
-  results.push({
-    ...base,
-    check: "call",
-    expected,
-    exitCode: outcome.exitCode,
-    durationMs: outcome.durationMs,
-    ...judgement,
-  });
+  const results: readonly CheckResult[] = [
+    ...gate,
+    {
+      ...base,
+      check: "call",
+      expected,
+      exitCode: outcome.exitCode,
+      durationMs: outcome.durationMs,
+      ...judgement,
+    },
+  ];
 
   if (judgement.verdict !== "pass" || options.scopeCheck) {
     return results;
@@ -408,11 +412,9 @@ async function runStep(
 
   capture(step, outcome, fixtures);
 
-  if (step.repeat) {
-    results.push(await checkRetry(step, call, callArgs, outcome, base));
-  }
-
-  return results;
+  return step.repeat
+    ? [...results, await checkRetry(step, call, callArgs, outcome, base)]
+    : results;
 }
 
 type ListingMethod = Extract<

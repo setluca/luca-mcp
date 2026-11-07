@@ -1,16 +1,8 @@
 # SetLuca MCP server
 
-[SetLuca](https://setluca.com) runs DM sales for coaches, creators, and experts. This MCP server connects SetLuca to an AI assistant, so you can ask it about your workspace and get help with the work waiting there.
+[SetLuca](https://setluca.com) runs DM sales for coaches, creators, and experts. This MCP server connects your SetLuca workspace to an AI assistant such as Claude, ChatGPT, or Cursor, so you can ask it what needs attention and get help with the work waiting there.
 
-You can ask it what needs attention, pull up a lead's conversation before a call, draft a reply that sounds like you, or explain how a campaign is doing. It can also help plan your next campaign or follow up on calls that still need an outcome.
-
-Your assistant must get your approval before it takes an action that reaches a lead, such as sending a message or launching a broadcast. A reply your assistant drafts waits in your SetLuca review queue until you approve it.
-
-## Get connected
-
-SetLuca works with assistants such as Claude, ChatGPT, and Cursor. Some connect when you sign in with SetLuca. Others use an API key you create in SetLuca. The [connection guide](https://setluca.com/connect) walks through both and helps you pick the one your assistant supports.
-
-Once connected, try asking:
+Once you're connected, try asking:
 
 - "What needs my attention this morning?"
 - "Show me the review queue and recommend what to approve."
@@ -18,18 +10,75 @@ Once connected, try asking:
 - "Draft a short, warm reply for this lead."
 - "How is my broadcast performing?"
 
-If a connection stops working, check the steps in the connection guide. You can manage or revoke connected assistants in **SetLuca → Settings → Connected agents**, and revoke an API key in **SetLuca → Settings → Developer API keys**.
+## Connect your assistant
 
-## Your data and your choices
+There are two ways to connect. The [connection guide](https://setluca.com/connect) helps you pick the one your assistant supports.
 
-The assistant only sees what the SetLuca access you give it allows. This server keeps no copy of your workspace data. It passes your requests to SetLuca and returns the results to your assistant. Review the privacy policy of any assistant you connect before sharing a live workspace with it.
+### Sign in with SetLuca
 
-Read [SetLuca's privacy policy](https://setluca.com/privacy) for details about how SetLuca handles your data. For support, email [support@setluca.com](mailto:support@setluca.com).
+If your assistant supports custom connectors, as Claude and ChatGPT do, add this URL:
 
-## For people building with SetLuca
+```text
+https://mcp.setluca.com/mcp
+```
 
-Start with the [documentation index](./docs/README.md). It points to setup, tool examples, the [privacy](./docs/privacy.md) and [security](./docs/security.md) guides, development instructions, tests, and release steps. [AGENTS.md](./AGENTS.md) gives coding agents a short checklist. The [changelog](./CHANGELOG.md) lists changes by version, including changes to tool names that may affect saved prompts.
+Then sign in to SetLuca and choose what the assistant may do. You don't need an API key.
 
-You can browse the [SetLuca API docs](https://api.setluca.com/docs) if you want to build a direct integration.
+### Use an API key
 
-This server is licensed under the [Apache License 2.0](./LICENSE).
+If your assistant runs MCP servers on your computer, you need Node.js 20 or newer.
+
+1. Create a key in **SetLuca → Settings → Developer API keys**.
+2. Add this to your assistant's MCP configuration:
+
+   ```json
+   {
+     "mcpServers": {
+       "luca": {
+         "command": "npx",
+         "args": ["-y", "@setluca/mcp"],
+         "env": { "LUCA_API_KEY": "luca_..." }
+       }
+     }
+   }
+   ```
+
+Keep the key out of prompts, screenshots, and committed files. If it can reach more than one workspace, set `LUCA_WORKSPACE_SLUG` to choose one. [Client setup](./docs/client-setup.md) has more on this path, including the Claude Code command.
+
+## What your assistant can do
+
+- **Read and draft, unless you allow more.** A sign-in connection starts with read and draft access, and you choose anything beyond that when you sign in. An API key can do what its scopes allow.
+- **Reach a lead only with your approval.** A tool that sends a message, launches a broadcast, or books a call refuses to run without a confirmation. Your assistant is told to confirm only after you approve that exact action.
+- **Leave drafts for you to review.** A reply your assistant drafts waits in your SetLuca review queue until you approve it.
+
+## Your data
+
+Your assistant only sees what your access allows. This server keeps no copy of your workspace data: it passes each request to SetLuca and returns the result. It logs a tool's name, whether it succeeded, and how long it took, and leaves out API keys, message text, tool arguments, and drafted replies.
+
+Your assistant's provider handles those results under its own privacy policy, so read that before connecting a live workspace. [SetLuca's privacy policy](https://setluca.com/privacy) covers how SetLuca handles your data.
+
+## Manage your connection
+
+- Disconnect an assistant in **SetLuca → Settings → Connected agents**.
+- Revoke an API key in **SetLuca → Settings → Developer API keys**.
+- If a connection stops working, check the [connection guide](https://setluca.com/connect) and the [error guide](./docs/errors.md).
+- For anything else, email [support@setluca.com](mailto:support@setluca.com).
+
+## For developers
+
+| To                                      | Read                                                                                           |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Browse every tool, prompt, and resource | [Tools](./docs/tools.md), [Prompts and resources](./docs/prompts-and-resources.md)             |
+| See what each permission allows         | [Scopes](./docs/scopes.md)                                                                     |
+| Call SetLuca without MCP                | [SetLuca API docs](https://api.setluca.com/docs)                                               |
+| Work on this server                     | [Documentation index](./docs/README.md), and [AGENTS.md](./AGENTS.md) if you're a coding agent |
+| See what changed in a version           | [Changelog](./CHANGELOG.md), which also lists renamed tools that may affect saved prompts      |
+
+To run every check from a clone:
+
+```bash
+bun install --frozen-lockfile
+bun run verify
+```
+
+Licensed under the [Apache License 2.0](./LICENSE).

@@ -63,7 +63,7 @@ function fetcher(
     }
 
     return result;
-  }) as typeof fetch;
+  });
 }
 
 describe("deployed Worker check", () => {

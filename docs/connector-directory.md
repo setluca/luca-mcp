@@ -1,8 +1,9 @@
 # Connector directories
 
-We plan to list Luca in two directories: the Claude connectors directory and
-the ChatGPT apps directory. This page records where Luca stands against each.
-The Claude requirements come from
+Luca has two directory listings to keep right: the Claude connectors directory,
+live since October 24, 2026, and the ChatGPT apps directory, where a resubmission
+is pending. This page records where Luca stands against each. The Claude
+requirements come from
 https://claude.com/docs/connectors/building/submission.
 
 Both directories take remote servers only, so the thing being submitted is
@@ -16,20 +17,20 @@ These hold for both directories unless a row says otherwise.
 
 | Requirement                                               | How it is met                                                                                                                                                                                                                                                                    |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tool names at most 64 characters                          | 225 tools, longest is 48                                                                                                                                                                                                                                                         |
+| Tool names at most 64 characters                          | The longest is 48                                                                                                                                                                                                                                                                |
 | Every tool carries a `title`                              | `check-registry.ts` rejects missing or machine-shaped operation titles; the protocol test checks every title in `tools/list`                                                                                                                                                     |
 | Safety hints on every tool                                | `src/tool-profile.ts` derives the hints from the route and catalog; the protocol test checks their presence, read-only consistency, representative outside-world actions, and the values the October 2026 audit corrected                                                        |
-| Real-world side effects wait for the user                 | 36 operations and 5 task tools reject a call without `confirm: true`. See [security.md](./security.md#confirmation-gate-for-destructive-tools)                                                                                                                                   |
+| Real-world side effects wait for the user                 | Those tools reject a call without `confirm: true`. See [security.md](./security.md#confirmation-gate-for-destructive-tools)                                                                                                                                                      |
 | Server instructions                                       | `LUCA_SERVER_INSTRUCTIONS` in `src/server.ts` names the starting tools, the confirm rule, and that lead-authored text is untrusted                                                                                                                                               |
 | Server name, title, website, and icons                    | `LUCA_SERVER_INFO` in `src/server.ts` carries the title and `https://setluca.com`. The SVG and 512px PNG icons are only in the server card at `/.well-known/mcp/server-card.json`, because claude.ai drops a session whose `serverInfo` has icons (anthropics/claude-ai-mcp#474) |
 | ChatGPT domain verification route                         | The Worker serves `OPENAI_APPS_CHALLENGE_TOKEN` at `/.well-known/openai-apps-challenge`. See [configuration.md](./configuration.md#remote-worker-settings)                                                                                                                       |
 | Narrow, accurate descriptions                             | One tool per API operation, generated from that route's own schema                                                                                                                                                                                                               |
 | No catch-all HTTP tool                                    | Every tool is one fixed method against one closed path template. There is no tool that takes a URL or a method as an argument                                                                                                                                                    |
 | No prompt-injection phrasing in descriptions              | Descriptions state what the route does and nothing about how the model should behave                                                                                                                                                                                             |
-| Every tool returns a successful response for valid input  | Covered by the operation and protocol suites, and a live sweep of the read tools. One exception is open: `luca_bookings_availability` without `start` and `end` gets a 400, because the API requires both while its OpenAPI marks them optional (LUC-513)                        |
+| Every tool returns a successful response for valid input  | Covered by the operation and protocol suites, and by [the sweep](./inspector.md#sweep-every-tool), which calls every tool against a live workspace                                                                                                                               |
 | Actionable errors                                         | The API's error body names the missing scope or the failed field, and the server passes it through rather than flattening it                                                                                                                                                     |
 | Reasonably sized responses                                | List tools auto-paginate to a bounded guard and report `pagination.truncated` rather than returning an unbounded merge. See [pagination-and-tool-count.md](./pagination-and-tool-count.md)                                                                                       |
-| OAuth 2.0 for an authenticated service                    | Authorization-code flow with PKCE, dynamic client registration, and RFC 9728 protected-resource metadata. See [remote.md](./remote.md). The open auth items are listed below                                                                                                     |
+| OAuth 2.0 for an authenticated service                    | Authorization-code flow with PKCE, dynamic client registration, and RFC 9728 protected-resource metadata. See [remote.md](./remote.md)                                                                                                                                           |
 | Per-tool auth hints for ChatGPT                           | Every tool declares its least-privilege scope in `_meta.securitySchemes`, and a token or scope failure returns `_meta["mcp/www_authenticate"]`. See [remote.md](./remote.md#per-tool-scopes-and-re-authorization)                                                                |
 | First-party API on a matching domain                      | `mcp.setluca.com` fronts `api.setluca.com`, and both are ours                                                                                                                                                                                                                    |
 | No money or financial-asset transfer                      | No tool moves funds. Billing routes are not on the public surface                                                                                                                                                                                                                |
@@ -38,15 +39,11 @@ These hold for both directories unless a row says otherwise.
 | Privacy policy                                            | https://setluca.com/privacy, covering collection, use, sharing, protection, retention, and choices, with an email and a postal address. Summarized for this server in the README                                                                                                 |
 | Public documentation by publish date                      | https://api.setluca.com/docs, https://setluca.com/developers, and this package's README                                                                                                                                                                                          |
 
-## Remaining work
+The authorization server checks that a token was issued for the
+`https://mcp.setluca.com/mcp` audience, and accepts a client ID metadata document
+(CIMD) URL as a client ID, with dynamic client registration as the fallback.
 
-### Auth in the authorization server
-
-Both items this page once listed as missing are live in `apps/api` at Luca
-production `69bda66`: `/oauth/resolve` checks that a token was issued for the
-`https://mcp.setluca.com/mcp` audience, and the authorization server accepts a
-client ID metadata document (CIMD) URL as a client ID, with dynamic client
-registration as the fallback.
+## Work outside the code
 
 ### Claude directory URL
 
@@ -58,17 +55,14 @@ https://mcp.setluca.com/mcp
 
 The 401 challenge asks for every scope plus `offline_access`, so Claude's
 consent screen can offer each tier and the connection gets a refresh token. The
-coach ticks anything past read and draft. Until the Luca API lifts its
-Claude-only cap (LUC-401, in setluca/luca#361, where ADR 0067 supersedes ADR
-0065), a claude.ai connection still holds read and draft at most, and the tools
-past that answer 403.
+coach ticks anything past read and draft.
 
 `https://mcp.setluca.com/mcp?toolset=claude` stays available as a smaller,
 read and draft set of 43 tools for coaches who want Claude limited to that. It
 lists two prompts, `luca-api-planner` and `luca-morning-report`. The list lives
 in `src/toolsets.ts` and a protocol test pins it.
 
-### Work outside the code
+### Accounts and portal state
 
 - **OpenAI reviewer connection.** The dedicated
   `openai-reviewer@setluca.com` account and seeded OpenAI Review Workspace are
@@ -92,9 +86,10 @@ in `src/toolsets.ts` and a protocol test pins it.
 - **OpenAI domain verification.** Completed October 6, 2026. The production
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.
-- **Portal submissions.** The OpenAI plugin is to be resubmitted as package
-  `0.1.5` once MCP `0.7.0` is deployed. The Claude listing was published on
-  October 24, 2026. See `submission/claude/README.md`.
+- **Portal submissions.** The OpenAI plugin goes back in as package `0.1.5` once
+  the release matching `chatgpt-app-submission.json` is deployed and a sweep of it
+  passes. The Claude listing was published on October 24, 2026, and its tool names
+  need the edit in `submission/claude/README.md`.
 
 ## What a human has to do in the Claude portal
 
@@ -120,7 +115,8 @@ text for each field.
   submit rather than the last one that happened to deploy.
 - **`destructiveHint` tracks the method.** A new PATCH, PUT, or DELETE route
   reads destructive on its own, and `test/operations.test.ts` fails if one does
-  not. A new POST that reaches a real lead does not. It needs `confirmRequired`
-  on its catalog entry, and that is what makes it destructive.
+  not. A new POST that reaches a real lead does not. It needs `confirm` on its
+  catalog entry, and that is what makes it destructive. The
+  [tool audit](./runbooks/tool-audit.md) has the rule for each hint.
 - **A new tool inherits the whole checklist.** CI gates the name length, title,
   description, and all four safety hints on the published `tools/list` shape.

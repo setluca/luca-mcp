@@ -63,7 +63,6 @@ describe("formatError", () => {
   });
 
   it("formats unknown errors", () => {
-    // oxlint-disable-next-line effect/avoid-untagged-errors -- formatError must handle a plain Error, the case under test
     expect(formatError(new Error("boom"))).toBe("boom");
     expect(formatError("plain failure")).toBe("plain failure");
   });

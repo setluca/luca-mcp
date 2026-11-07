@@ -10,6 +10,19 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Added
+
+- `luca_campaigns_enrollments_resume` resumes a campaign enrollment that stayed
+  paused after the coach approved a safety review. It needs `confirm: true`.
+- `luca_review_queue_kept_campaigns` lists the campaigns a safety approval kept
+  paused, which is how to find the enrollment to resume.
+
+### Changed
+
+- Pinned to Luca `2d26c1f` (v0.10.0).
+- Built on Effect 4.1.2 and the MCP SDK 2.4.0, up from 4.0.6 and 2.3.0. The
+  upgrade changes no tool's input or output schema.
+
 ## [0.7.1] - 2026-11-07
 
 No tool, schema, or hosted server behavior changes. The hosted sweep runs the
