@@ -960,8 +960,8 @@ describe("MCP protocol", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result.structuredContent).toEqual({
-      error: {
+    expect(result._meta).toEqual({
+      "setluca.com/error": {
         code: "confirmation_required",
         toolName: "luca_broadcasts_launch",
         requiredArgument: "confirm",
@@ -1186,8 +1186,8 @@ describe("task tools", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result.structuredContent).toEqual({
-      error: {
+    expect(result._meta).toEqual({
+      "setluca.com/error": {
         code: "confirmation_required",
         toolName: "luca_approve_and_send",
         requiredArgument: "confirm",
@@ -1245,8 +1245,8 @@ describe("task tools", () => {
     });
 
     expect(result.isError).toBe(true);
-    expect(result.structuredContent).toEqual({
-      error: {
+    expect(result._meta).toEqual({
+      "setluca.com/error": {
         code: "confirmation_required",
         toolName: "luca_rescue_silent_leads",
         requiredArgument: "confirm",
