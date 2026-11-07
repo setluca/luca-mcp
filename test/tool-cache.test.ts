@@ -20,9 +20,7 @@ describe("buildCache", () => {
     expect(build).toHaveBeenCalledTimes(2);
   });
 
-  it("rebuilds after a clear, which is what a mutation run needs", () => {
-    // Without this a definition cached under one version of the code would be
-    // handed to a test that runs after the code changed underneath it.
+  it("rebuilds after a clear", () => {
     const cache = buildCache<object, number>();
     const key = {};
     let built = 0;

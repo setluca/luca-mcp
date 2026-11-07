@@ -2,7 +2,8 @@ name: Check after merge
 
 # Slower or network-bound checks that run once a pull request is on main, rather than
 # on every commit of it. A merge has already happened by then, so a failure can't block
-# anything: the report job opens one issue instead, and closes it when they pass again.
+# it. The report job opens one issue, and closes it when they pass again, and a release
+# of that commit is refused (.github/scripts/check-post-merge.sh).
 on:
   push:
     branches: [main]

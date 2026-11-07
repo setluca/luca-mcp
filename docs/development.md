@@ -35,7 +35,6 @@ suppresses anything.
 
 Outside that chain:
 
-- `bun run test:mutation`: Stryker, for the modules a change touches.
 - `bun run test:integration`: opt-in live Luca API tests. See
   [integration-testing.md](./integration-testing.md).
 - `bun run inspect`: MCP Inspector against the built stdio server.

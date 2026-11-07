@@ -329,7 +329,7 @@ describe("pagination helpers via the public tool surface", () => {
     });
   });
 
-  it("keeps every non-item, non-cursor first-page field and drops none of them under mutation", async () => {
+  it("keeps every non-item, non-cursor first-page field and drops none of them", async () => {
     const pages = {
       start: { bookings: [1, 2], nextCursor: "c1", total: 7 },
       c1: { bookings: [3], nextCursor: null },

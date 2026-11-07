@@ -94,7 +94,6 @@ export function resolveToolset(
   return parseToolset(url.searchParams.get("toolset") ?? env.LUCA_TOOLSET);
 }
 
-// Stryker disable next-line Regex: `.trim()` on the greedy capture makes `\s+` and `\s` indistinguishable
 const BEARER = /^Bearer\s+(.+)$/i;
 
 const MAX_BEARER_TOKEN_LENGTH = 4096;
@@ -102,7 +101,6 @@ const MAX_BEARER_TOKEN_LENGTH = 4096;
 /** The bearer token on a request, absent when the header is missing or empty. */
 function bearerToken(request: Request): Option.Option<string> {
   return Option.fromNullishOr(request.headers.get("authorization")).pipe(
-    // Stryker disable next-line OptionalChaining: capture group 1 is always present on a match
     Option.flatMapNullishOr((header) => BEARER.exec(header)?.[1]?.trim()),
     Option.filter(Str.isNonEmpty)
   );

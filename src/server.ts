@@ -209,9 +209,7 @@ function registerLucaResources(
       resource.name,
       // These templates are not enumerable. A lead or conversation uri is
       // addressable but not listable, which an explicit `list: undefined`
-      // states at the call site. Omitting the key entirely reads the same
-      // to the SDK, so a mutant that drops it changes nothing observable.
-      // Stryker disable next-line ObjectLiteral: an absent `list` and an undefined one are the same to the SDK
+      // states at the call site.
       new ResourceTemplate(resource.uriTemplate, {
         list: undefined,
         // A template whose variable has no live source registers without

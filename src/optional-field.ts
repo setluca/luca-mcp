@@ -18,11 +18,6 @@ export function optionalField<K extends string, V>(
 export function optionalField<V>(key: string, value: V | undefined | null) {
   return Option.fromNullishOr(value).pipe(
     Option.match({
-      // Returning `undefined` here instead of `{}` is indistinguishable at
-      // every call site: the result is only ever spread, and spreading either
-      // value contributes no keys. The empty object is written out because it
-      // matches the declared return type.
-      // Stryker disable next-line ArrowFunction: `...undefined` and `...{}` both contribute nothing
       onNone: () => ({}),
       onSome: (present) => R.fromEntries([[key, present]]),
     })

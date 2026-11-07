@@ -64,9 +64,8 @@ export function buildCache<K extends WeakKey, V>(): Cache<K, V> {
 }
 
 /**
- * Drops every build the caches hold. Only tests call this: a definition cached
- * under one version of the code would otherwise be reused after the code
- * changed underneath it, which is exactly what a mutation run does.
+ * Drops every build the caches hold. Only tests call this, so each one builds its
+ * tools from scratch.
  */
 export function clearToolBuildCache() {
   Arr.forEach(resets, (reset) => {

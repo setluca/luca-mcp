@@ -6,9 +6,7 @@ import { describe, expect, it } from "vitest";
  * route up in `ROUTE_CATALOG` and reads the method off the answer. An id that
  * names no route therefore throws while the module is still being imported,
  * which every other test file experiences as a collection failure rather than
- * a failing assertion. A collection failure produces no test result, so a
- * mutation run has nothing to attribute the kill to and records the broken id
- * as a survivor.
+ * a failing assertion.
  *
  * This file imports the catalog dynamically, inside the test body, and imports
  * nothing from `src/` at the top level. That keeps the file collectable no
