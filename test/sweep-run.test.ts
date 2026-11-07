@@ -24,10 +24,10 @@ describe("the sweep's workspace check", () => {
 
   it("lets only the sweep account through", () => {
     expect(
-      workspaceRefusal(answered({ email: "sweep@setluca.com" }))
+      workspaceRefusal(answered({ email: "support@setluca.com" }))
     ).toBeUndefined();
     expect(workspaceRefusal(answered({ email: coach }))).toContain(
-      "does not belong to sweep@setluca.com"
+      "does not belong to support@setluca.com"
     );
   });
 
@@ -40,12 +40,12 @@ describe("the sweep's workspace check", () => {
 
     expect(
       workspaceRefusal({
-        ...answered({ email: "sweep@setluca.com" }),
+        ...answered({ email: "support@setluca.com" }),
         exitCode: 5,
       })
     ).toContain(unreadable);
     expect(workspaceRefusal(answered({ error: "nope" }))).toContain(
-      "does not belong to sweep@setluca.com"
+      "does not belong to support@setluca.com"
     );
   });
 });
