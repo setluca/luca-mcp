@@ -608,3 +608,83 @@ describe("tool auth metadata", () => {
     expect(overStdio).not.toHaveProperty("_meta");
   });
 });
+
+describe("luca_campaigns_enrollments_resume", () => {
+  const input = {
+    id: "00000000-0000-0000-0000-000000000001",
+    enrollmentId: "00000000-0000-0000-0000-000000000002",
+  };
+
+  const resumed = { enrollmentId: input.enrollmentId, resumed: true };
+
+  const answering = (body: unknown) =>
+    Layer.succeed(LucaApi, { request: () => Effect.succeed(body as never) });
+
+  const refusal = (status: number, code: string, message: string) =>
+    failingWith(status, { error: { code, message } });
+
+  it("refuses to run without confirm: true and sends nothing", async () => {
+    const request = vi.fn(() => Effect.succeed(resumed as never));
+    const layer = Layer.succeed(LucaApi, { request });
+
+    const result = await captureHandler(
+      "luca_campaigns_enrollments_resume",
+      layer
+    )(input);
+
+    expect(result).toMatchObject({
+      isError: true,
+      content: [
+        {
+          type: "text",
+          text: "luca_campaigns_enrollments_resume: This tool requires confirm: true because it has a real-world side effect. Re-call the tool with confirm: true to proceed.",
+        },
+      ],
+    });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("resumes the enrollment when confirmed", async () => {
+    const result = await captureHandler(
+      "luca_campaigns_enrollments_resume",
+      answering(resumed)
+    )({ ...input, confirm: true });
+
+    expect(result).toMatchObject({ structuredContent: { result: resumed } });
+  });
+
+  it.each([
+    [404, "campaign_enrollment_not_found", "enrollment not found"],
+    [
+      409,
+      "campaign_enrollment_not_kept_parked",
+      "this enrollment is not waiting on a safety approval",
+    ],
+    [
+      409,
+      "campaign_enrollment_not_waiting",
+      "this enrollment has already moved on from its wait",
+    ],
+  ])("reports a %i %s as a tool error", async (status, code, message) => {
+    const result = await captureHandler(
+      "luca_campaigns_enrollments_resume",
+      refusal(status, code, message)
+    )({ ...input, confirm: true });
+
+    expect(result).toMatchObject({ isError: true });
+    expect(encodeUnknownJson(result)).toContain(code);
+  });
+
+  it("tells the agent when to use it and what each 409 means", () => {
+    const { config } = capture(
+      operationByToolName("luca_campaigns_enrollments_resume")
+    );
+
+    expect(String(config.description)).toContain("safety review");
+    expect(String(config.description)).toContain("next message to the lead");
+    expect(String(config.description)).toContain(
+      "not waiting on a safety approval"
+    );
+    expect(String(config.description)).toContain("already moved on");
+  });
+});

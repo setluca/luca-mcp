@@ -1335,7 +1335,7 @@
         "openWorldHint": true
       },
       "inputSchema": "f11d9a1a8c2250c4",
-      "outputSchema": "e9a84ea5697ffd64",
+      "outputSchema": "c246ea52369f1b47",
       "meta": "1b5a56c606a88080"
     },
     "luca_campaigns_enrollments_list": {
@@ -1352,6 +1352,20 @@
       "outputSchema": "1f4c9392df0f3921",
       "meta": "b378caa8dc624177"
     },
+    "luca_campaigns_enrollments_resume": {
+      "title": "Resume an enrollment a safety approval kept paused",
+      "description": "Resume a campaign enrollment that stayed paused after the coach approved a safety review on the lead's reply. Use it once the coach has approved the review and decided the lead is ready for the campaign again. It sends the campaign's next message to the lead. Luca answers 404 when the enrollment does not exist. It answers 409 when the enrollment is not waiting on a safety approval, or when it has already moved on from its wait.\n\nLuca operation: POST /api/campaigns/{id}/enrollments/{enrollmentId}/resume\nRequired scopes: campaigns:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Resume an enrollment a safety approval kept paused",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "inputSchema": "ca861216d6eb3937",
+      "outputSchema": "9911f1a3dd6e4ce0",
+      "meta": "1b5a56c606a88080"
+    },
     "luca_campaigns_enrollments_timeline": {
       "title": "Read an enrollment timeline",
       "description": "Read every step one enrollment has been through: what got sent, when, and how the lead responded.\n\nLuca operation: GET /api/campaigns/{id}/enrollments/{enrollmentId}/timeline\nRequired scopes: campaigns:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
@@ -1363,7 +1377,7 @@
         "openWorldHint": false
       },
       "inputSchema": "8147a6099a88ab73",
-      "outputSchema": "da7ee692b5ba4fb2",
+      "outputSchema": "51b8ebff3946d869",
       "meta": "b378caa8dc624177"
     },
     "luca_campaigns_generate": {
@@ -1727,7 +1741,7 @@
         "openWorldHint": false
       },
       "inputSchema": "c3555e757deacd72",
-      "outputSchema": "f88fc5dff8bebe8d",
+      "outputSchema": "42c9a664b5e3a401",
       "meta": "b378caa8dc624177"
     },
     "luca_conversations_list": {
@@ -2806,6 +2820,20 @@
       },
       "inputSchema": "c3555e757deacd72",
       "outputSchema": "5858e49354831a27",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_review_queue_kept_campaigns": {
+      "title": "List campaigns a safety approval kept paused",
+      "description": "List the campaigns that approving this safety review kept paused for the lead, and whether each one is still paused or the coach already resumed it. Use it to find the enrollment to pass to luca_campaigns_enrollments_resume. The list is empty for a review that kept nothing paused.\n\nLuca operation: GET /api/review-queue/{id}/kept-campaigns\nRequired scopes: review_queue:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List campaigns a safety approval kept paused",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "c3555e757deacd72",
+      "outputSchema": "4d9dcec8d3eda7cd",
       "meta": "b378caa8dc624177"
     },
     "luca_review_queue_list": {

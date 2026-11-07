@@ -15,6 +15,12 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
       "Explain the signals behind a drafted reply: its voice-match score, any critic findings, and the qualification that motivated it.",
   }),
   op({
+    id: "reviewQueue.keptCampaigns",
+    title: "List campaigns a safety approval kept paused",
+    description:
+      "List the campaigns that approving this safety review kept paused for the lead, and whether each one is still paused or the coach already resumed it. Use it to find the enrollment to pass to luca_campaigns_enrollments_resume. The list is empty for a review that kept nothing paused.",
+  }),
+  op({
     id: "reviewQueue.approve",
     // Answers with ids and status flags only; no lead-authored text.
     untrustedContent: false,

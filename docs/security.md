@@ -243,6 +243,7 @@ These 36 operations carry the gate:
 - `luca_call_events_summary_replace`
 - `luca_call_events_push_to_crm`
 - `luca_campaigns_enroll`
+- `luca_campaigns_enrollments_resume`
 - `luca_campaigns_publish`
 - `luca_campaigns_set_status`, only when `status` is `published`
 - `luca_broadcasts_launch`

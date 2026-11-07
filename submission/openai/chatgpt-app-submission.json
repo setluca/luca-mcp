@@ -1136,6 +1136,18 @@
         "destructive_justification": "Starts a live automation that messages a real person; messages it sends cannot be unsent. It enrolls the lead in the latest published version only. Refuses to run without confirm: true."
       }
     },
+    "luca_campaigns_enrollments_resume": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Resumes a campaign enrollment that stayed paused after the coach approved a safety review, so the campaign moves on and sends its next step.",
+        "open_world_justification": "The resumed campaign sends its next message to the real lead through the lead's channel (Instagram, Telegram, or Messenger).",
+        "destructive_justification": "Sends a message to a real person that cannot be unsent, and the enrollment cannot be paused again by this tool. Refuses to run without confirm: true."
+      }
+    },
     "luca_campaigns_enrollments_list": {
       "annotations": {
         "readOnlyHint": true,
@@ -2392,6 +2404,18 @@
       },
       "justifications": {
         "read_only_justification": "Only reads the signals behind one queued draft: voice-match score, critic findings, and the qualification behind it. It creates, changes, deletes, and sends nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_review_queue_kept_campaigns": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads which campaigns one safety approval kept paused, and whether each is still paused. It creates, changes, deletes, and sends nothing.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
         "destructive_justification": "Only reads; it overwrites and deletes nothing."
       }

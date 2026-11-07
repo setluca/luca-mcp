@@ -209,6 +209,81 @@ describe("createLucaApi", () => {
     );
   });
 
+  it("posts the resume with an idempotency key and no body", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          encodeUnknownJson({
+            enrollmentId: "00000000-0000-0000-0000-000000000002",
+            resumed: true,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const api = createLucaApi({
+      apiBaseUrl: "https://api.example.com",
+      apiKey: Redacted.make("luca_test"),
+      authHeader: "x-api-key",
+    });
+
+    const operation = getOperation("campaigns.enrollments.resume");
+
+    const result = await Effect.runPromise(
+      api.request({
+        operation,
+        pathParams: {
+          id: "00000000-0000-0000-0000-000000000001",
+          enrollmentId: "00000000-0000-0000-0000-000000000002",
+        },
+        idempotencyKey: "resume-1",
+      })
+    );
+
+    expect(result).toEqual({
+      enrollmentId: "00000000-0000-0000-0000-000000000002",
+      resumed: true,
+    });
+    const [url, init] = getFetchCall(fetchMock);
+    const headers = new Headers(init.headers);
+    expect(String(url)).toBe(
+      "https://api.example.com/api/campaigns/00000000-0000-0000-0000-000000000001/enrollments/00000000-0000-0000-0000-000000000002/resume"
+    );
+    expect(init.method).toBe("POST");
+    expect(headers.get("idempotency-key")).toBe("resume-1");
+    expect(init.body).toBeUndefined();
+  });
+
+  it("mints an idempotency key for the resume when none is given", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(encodeUnknownJson({ resumed: true }), { status: 200 })
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const api = createLucaApi({
+      apiBaseUrl: "https://api.example.com",
+      apiKey: Redacted.make("luca_test"),
+      authHeader: "x-api-key",
+    });
+
+    await Effect.runPromise(
+      api.request({
+        operation: getOperation("campaigns.enrollments.resume"),
+        pathParams: {
+          id: "00000000-0000-0000-0000-000000000001",
+          enrollmentId: "00000000-0000-0000-0000-000000000002",
+        },
+      })
+    );
+
+    const [, init] = getFetchCall(fetchMock);
+    expect(new Headers(init.headers).get("idempotency-key")).toBeTruthy();
+  });
+
   it("fails with LucaHttpError for non-2xx responses", async () => {
     vi.stubGlobal(
       "fetch",
