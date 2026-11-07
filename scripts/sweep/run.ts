@@ -116,10 +116,15 @@ function describe(expect: Expectation): string {
 }
 
 /** The first line of a tool's text, cut short for the report. */
+/** Long enough to reach an API error's details. The report is private, so this is safe. */
+const NOTE_LIMIT = 600;
+
 function brief(text: string): string {
   const line = text.split("\n").find((part) => part.trim() !== "") ?? "";
 
-  return line.length > 160 ? `${line.slice(0, 157)}...` : line;
+  return line.length > NOTE_LIMIT
+    ? `${line.slice(0, NOTE_LIMIT - 3)}...`
+    : line;
 }
 
 function judgeRefusal(outcome: InspectorOutcome, match: RegExp): Judgement {
@@ -158,7 +163,7 @@ function judge(outcome: InspectorOutcome, expect: Expectation): Judgement {
     Match.discriminatorsExhaustive("kind")({
       ok: (): Judgement =>
         outcome.exitCode === INSPECTOR_EXIT.ok
-          ? { verdict: "pass", note: "" }
+          ? { verdict: "pass", note: brief(outcome.text) }
           : {
               verdict: "fail",
               note: `exit ${outcome.exitCode}: ${brief(outcome.text)}`,

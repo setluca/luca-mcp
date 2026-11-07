@@ -80,9 +80,13 @@ the account behind its key or sign-in and stops unless it is `support@setluca.co
 Create that workspace once, through the normal sign-up as `support@setluca.com`:
 finish onboarding, then connect the Google calendar. Make its developer keys only
 after that, while signed in as that account. Disconnect any channel onboarding
-connected, because the reseed refuses to run while one is connected. Cancel any
-trial too: a trial holds a card and charges it on day seven. The reseed gives the
-workspace an active plan with no subscription behind it.
+connected, because the reseed refuses to run while one is connected.
+
+Stay out of the trial. The reseed gives the workspace an active plan with no
+subscription behind it, but Luca refreshes any account holding a plan from Autumn
+within minutes, which undoes that. So while a trial runs, the campaign steps hit the
+trial's one-campaign cap. A trial also holds a card and charges it on day seven, so
+cancel one that has started. Once it ends, the account holds no plan and this stops.
 
 The seed lives in setluca/luca (`scripts/seed-sweep-workspace.ts`). Run it
 again after a sweep to put back what the sweep used up.

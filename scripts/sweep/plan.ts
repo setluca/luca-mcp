@@ -848,6 +848,11 @@ const create: readonly SweepStep[] = [
     tool: "luca_review_queue_objection_variant",
     phase: "create",
     ...idFrom("reviewItem", () => ({ body: { label: "Sweep variant" } })),
+    expect: {
+      kind: "refused",
+      because: "the seeded draft has no objection variants to switch to",
+      match: /objection_variant_not_found/,
+    },
   },
   {
     tool: "luca_bookings_create",
@@ -1069,10 +1074,7 @@ const create: readonly SweepStep[] = [
   {
     tool: "luca_integrations_crm_oauth_url",
     phase: "create",
-    args: () => ({
-      provider: "hubspot",
-      query: { redirectUri: "https://app.setluca.com/settings/integrations" },
-    }),
+    args: () => ({ provider: "hubspot" }),
   },
   {
     tool: "luca_integrations_crm_connections_create",
@@ -1330,6 +1332,12 @@ const change: readonly SweepStep[] = [
     provides: { bookCallBooking: valueAt("bookingId") },
   },
   {
+    tool: "luca_bookings_get",
+    phase: "change",
+    extra: "reads the Google Calendar booking's window before moving it",
+    ...idFrom("providerBooking"),
+  },
+  {
     tool: "luca_reschedule_call",
     phase: "change",
     extra: "moves the Google Calendar booking, so its calendar event moves",
@@ -1455,17 +1463,32 @@ const change: readonly SweepStep[] = [
       id: fx.sweepBroadcast,
       body: { previewVersion: fx.previewVersion },
     }),
+    expect: {
+      kind: "refused",
+      because: "with no connected channel, a broadcast fails its safety check",
+      match: /broadcast_safety_blocked/,
+    },
   },
   {
     tool: "luca_broadcasts_launch",
     phase: "change",
     gated: true,
     ...idFrom("sweepBroadcast"),
+    expect: {
+      kind: "refused",
+      because: "the safety check kept this broadcast from being approved",
+      match: /broadcast_not_approved/,
+    },
   },
   {
     tool: "luca_broadcasts_pause",
     phase: "change",
     ...idFrom("sweepBroadcast", () => ({ body: { reason: "Sweep check" } })),
+    expect: {
+      kind: "refused",
+      because: "this broadcast never launched, so nothing is running",
+      match: /broadcast_not_running/,
+    },
   },
   {
     tool: "luca_broadcasts_resume",
@@ -1474,8 +1497,8 @@ const change: readonly SweepStep[] = [
     ...idFrom("sweepBroadcast"),
     expect: {
       kind: "refused",
-      because: "the sweep paused this broadcast by hand, not billing",
-      match: /broadcast_not_billing_paused|billing paused/i,
+      because: "this broadcast never launched, so it isn't paused",
+      match: /broadcast_not_paused/,
     },
   },
   {
@@ -1483,12 +1506,11 @@ const change: readonly SweepStep[] = [
     phase: "change",
     gated: true,
     ...idFrom("sweepBroadcast", () => ({ body: { failedOnly: true } })),
-  },
-  {
-    tool: "luca_webhooks_subscriptions_update",
-    phase: "change",
-    gated: true,
-    ...idFrom("webhookSubscription", () => ({ body: { status: "paused" } })),
+    expect: {
+      kind: "refused",
+      because: "this broadcast never ran, so it has no failed sends to retry",
+      match: /broadcast_not_retryable/,
+    },
   },
   {
     tool: "luca_webhooks_deliveries_replay",
@@ -1512,6 +1534,12 @@ const change: readonly SweepStep[] = [
     phase: "change",
     gated: true,
     args: () => ({ body: { eventTypes: ["lead.created"], limit: 1 } }),
+  },
+  {
+    tool: "luca_webhooks_subscriptions_update",
+    phase: "change",
+    gated: true,
+    ...idFrom("webhookSubscription", () => ({ body: { status: "paused" } })),
   },
   {
     tool: "luca_integrations_crm_connections_schema",
@@ -1550,12 +1578,24 @@ const change: readonly SweepStep[] = [
     phase: "change",
     gated: true,
     ...idFrom("channel", () => ({ body: { enabled: true } })),
+    expect: {
+      kind: "refused",
+      because:
+        "the workspace's only channel is disconnected, so there is no account to change",
+      match: /channel_account_not_found/,
+    },
   },
   {
     tool: "luca_channels_set_ai_dm_auto_send",
     phase: "change",
     extra: "turns auto-send back off, which needs no confirmation",
     ...idFrom("channel", () => ({ body: { enabled: false } })),
+    expect: {
+      kind: "refused",
+      because:
+        "the workspace's only channel is disconnected, so there is no account to change",
+      match: /channel_account_not_found/,
+    },
   },
   { tool: "luca_insights_mark_read", phase: "change", ...idFrom("insight") },
   {
@@ -1607,6 +1647,12 @@ const change: readonly SweepStep[] = [
     tool: "luca_cadences_pause",
     phase: "change",
     ...idFrom("sweepLead", () => ({ body: { reason: "Sweep check" } })),
+    expect: {
+      kind: "refused",
+      because:
+        "the sweep's own lead has no conversation, so no cadence started to pause",
+      match: /rescue_state_not_found/,
+    },
   },
   {
     tool: "luca_rescue_silent_leads",
@@ -1620,6 +1666,12 @@ const change: readonly SweepStep[] = [
     phase: "change",
     needs: ["sweepLead"],
     args: (fx) => ({ leadId: fx.sweepLead, reason: "Sweep check" }),
+    expect: {
+      kind: "refused",
+      because:
+        "the sweep's own lead has no conversation, so no cadence started to pause",
+      match: /rescue_state_not_found/,
+    },
   },
 ];
 
