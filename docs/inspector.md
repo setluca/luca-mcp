@@ -41,6 +41,8 @@ and don't fail the build; run the command without `> /dev/null` to see them.
 and compares them with `tool-surface.json`. `verify` runs it after `build`.
 `bun run surface:live` does the same against `mcp.setluca.com`, with a developer key
 in `LUCA_MCP_LIVE_KEY`. See [maintenance](./maintenance.md#drift-checks).
+`bun run protocol:check` needs no key: it runs the same comparison over HTTP against
+the real handler, with Luca's API stubbed, then the MCP conformance suite.
 
 ## Workspace and base URL
 

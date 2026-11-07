@@ -1,0 +1,20 @@
+# External links in the README and docs, checked after each merge to main.
+
+# Decision records describe the past, so a link that has since moved is fine there.
+exclude_path = ["docs/adr"]
+
+exclude = [
+  # Private repositories, which this check has no access to and would call dead.
+  '^https://github\.com/setluca/(luca|website)/',
+  '^https?://localhost',
+  '^https?://127\.0\.0\.1',
+  '^https?://[^/]*\.example(\.[a-z]+)?(/|$)',
+  '^https?://[^/]*example\.(com|org)(/|$)',
+]
+
+# mcp.setluca.com answers 401 by design, and npm and claude.ai refuse bots with a 403.
+# What this has to catch is a page that is gone, which answers 404 or 410.
+accept = ["200..=299", "401", "403", "429"]
+
+max_retries = 2
+timeout = 20

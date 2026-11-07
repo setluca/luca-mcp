@@ -6,7 +6,7 @@ const origin = "https://mcp.setluca.com";
 
 const resource = `${origin}/mcp`;
 
-const metadataUrl = `${origin}/.well-known/oauth-protected-resource/mcp`;
+const METADATA_PATH = "/.well-known/oauth-protected-resource/mcp";
 
 const ServerCard = Schema.Struct({
   serverInfo: Schema.Struct({ version: Schema.String }),
@@ -18,33 +18,41 @@ const ProtectedResource = Schema.Struct({
   authorization_servers: Schema.Array(Schema.String),
 });
 
+/**
+ * Checks a running Worker. `baseUrl` is where requests go, so a local boot of the
+ * production config gets the same check as the deploy: what it answers still has to
+ * name production, because that comes from its config.
+ */
 export async function checkDeployment(
   expectedVersion: string,
-  fetcher: typeof fetch = fetch
+  fetcher: typeof fetch = fetch,
+  baseUrl: string = origin
 ): Promise<void> {
   const options = {
     cache: "no-store" as const,
     signal: AbortSignal.timeout(10_000),
   };
 
-  await checkServerCard(expectedVersion, fetcher, options);
-  await checkOAuthMetadata(fetcher, options);
-  await checkChallenge(fetcher, options);
+  await checkServerCard(expectedVersion, fetcher, options, baseUrl);
+  await checkOAuthMetadata(fetcher, options, baseUrl);
+  await checkChallenge(fetcher, options, baseUrl);
   // Claude's custom connector sends this Origin. A 403 here blocks its sign-in.
-  await checkChallenge(fetcher, {
-    ...options,
-    headers: { origin: "https://claude.ai" },
-  });
-  await checkFavicon(fetcher, options);
+  await checkChallenge(
+    fetcher,
+    { ...options, headers: { origin: "https://claude.ai" } },
+    baseUrl
+  );
+  await checkFavicon(fetcher, options, baseUrl);
 }
 
 async function checkServerCard(
   expectedVersion: string,
   fetcher: typeof fetch,
-  options: RequestInit
+  options: RequestInit,
+  baseUrl: string
 ): Promise<void> {
   const cardResponse = await fetcher(
-    `${origin}/.well-known/mcp/server-card.json`,
+    `${baseUrl}/.well-known/mcp/server-card.json`,
     options
   );
 
@@ -66,9 +74,10 @@ async function checkServerCard(
 
 async function checkOAuthMetadata(
   fetcher: typeof fetch,
-  options: RequestInit
+  options: RequestInit,
+  baseUrl: string
 ): Promise<void> {
-  const metadataResponse = await fetcher(metadataUrl, options);
+  const metadataResponse = await fetcher(`${baseUrl}${METADATA_PATH}`, options);
 
   if (!metadataResponse.ok) {
     throw new Error(`OAuth metadata returned ${metadataResponse.status}`);
@@ -90,14 +99,16 @@ async function checkOAuthMetadata(
 
 async function checkChallenge(
   fetcher: typeof fetch,
-  options: RequestInit
+  options: RequestInit,
+  baseUrl: string
 ): Promise<void> {
-  const unauthenticated = await fetcher(resource, options);
+  const unauthenticated = await fetcher(`${baseUrl}/mcp`, options);
   const challenge = unauthenticated.headers.get("www-authenticate");
 
   if (
     unauthenticated.status !== 401 ||
-    !challenge?.includes(`resource_metadata="${metadataUrl}"`)
+    // `wrangler dev` rewrites the configured host in response headers to its own.
+    !challenge?.includes(`resource_metadata="${baseUrl}${METADATA_PATH}"`)
   ) {
     const caller = new Headers(options.headers).get("origin") ?? "no origin";
 
@@ -113,9 +124,10 @@ async function checkChallenge(
  */
 async function checkFavicon(
   fetcher: typeof fetch,
-  options: RequestInit
+  options: RequestInit,
+  baseUrl: string
 ): Promise<void> {
-  const favicon = await fetcher(`${origin}/favicon.ico`, options);
+  const favicon = await fetcher(`${baseUrl}/favicon.ico`, options);
   const contentType = favicon.headers.get("content-type") ?? "";
 
   if (!favicon.ok || !contentType.startsWith("image/")) {
@@ -127,15 +139,18 @@ async function checkFavicon(
 
 if (isEntryPoint(import.meta.filename)) {
   const expectedVersion = process.argv[2];
+  const baseUrl = process.argv[3] ?? origin;
 
   if (!expectedVersion) {
-    throw new Error("Usage: bun scripts/check-deployed-worker.ts <version>");
+    throw new Error(
+      "Usage: bun scripts/check-deployed-worker.ts <version> [base url]"
+    );
   }
 
   for (let attempt = 1; attempt <= 12; attempt++) {
     try {
-      await checkDeployment(expectedVersion);
-      console.log(`MCP Worker ${expectedVersion} is live at ${resource}`);
+      await checkDeployment(expectedVersion, fetch, baseUrl);
+      console.log(`MCP Worker ${expectedVersion} is live at ${baseUrl}/mcp`);
       process.exit(0);
     } catch (error) {
       if (attempt === 12) {

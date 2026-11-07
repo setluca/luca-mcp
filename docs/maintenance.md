@@ -7,15 +7,19 @@ identity changes.
 
 Each of these catches a different way for what we say to stop being true:
 
-| Check                                     | Runs                                            | Fails when                                                                        |
-| ----------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------- |
-| `bun run schema:strict`                   | `verify`                                        | A tool schema is one a client would refuse or mangle                              |
-| `bun run surface:check`                   | `verify`                                        | The build, in either protocol era, differs from `tool-surface.json`               |
-| `test/openai-submission.test.ts`          | `verify`                                        | A hint differs from the submission, or text uses wording that contradicts a hint  |
-| `bun run contracts:deployed:check`        | `verify`, daily, and before each deploy         | The Luca pin or OpenAPI snapshot differs from production                          |
-| `bun run surface:live`                    | After each deploy, and daily                    | The hosted server, in either protocol era, differs from its release               |
-| `bun run sweep`                           | Weekly and before each release, in setluca/luca | A tool does not do what the plan expects, or a read-only tool writes an audit row |
-| [Handler audit](./runbooks/tool-audit.md) | Before each directory submission                | A hint or a claim does not match what the handler does                            |
+| Check                                                        | Runs                                                  | Fails when                                                                                                                          |
+| ------------------------------------------------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run schema:strict`                                      | `verify`                                              | A tool schema is one a client would refuse or mangle                                                                                |
+| `bun run surface:check`                                      | `verify`                                              | The build, in either protocol era, differs from `tool-surface.json`                                                                 |
+| `test/openai-submission.test.ts`                             | `verify`                                              | A hint differs from the submission, or text uses wording that contradicts a hint                                                    |
+| `bun run contracts:deployed:check`                           | `verify`, daily, and before each deploy               | The Luca pin or OpenAPI snapshot differs from production                                                                            |
+| `bun run surface:live`                                       | After each deploy, and daily                          | The hosted server, in either protocol era, differs from its release                                                                 |
+| `bun run protocol:check`                                     | After each merge                                      | Over HTTP, the real handler differs from `tool-surface.json`, or MCP conformance finds a failure outside `conformance-baseline.yml` |
+| `bun run surface:changelog`                                  | After each merge                                      | Clients will see a change since the last release, and the changelog doesn't cover it                                                |
+| `bun run website:check`                                      | Daily                                                 | `setluca.com/connect.md` names a different version from npm's latest                                                                |
+| `.github/workflows/mcp-contract-preview.yml` in setluca/luca | Each merge to Luca's `master` that changes a contract | Never fails: it comments on the merged pull request with the tools affected, before that change deploys                             |
+| `bun run sweep`                                              | Weekly and before each release, in setluca/luca       | A tool does not do what the plan expects, or a read-only tool writes an audit row                                                   |
+| [Handler audit](./runbooks/tool-audit.md)                    | Before each directory submission                      | A hint or a claim does not match what the handler does                                                                              |
 
 None of the automatic checks can tell whether a hint is true of the handler,
 because they compare what we wrote with other things we wrote. The sweep comes
@@ -25,6 +29,23 @@ Luca's route policy, where a test can hold them to the route, is the fix for tha
 A scheduled check that fails opens one GitHub issue, and closes it when it passes
 again. `scripts/setup-drift-checks.sh` sets up the keys and tokens these need; run it
 again to rotate one. Until then the checks that need one skip with a warning.
+
+### After a merge
+
+`.github/workflows/post-merge.yml` runs on `main`, not on every commit of a pull
+request. A merge has already happened by then, so a failure can't block it. The
+workflow opens one issue instead, and closes it when everything passes again.
+
+| Job                               | What it proves                                                                                                                                           |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Package on Node 20, 22, and 24    | The tarball npm would publish installs into an empty project, and its bin starts under each Node. Our other startup test runs `dist/` under Bun          |
+| Worker on Cloudflare's runtime    | The production config boots on workerd and answers the same check a deploy runs. The tests import the Worker under Node, and the dry run only bundles it |
+| Inspector and MCP conformance     | See `bun run protocol:check` above. `conformance-baseline.yml` says why each known failure can't pass                                                    |
+| Changelog covers the tool surface | See `bun run surface:changelog` above. It compares with the last release, so a miss stays red until the changelog is fixed                               |
+| `server.json` validator           | `mcp-publisher validate` passes. Otherwise the failure lands at release, after npm has already shipped                                                   |
+| Workflow lint and security        | actionlint and zizmor find nothing in these workflows                                                                                                    |
+| Dependency advisories             | Nothing in what we ship has an advisory, and nothing at all has a high or critical one                                                                   |
+| External links                    | Nothing in the README or `docs/` points at a page that's gone. `lychee.toml` says which answers count                                                    |
 
 ### The tool surface
 

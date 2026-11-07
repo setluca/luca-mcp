@@ -19,7 +19,7 @@ if [ "$status" = "success" ]; then
 fi
 
 if [ -z "$existing" ]; then
-  gh issue create --title "$title" --body "This scheduled check failed: $run_url
+  gh issue create --title "$title" --body "This check failed: $run_url
 
 $fix
 
