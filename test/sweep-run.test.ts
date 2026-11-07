@@ -1,10 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { InspectorOutcome } from "../scripts/lib/inspector.ts";
+import type { ApiBody, Settlement } from "../scripts/sweep/plan.ts";
 import {
   auditRowsOf,
   judgeAuditLog,
+  judgeSettled,
   hostedConnection,
+  untilSettled,
   workspaceRefusal,
 } from "../scripts/sweep/run.ts";
 import type { JsonValue } from "../src/serialization.ts";
@@ -95,5 +98,74 @@ describe("how a sweep reaches the hosted server", () => {
       serverUrl,
       token: "key",
     });
+  });
+});
+
+describe("waiting for a sweep step's background work", () => {
+  const step = {
+    settles: (body: ApiBody): Settlement => {
+      const answer = JSON.stringify(body);
+
+      if (answer.includes("confirmed")) {
+        return "done";
+      }
+
+      return answer.includes("pending_provider") ? "waiting" : "failed";
+    },
+  };
+
+  const noWait = async () => undefined;
+
+  it("repeats a step until its work finishes", async () => {
+    const repeat = vi.fn(async () => answered({ state: "confirmed" }));
+
+    const outcome = await untilSettled(
+      step,
+      repeat,
+      answered({ state: "pending_provider" }),
+      noWait
+    );
+
+    expect(repeat).toHaveBeenCalledTimes(1);
+    expect(judgeSettled(step, outcome)).toBeUndefined();
+  });
+
+  it("fails a step whose work never finishes, after trying for a while", async () => {
+    const repeat = vi.fn(async () => answered({ state: "pending_provider" }));
+
+    const outcome = await untilSettled(
+      step,
+      repeat,
+      answered({ state: "pending_provider" }),
+      noWait
+    );
+
+    expect(repeat).toHaveBeenCalledTimes(20);
+    expect(judgeSettled(step, outcome)?.note).toContain(
+      "still unfinished after waiting"
+    );
+  });
+
+  it("stops at once when the work ends badly, and fails the step", async () => {
+    const repeat = vi.fn(async () => answered({ state: "confirmed" }));
+
+    const outcome = await untilSettled(
+      step,
+      repeat,
+      answered({ state: "failed" }),
+      noWait
+    );
+
+    expect(repeat).not.toHaveBeenCalled();
+    expect(judgeSettled(step, outcome)?.note).toContain("ended badly");
+  });
+
+  it("leaves a step with no background work alone", async () => {
+    const repeat = vi.fn(async () => answered({ state: "confirmed" }));
+    const first = answered({ state: "pending_provider" });
+
+    expect(await untilSettled({}, repeat, first, noWait)).toBe(first);
+    expect(repeat).not.toHaveBeenCalled();
+    expect(judgeSettled({}, first)).toBeUndefined();
   });
 });

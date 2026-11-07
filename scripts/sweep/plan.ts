@@ -123,6 +123,9 @@ export type ApiBody = JsonValue | undefined;
 /** Reads one fixture value out of a tool's API body. */
 export type Capture = (body: ApiBody) => string | undefined;
 
+/** Whether background work is still going, finished, or ended badly. */
+export type Settlement = "waiting" | "done" | "failed";
+
 /** Values a step builds its arguments from, beyond the fixtures. */
 export type SweepContext = {
   /** Unique per run, so records the sweep creates never collide with an earlier run's. */
@@ -157,6 +160,8 @@ export type SweepStep = {
    * and return the same record, so a retried write does not act twice.
    */
   readonly repeat?: true;
+  /** For work Luca finishes in the background: how far along this answer says it is. */
+  readonly settles?: (body: ApiBody) => Settlement;
 };
 
 /** A non-tool request: the listings, every resource, and every prompt. */
@@ -324,6 +329,22 @@ function slotFields(index: number): Capture {
 /** When the open slot at `index` starts. */
 function slotStart(index: number): Capture {
   return (body) => fixtureText(listAt(body, "slots")[index]?.startsAt);
+}
+
+/**
+ * A booking request reaches the calendar in the background, and until it does the
+ * booking has no provider reference to reschedule or cancel with.
+ */
+function providerRequestSettlement(body: ApiBody): Settlement {
+  const state = valueAt("state")(body);
+
+  if (state === "confirmed") {
+    return "done";
+  }
+
+  return state === "accepted" || state === "pending_provider"
+    ? "waiting"
+    : "failed";
 }
 
 // ---------------------------------------------------------------------------
@@ -1321,6 +1342,7 @@ const change: readonly SweepStep[] = [
     tool: "luca_bookings_provider_requests_get",
     phase: "change",
     ...idFrom("providerRequest"),
+    settles: providerRequestSettlement,
     provides: { providerBooking: valueAt("bookingId") },
   },
   {
@@ -1328,6 +1350,7 @@ const change: readonly SweepStep[] = [
     phase: "change",
     extra: "reads the booking luca_book_call made, so the sweep can cancel it",
     ...idFrom("bookCallRequest"),
+    settles: providerRequestSettlement,
     provides: { bookCallBooking: valueAt("bookingId") },
   },
   {

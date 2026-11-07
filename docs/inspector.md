@@ -124,7 +124,8 @@ What the plan checks beyond "it answered":
   of credentials. Nothing reaches a real lead or an outside account.
 - **Calendar.** The sweep books the connected Google calendar twice, once
   through `luca_bookings_provider_requests_create` and once through
-  `luca_book_call`, reschedules one booking, and cancels both. Every invite goes
+  `luca_book_call`, waits for the calendar to confirm each one, reschedules one
+  booking, and cancels both. Every invite goes
   to `support+lead@setluca.com`, which lands in the support inbox. The step that
   removes the calendar selection is followed by one that selects it again, so the
   next run finds it.
