@@ -693,7 +693,7 @@ type AuditRows = (typeof AuditLogPage.Type)["items"];
 const decodeAuditLogPage = Schema.decodeUnknownOption(AuditLogPage);
 
 /** The only account a sweep may run on. Luca's seed allows the same one. */
-const SWEEP_ACCOUNT = "sweep@setluca.com";
+const SWEEP_ACCOUNT = "support@setluca.com";
 
 /**
  * Why this key or sign-in must not be swept, or nothing when it is the sweep

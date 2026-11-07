@@ -73,11 +73,14 @@ tool before a directory reviewer tests it (LUC-515). Run it only against the
 a Google calendar connected on a SetLuca-owned account and no connected channel
 or CRM. Never run it against a coach's workspace or the reviewer workspaces,
 because write tools change what they touch. Before any other call, the sweep reads
-the account behind its key or sign-in and stops unless it is `sweep@setluca.com`.
+the account behind its key or sign-in and stops unless it is `support@setluca.com`.
 
-Create that workspace once, through the normal sign-up as `sweep@setluca.com`:
+Create that workspace once, through the normal sign-up as `support@setluca.com`:
 finish onboarding, then connect the Google calendar. Make its developer keys only
-after that, while signed in as that account.
+after that, while signed in as that account. Disconnect any channel onboarding
+connected, because the reseed refuses to run while one is connected. Cancel any
+trial too: a trial holds a card and charges it on day seven. The reseed gives the
+workspace an active plan with no subscription behind it.
 
 The seed lives in setluca/luca (`scripts/seed-sweep-workspace.ts`). Run it
 again after a sweep to put back what the sweep used up.
@@ -116,9 +119,9 @@ What the plan checks beyond "it answered":
 - **Calendar.** The sweep books the connected Google calendar twice, once
   through `luca_bookings_provider_requests_create` and once through
   `luca_book_call`, reschedules one booking, and cancels both. Every invite goes
-  to `sweep+lead@setluca.com`, a SetLuca-owned mailbox. The step that removes
-  the calendar selection is followed by one that selects it again, so the next
-  run finds it.
+  to `support+lead@setluca.com`, which lands in the support inbox. The step that
+  removes the calendar selection is followed by one that selects it again, so the
+  next run finds it.
 - **Listings.** `tools/list`, `prompts/list`, `resources/list`, and
   `resources/templates/list` have to list exactly what the registry declares.
 

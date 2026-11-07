@@ -209,7 +209,7 @@ key_is_sweep_account() {
   profile=$(bunx mcp-inspector --cli --server-url "$HOSTED_SERVER" --transport http \
     --header "Authorization: Bearer $1" --method tools/call --tool-name luca_coach_profile \
     --tool-args-json '{}' --format json 2>/dev/null) || return 1
-  [[ "$profile" =~ \"email\":[[:space:]]*\"sweep@setluca\.com\" ]]
+  [[ "$profile" =~ \"email\":[[:space:]]*\"support@setluca\.com\" ]]
 }
 
 banner "MCP drift checks setup"
@@ -218,9 +218,10 @@ stage "Check your tools"
 say "This sets up the credentials for the live tool check, the scheduled sweep,"
 say "and the contract sync. No secret is written to disk or shown on screen."
 say "You need admin access to $MCP_REPO and $LUCA_REPO, and the sign-in for"
-say "sweep@setluca.com."
-say "That workspace has to exist first: sign up as sweep@setluca.com, finish onboarding,"
-say "and connect a Google calendar on a SetLuca-owned account. Connect no channel or CRM."
+say "support@setluca.com."
+say "That workspace has to exist first: sign up as support@setluca.com, finish onboarding,"
+say "and connect a Google calendar on a SetLuca-owned account. Leave no channel or CRM"
+say "connected, and cancel any trial so its card is not charged on day seven."
 if ! command -v gh >/dev/null 2>&1 || ! gh auth status >/dev/null 2>&1; then
   warn "gh is missing or signed out. Run 'gh auth login', then start again."
   exit 1
@@ -233,7 +234,7 @@ pause "Press Enter to continue"
 
 stage "Live check: a low-scope key"
 say "CI reads the hosted tool list with this key after every deploy and once a day."
-say "Sign in as sweep@setluca.com, so the key belongs to the synthetic workspace."
+say "Sign in as support@setluca.com, so the key belongs to the synthetic workspace."
 open_url "$KEYS_PAGE"
 step "Under Developer API keys, name a new key 'MCP live check'."
 step "Under Access tiers, pick the lowest tier and leave full content off."
@@ -247,7 +248,7 @@ pause "Press Enter to continue"
 stage "Sweep: a full-access key"
 say "The weekly sweep calls every tool, writes included, in the sweep workspace only."
 say "This secret goes in the private repository, because sweep logs hold record ids."
-warn "Create this key only on sweep@setluca.com, never on a coach's workspace."
+warn "Create this key only on support@setluca.com, never on a coach's workspace."
 open_url "$KEYS_PAGE"
 step "Under Developer API keys, name a new key 'MCP sweep'."
 step "Under Access tiers, pick the highest tier and turn full content on."
@@ -304,10 +305,10 @@ else
   SKIPPED+=("Check the LUCA_MCP_LIVE_KEY key")
 fi
 if key_is_sweep_account "$LUCA_SWEEP_API_KEY"; then
-  say "The sweep key belongs to sweep@setluca.com."
+  say "The sweep key belongs to support@setluca.com."
 else
-  warn "The sweep key does not belong to sweep@setluca.com, or could not read its profile."
-  SKIPPED+=("Revoke the 'MCP sweep' key and make a new one signed in as sweep@setluca.com, then: gh secret set LUCA_SWEEP_API_KEY --repo $LUCA_REPO")
+  warn "The sweep key does not belong to support@setluca.com, or could not read its profile."
+  SKIPPED+=("Revoke the 'MCP sweep' key and make a new one signed in as support@setluca.com, then: gh secret set LUCA_SWEEP_API_KEY --repo $LUCA_REPO")
 fi
 pause "Press Enter to finish"
 
