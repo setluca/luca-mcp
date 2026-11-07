@@ -363,8 +363,10 @@ function confirmationError(toolName: string) {
         text: `${toolName}: This tool requires confirm: true because it has a real-world side effect. Re-call the tool with confirm: true to proceed.`,
       },
     ],
-    structuredContent: {
-      error: {
+    // Not structuredContent: a client that validates it against the tool's output
+    // schema, as Inspector does, would reject the answer and lose this refusal.
+    _meta: {
+      "setluca.com/error": {
         code: "confirmation_required",
         toolName,
         requiredArgument: "confirm",

@@ -25,14 +25,14 @@ the status, the request id when the response carried one, and the API's own JSON
 body, so the machine-readable `code` is always in there even though the envelope
 is text.
 
-The confirmation gate is the one failure with structured output as well, because
-it is the one an agent is expected to recover from on its own:
+The confirmation gate is the one failure with a machine-readable code as well,
+because it is the one an agent is expected to recover from on its own:
 
 ```json
 {
   "isError": true,
-  "structuredContent": {
-    "error": {
+  "_meta": {
+    "setluca.com/error": {
       "code": "confirmation_required",
       "toolName": "luca_conversations_send",
       "requiredArgument": "confirm"
@@ -40,6 +40,8 @@ it is the one an agent is expected to recover from on its own:
   }
 }
 ```
+
+It isn't in `structuredContent`, because that has to match the tool's output schema.
 
 Re-call the tool with `confirm: true`. Nothing reached the lead. See
 `security.md` for the full list of confirm-gated tools and why each is on it.
