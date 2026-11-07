@@ -560,7 +560,7 @@ describe("openApiInputFields", () => {
     const input = schema({
       body: {
         type: "object",
-        properties: { "Stryker was here": { type: "string" } },
+        properties: { "any property": { type: "string" } },
       },
     });
 
@@ -687,20 +687,18 @@ describe("openApiToolOutputFields", () => {
 
   it("relaxes required properties, length constraints, and additionalProperties on nested object fields", () => {
     const output = outputSchema({
-      properties: { "Stryker was here": { type: "string", minLength: 5 } },
-      required: ["Stryker was here"],
+      properties: { "any property": { type: "string", minLength: 5 } },
+      required: ["any property"],
     });
 
     expect(accepts(output, { result: {} })).toBe(true);
-    expect(accepts(output, { result: { "Stryker was here": "ab" } })).toBe(
-      true
-    );
-    expect(accepts(output, { result: { "Stryker was here": 5 } })).toBe(false);
+    expect(accepts(output, { result: { "any property": "ab" } })).toBe(true);
+    expect(accepts(output, { result: { "any property": 5 } })).toBe(false);
     expect(accepts(output, { result: "not-an-object" })).toBe(false);
 
     expect(
-      decoded(output, { result: { "Stryker was here": "ab", extra: 1 } })
-    ).toEqual(Option.some({ result: { "Stryker was here": "ab", extra: 1 } }));
+      decoded(output, { result: { "any property": "ab", extra: 1 } })
+    ).toEqual(Option.some({ result: { "any property": "ab", extra: 1 } }));
   });
 
   it("keeps an explicit type on the relaxed schema even when properties are also present", () => {

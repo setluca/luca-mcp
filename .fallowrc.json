@@ -1,10 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
-  "entry": [
-    "scripts/check-deployed-worker.ts",
-    "vitest.stryker.config.ts",
-    "oxfmt.config.ts"
-  ],
+  "entry": ["scripts/check-deployed-worker.ts", "oxfmt.config.ts"],
   "ignorePatterns": [
     "contracts/**",
     "src/generated/**",

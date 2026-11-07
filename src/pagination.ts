@@ -419,7 +419,6 @@ function passthroughFields(first: JsonObject, itemsKey: string): JsonObject {
   // is overwritten before it can reach the output.
   return R.filter(
     first,
-    // Stryker disable next-line ConditionalExpression: the items key is overwritten by the caller, so excluding it here changes nothing
     (_value, key) => key !== itemsKey && key !== "nextCursor"
   );
 }

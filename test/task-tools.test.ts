@@ -2372,11 +2372,6 @@ describe("luca_morning_report", () => {
 });
 
 describe("luca_analytics_magic_monday", () => {
-  // Resolve the tool inside each test (not at describe-body level): a mutation
-  // that blanks the tool's `name` makes `getTool` throw, and a throw here would
-  // abort collection of the whole file — which Stryker cannot attribute to any
-  // single test, letting the mutant survive. Resolving lazily keeps the throw
-  // inside a test so it registers as a kill.
   it("pins the exact metadata", () => {
     const tool = getTool("luca_analytics_magic_monday");
     expect(tool.name).toBe("luca_analytics_magic_monday");

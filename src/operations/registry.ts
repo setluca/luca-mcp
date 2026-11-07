@@ -433,14 +433,6 @@ export function outputSchemaFor(input: {
     untrustedContent: input.untrustedContent,
   });
 
-  // This guard also runs while `LUCA_OPERATIONS` is built at module
-  // initialization. Forcing either half of it makes the second operand read
-  // `.length` off an absent `redactedFields`, which throws during import: the
-  // test file then fails to collect and reports zero tests, so there is no
-  // failing test for the mutation runner to attribute the kill to and it
-  // registers as a survivor. The branch itself is real and covered: the absent,
-  // empty, and populated cases all assert on the marker.
-  // Stryker disable next-line LogicalOperator,BooleanLiteral: crashes at import, leaving no test to attribute the kill to
   if (!input.redactedFields || Arr.isReadonlyArrayEmpty(input.redactedFields)) {
     return fields;
   }
