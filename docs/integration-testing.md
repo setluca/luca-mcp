@@ -39,3 +39,8 @@ The same workspace variables as the server:
 LUCA_WORKSPACE_ID="00000000-0000-0000-0000-000000000000"
 LUCA_WORKSPACE_SLUG="my-workspace"
 ```
+
+## Every tool
+
+These smoke tests touch a few tools. To call all of them, writes included, use
+[the sweep](./inspector.md#sweep-every-tool).

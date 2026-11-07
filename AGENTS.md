@@ -1,19 +1,15 @@
 # Working on Luca MCP
 
-Start with [docs/README.md](./docs/README.md). It points to the architecture,
-development guide, contract pin, security boundary, and release steps.
-
 ## Before changing code
 
 - This repository owns the MCP server. Luca's deployed API owns the contracts in
-  `contracts/`. Read [docs/maintenance.md](./docs/maintenance.md) before updating
-  a contract snapshot. Pin the Luca production commit, not a branch tip.
+  `contracts/`, so pin the Luca production commit, not a branch tip.
 - The stdio entry is `src/index.ts`; the Cloudflare Worker entry is
   `src/worker.ts`. Both use the same tool catalog under `src/operations/`.
-- Use Effect Schema for first-party validation. Do not add a direct Zod import
-  or dependency. The MCP SDK may still depend on Zod internally.
+- Use Effect Schema for first-party validation. Zod stays out of our imports and
+  dependencies, though the MCP SDK may still depend on it internally.
 - Keep secrets out of logs and stdout. Stdout belongs to the stdio protocol.
-- Treat generated files under `src/generated/` and the three generated docs as
+- Treat `src/generated/`, `tool-surface.json`, and the three generated docs as
   outputs. Run the generators instead of editing them by hand.
 
 ## Check a change
@@ -23,10 +19,17 @@ bun install --frozen-lockfile
 bun run verify
 ```
 
-`verify` runs formatting, lint with warnings denied, Knip, Fallow, generated
-file checks, TypeScript, coverage, the build, stdio discovery, and the Luca
-production contract check. The last check needs network access. For a focused
-test, use `bun run test -- test/name.test.ts`.
+`verify` runs every check CI runs except the Worker and npm dry runs. Its last step
+reads Luca production, so it needs network access. For a focused test, use
+`bun run test -- test/name.test.ts`.
 
-Read [docs/development.md](./docs/development.md) for the tool and test workflow,
-and [docs/release.md](./docs/release.md) before changing deployment or publishing.
+## Read the page for your task
+
+- Add or change a tool: [development](./docs/development.md#add-a-luca-tool).
+- Change a tool's hints, or review a contract sync that lists route changes:
+  [tool audit](./docs/runbooks/tool-audit.md).
+- Update contracts or dependencies: [maintenance](./docs/maintenance.md).
+- Change deployment or publishing: [release](./docs/release.md).
+- Run every tool against a live workspace, only on `support@setluca.com`:
+  [sweep](./docs/inspector.md#sweep-every-tool).
+- Anything else: the [documentation index](./docs/README.md).

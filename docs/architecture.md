@@ -94,6 +94,12 @@ Scripts:
   `scripts/generate-openapi-outputs.ts`: regenerate `src/generated/`.
 - `scripts/generate-docs.ts`: generates the tool reference from the catalog.
 - `scripts/check-registry.ts`: guards `server.json` against drift.
+- `scripts/generate-tool-surface.ts`, `scripts/check-live-surface.ts`: write
+  `tool-surface.json`, and compare the hosted server with it.
+- `scripts/check-deployed-luca-contracts.ts`: compares the contract pin with
+  Luca production.
+- `scripts/sweep/`: calls every tool against the sweep workspace. See
+  [the sweep](./inspector.md#sweep-every-tool).
 
 ## Request flow
 
@@ -117,4 +123,4 @@ Scripts:
 - Writes must preserve Luca's idempotency contract.
 - Any operation added under `src/operations/groups/` must pass
   `bun run openapi:check`.
-- Any catalog change must regenerate `docs/tools.md`.
+- Any catalog change must regenerate `docs/tools.md` and `tool-surface.json`.

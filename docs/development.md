@@ -4,41 +4,52 @@ Run commands from this repository's root.
 
 ```bash
 bun install --frozen-lockfile
-bun run docs:generate
 bun run verify
 ```
 
 ## Quality gates
 
-`bun run verify` chains the whole local gate in the order below. Run it before
-opening a PR.
+`bun run verify` chains the whole gate in the order below. Run it before opening
+a PR.
 
 | Script                             | What it checks                                                                                                         |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `bun run quality`                  | formatting, Oxlint including anti-slop and Effect rules, Knip, and Fallow dead code, duplication, and security gates   |
-| `bun run docs:check`               | `docs/tools.md` matches the catalog                                                                                    |
+| `bun run typecheck`                | strict TypeScript via `tsc --noEmit`, plus the Effect language service's errors, warnings, and suggestions (see below) |
+| `bun run docs:check`               | the three generated docs match the catalog                                                                             |
 | `bun run catalog:check`            | `src/generated/route-catalog.ts` matches the OpenAPI snapshot                                                          |
 | `bun run openapi:inputs:check`     | `src/generated/openapi-inputs.ts`, with its Effect Schema input fields, matches the snapshot                           |
 | `bun run openapi:outputs:check`    | `src/generated/openapi-outputs.ts`, with its redacted-field lists, matches the snapshot                                |
 | `bun run openapi:check`            | every registered operation still exists in the snapshot (`--live` checks the deployed document)                        |
 | `bun run registry:check`           | `server.json` version, tool count, and env vars match the code                                                         |
-| `bun run typecheck`                | strict TypeScript via `tsc --noEmit`, plus the Effect language service's errors, warnings, and suggestions (see below) |
 | `bun run coverage`                 | Vitest tests with 90% line, statement, and function coverage and 85% branch coverage                                   |
 | `bun run fallow:health:gate`       | Fallow's health score, using the coverage report from the step before                                                  |
 | `bun run build`                    | emits `dist/` with `tsc`                                                                                               |
+| `bun run schema:strict`            | no tool schema is one a client would refuse or mangle                                                                  |
+| `bun run surface:check`            | the build, in both protocol eras, matches `tool-surface.json`                                                          |
 | `bun run test:stdio`               | starts the built stdio server and checks MCP discovery                                                                 |
 | `bun run contracts:deployed:check` | pinned Luca commit and OpenAPI match the current production API                                                        |
 
+`bun run lint` fails on warnings too, including a disable comment that no longer
+suppresses anything.
+
 Outside that chain:
 
-- `bun run lint`: Oxlint with errors and warnings treated as failures, including
-  a disable comment that no longer suppresses anything.
 - `bun run test:mutation`: Stryker, for the modules a change touches.
 - `bun run test:integration`: opt-in live Luca API tests. See
   [integration-testing.md](./integration-testing.md).
 - `bun run inspect`: MCP Inspector against the built stdio server.
 
-CI runs this same verification gate for pushes and pull requests.
+CI splits that chain into jobs that run side by side, so each finishes as fast as
+it can and a failure shows up by name:
+
+| Job            | Runs                                                                    |
+| -------------- | ----------------------------------------------------------------------- |
+| `typecheck`    | `bun run typecheck`                                                     |
+| `lint-format`  | `bun run format:check`, `bun run lint`                                  |
+| `code-quality` | `bun run code-quality`: Knip and Fallow's three gates                   |
+| `test`         | `bun run verify:rest`, then the Worker dry run and `npm pack --dry-run` |
+| `verify`       | Nothing of its own. The required check, it passes only if all four did  |
 
 `bun install` runs the `prepare` script, which patches `tsc` with
 [`@effect/tsgo`](https://github.com/Effect-TS/tsgo), so `typecheck` and `build`
@@ -90,11 +101,20 @@ resolve through the Luca API's `POST /oauth/resolve`. See
 ```bash
 bun run openapi:generate
 bun run docs:generate
+bun run build
+bun run surface:generate
 bun run verify
 ```
 
+7. Fix what `verify` then names. A new tool needs a step in
+   `scripts/sweep/plan.ts`, its hints and justifications in
+   `submission/openai/chatgpt-app-submission.json`, and the new count in
+   `server.json`.
+8. Add a `CHANGELOG.md` entry under `Unreleased`.
+
 A new tool inherits the connector-directory checklist too. See
-[connector-directory.md](./connector-directory.md).
+[connector-directory.md](./connector-directory.md). A tool added or removed also
+means editing the tool names on the Claude listing after the release.
 
 ## Code style
 

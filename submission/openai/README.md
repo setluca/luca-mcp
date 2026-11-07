@@ -74,6 +74,11 @@ read-only. Package `0.1.5` is the resubmission. The same release:
   the OpenRouter drafting and media retry tools, which also stay
   `destructiveHint` true.
 
+Package `0.1.5` has not gone in yet. MCP `0.7.1`, live now, has 223 tools. The JSON
+lists 225, because `main` adds `luca_campaigns_enrollments_resume` and
+`luca_review_queue_kept_campaigns`, so a portal scan matches it only after the next
+MCP release. Release first, sweep that release, then resubmit.
+
 OpenAI verified `mcp.setluca.com` on October 6, 2026. The business publisher is
 `SetLuca, LLC`, status Approved.
 

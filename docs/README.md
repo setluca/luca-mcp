@@ -21,6 +21,8 @@ short checklist for agents working in this repository.
 | Add a tool or run checks              | [Development](./development.md)                 |
 | Update Luca contracts or dependencies | [Maintenance](./maintenance.md)                 |
 | Test against a live Luca workspace    | [Integration testing](./integration-testing.md) |
+| Run every tool against a workspace    | [The sweep](./inspector.md#sweep-every-tool)    |
+| See what catches drift                | [Drift checks](./maintenance.md#drift-checks)   |
 | Check the trust boundary              | [Security boundary](./security.md)              |
 
 ## Ship and operate

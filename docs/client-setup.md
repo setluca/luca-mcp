@@ -1,8 +1,8 @@
 # Connect your assistant
 
-Choose the path your assistant supports. A hosted connection uses your Luca
+Choose the path your assistant supports. A hosted connection uses your SetLuca
 sign-in. A local connection runs the published package on your computer and
-uses a developer API key from Luca.
+uses a developer API key from SetLuca.
 
 ## Hosted connection
 
@@ -12,14 +12,14 @@ In a client that supports custom connectors, such as Claude or ChatGPT, add:
 https://mcp.setluca.com/mcp
 ```
 
-Sign in to Luca in the browser and choose what the assistant may do. You do
+Sign in to SetLuca in the browser and choose what the assistant may do. You do
 not need an API key for this path. Manage or revoke the connection in
-**Luca → Settings → Connected agents**.
+**SetLuca → Settings → Connected agents**.
 
 ## Local connection
 
-1. Create an API key in **Luca → Settings → Developer API keys**.
-2. Add Luca to your client's MCP configuration. For Claude Desktop or Cursor,
+1. Create an API key in **SetLuca → Settings → Developer API keys**.
+2. Add SetLuca to your client's MCP configuration. For Claude Desktop or Cursor,
    the entry looks like this:
 
    ```json
@@ -34,7 +34,7 @@ not need an API key for this path. Manage or revoke the connection in
    }
    ```
 
-3. Ask your assistant, "What's in my Luca review queue?"
+3. Ask your assistant, "What's in my SetLuca review queue?"
 
 The published package needs Node.js 20 or newer. For Claude Code, run
 `claude mcp add luca --env LUCA_API_KEY=<your-key> -- npx -y @setluca/mcp`.
@@ -51,13 +51,13 @@ You can paste this into an assistant if you would like it to walk you through
 the choice:
 
 ```text
-Help me connect my Luca workspace. First, check whether this client supports
+Help me connect my SetLuca workspace. First, check whether this client supports
 custom web connectors. If it does, guide me to add
-https://mcp.setluca.com/mcp and let me sign in to Luca myself.
+https://mcp.setluca.com/mcp and let me sign in to SetLuca myself.
 
 If this client uses local MCP servers, guide me to install @setluca/mcp with
 npx and add my LUCA_API_KEY to the client configuration. Ask me to create the
-key in Luca Settings > Developer API keys. Do not ask me to paste the key into
+key in SetLuca Settings > Developer API keys. Do not ask me to paste the key into
 this chat or print it back to me.
 
 After setup, call luca_capabilities_get and tell me what my connection can do.
