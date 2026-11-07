@@ -1276,6 +1276,15 @@ const change: readonly SweepStep[] = [
     args: (fx) => ({ turnId: fx.draftingTurn }),
   },
   {
+    tool: "luca_review_queue_drafting_dismiss",
+    phase: "change",
+    // Right away: in the 2026-11-07 sweep the seeded turn was restarted and
+    // completed within a minute of the retry above, and a finished turn cannot
+    // be dismissed.
+    needs: ["dismissTurn"],
+    args: (fx) => ({ turnId: fx.dismissTurn }),
+  },
+  {
     tool: "luca_bookings_update",
     phase: "change",
     gated: true,
@@ -1832,12 +1841,6 @@ const remove: readonly SweepStep[] = [
     phase: "remove",
     needs: ["conversation", "replyFailure"],
     args: (fx) => ({ id: fx.conversation, failureId: fx.replyFailure }),
-  },
-  {
-    tool: "luca_review_queue_drafting_dismiss",
-    phase: "remove",
-    needs: ["dismissTurn"],
-    args: (fx) => ({ turnId: fx.dismissTurn }),
   },
   {
     tool: "luca_integrations_crm_connections_disconnect",
