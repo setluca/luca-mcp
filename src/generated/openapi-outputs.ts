@@ -3208,6 +3208,51 @@ export const OPENAPI_OUTPUTS = {
           "externallyBlocked"
         ]
       },
+      "coachState": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "checking",
+              "degraded",
+              "action_required",
+              "reconnect_required",
+              "paused",
+              "externally_blocked"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "check_health",
+                "repair_webhook",
+                "reconnect",
+                "disconnect",
+                "review_provider_access",
+                "retry_cleanup"
+              ]
+            }
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "description",
+          "actions"
+        ]
+      },
       "metaWindow": {
         "oneOf": [
           {
@@ -3267,6 +3312,7 @@ export const OPENAPI_OUTPUTS = {
     },
     "required": [
       "composer",
+      "coachState",
       "metaWindow",
       "conversationChanged"
     ]
@@ -33367,11 +33413,57 @@ export const OPENAPI_OUTPUTS = {
                 "lastProbeAt",
                 "updatedAt"
               ]
+            },
+            "coachState": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "enum": [
+                    "connected",
+                    "checking",
+                    "degraded",
+                    "action_required",
+                    "reconnect_required",
+                    "paused",
+                    "externally_blocked"
+                  ]
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "check_health",
+                      "repair_webhook",
+                      "reconnect",
+                      "disconnect",
+                      "review_provider_access",
+                      "retry_cleanup"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "code",
+                "label",
+                "description",
+                "actions"
+              ]
             }
           },
           "required": [
             "channelAccount",
-            "safety"
+            "safety",
+            "coachState"
           ]
         }
       }
@@ -33471,6 +33563,9 @@ export const OPENAPI_OUTPUTS = {
                 "description",
                 "actions"
               ]
+            },
+            "campaignReady": {
+              "type": "boolean"
             },
             "cleanup": {
               "type": "object",
@@ -33691,6 +33786,7 @@ export const OPENAPI_OUTPUTS = {
             "aiDmAutoSendActive",
             "connectedAt",
             "coachState",
+            "campaignReady",
             "composer"
           ]
         }
@@ -34000,6 +34096,9 @@ export const OPENAPI_OUTPUTS = {
           "actions"
         ]
       },
+      "campaignReady": {
+        "type": "boolean"
+      },
       "cleanup": {
         "type": "object",
         "properties": {
@@ -34219,6 +34318,7 @@ export const OPENAPI_OUTPUTS = {
       "aiDmAutoSendActive",
       "connectedAt",
       "coachState",
+      "campaignReady",
       "composer"
     ]
   },
