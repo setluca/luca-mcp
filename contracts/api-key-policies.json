@@ -270,6 +270,14 @@
     ]
   },
   {
+    "id": "reviewQueue.keptCampaigns",
+    "method": "GET",
+    "path": "/api/review-queue/{id}/kept-campaigns",
+    "scopes": [
+      "review_queue:read"
+    ]
+  },
+  {
     "id": "reviewQueue.explain",
     "method": "GET",
     "path": "/api/review-queue/{id}/explain",
@@ -913,6 +921,15 @@
     "id": "campaigns.enroll",
     "method": "POST",
     "path": "/api/campaigns/{id}/enrollments",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true
+  },
+  {
+    "id": "campaigns.enrollments.resume",
+    "method": "POST",
+    "path": "/api/campaigns/{id}/enrollments/{enrollmentId}/resume",
     "scopes": [
       "campaigns:write"
     ],

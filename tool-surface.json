@@ -1335,7 +1335,7 @@
         "openWorldHint": true
       },
       "inputSchema": "f11d9a1a8c2250c4",
-      "outputSchema": "e9a84ea5697ffd64",
+      "outputSchema": "c246ea52369f1b47",
       "meta": "1b5a56c606a88080"
     },
     "luca_campaigns_enrollments_list": {
@@ -1363,7 +1363,7 @@
         "openWorldHint": false
       },
       "inputSchema": "8147a6099a88ab73",
-      "outputSchema": "da7ee692b5ba4fb2",
+      "outputSchema": "51b8ebff3946d869",
       "meta": "b378caa8dc624177"
     },
     "luca_campaigns_generate": {
@@ -1727,7 +1727,7 @@
         "openWorldHint": false
       },
       "inputSchema": "c3555e757deacd72",
-      "outputSchema": "f88fc5dff8bebe8d",
+      "outputSchema": "42c9a664b5e3a401",
       "meta": "b378caa8dc624177"
     },
     "luca_conversations_list": {

@@ -262,6 +262,14 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": false
   },
+  "reviewQueue.keptCampaigns": {
+    "method": "GET",
+    "path": "/api/review-queue/{id}/kept-campaigns",
+    "scopes": [
+      "review_queue:read"
+    ],
+    "idempotencyRequired": false
+  },
   "reviewQueue.explain": {
     "method": "GET",
     "path": "/api/review-queue/{id}/explain",
@@ -865,6 +873,14 @@ export const ROUTE_CATALOG = {
   "campaigns.enroll": {
     "method": "POST",
     "path": "/api/campaigns/{id}/enrollments",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "idempotencyRequired": true
+  },
+  "campaigns.enrollments.resume": {
+    "method": "POST",
+    "path": "/api/campaigns/{id}/enrollments/{enrollmentId}/resume",
     "scopes": [
       "campaigns:write"
     ],
