@@ -17,7 +17,11 @@ jobs:
   tag:
     name: Check the tag
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Long enough to wait out the post-merge checks of a commit just merged.
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -35,6 +39,10 @@ jobs:
             echo "::error::Release tag must point to a commit on main."
             exit 1
           fi
+      - name: Require the post-merge checks to have passed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/check-post-merge.sh "$GITHUB_SHA"
 
   # The sweep's logs hold workspace record ids and this repository is public, so
   # it runs in setluca/luca and this job only waits for the verdict.

@@ -10,7 +10,10 @@ passing `verify` check before merging to `main`.
 A `mcp-v*` tag runs `.github/workflows/publish-mcp.yml`, whose jobs go in this
 order:
 
-1. Check the tag, which has to point to a commit on `main`.
+1. Check the tag, which has to point to a commit on `main` whose
+   [post-merge checks](./maintenance.md#after-a-merge) passed. It waits for them if
+   they're still running. If they failed, fix them or re-run a flaky one, then re-run
+   this workflow.
 2. Sweep the release build in setluca/luca, and stop if it fails. Without a
    `LUCA_REPO_TOKEN` secret this skips with a warning, and the release goes out
    unswept.

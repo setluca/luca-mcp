@@ -34,7 +34,8 @@ again to rotate one. Until then the checks that need one skip with a warning.
 
 `.github/workflows/post-merge.yml` runs on `main`, not on every commit of a pull
 request. A merge has already happened by then, so a failure can't block it. The
-workflow opens one issue instead, and closes it when everything passes again.
+workflow opens one issue, and closes it when everything passes again, and a release
+of that commit is refused.
 
 | Job                               | What it proves                                                                                                                                           |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
