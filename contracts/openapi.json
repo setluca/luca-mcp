@@ -9277,9 +9277,63 @@
           "cancelUrl": {
             "type": "string",
             "format": "uri"
+          },
+          "discountCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9_-]+$"
           }
         },
         "required": [
+          "selectedPlan"
+        ],
+        "additionalProperties": false
+      },
+      "OnboardingDiscountCodeResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "summary"
+        ]
+      },
+      "OnboardingDiscountCode": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "selectedPlan": {
+            "type": "string",
+            "enum": [
+              "creator",
+              "starter",
+              "pro",
+              "scale",
+              "agency"
+            ]
+          },
+          "billingInterval": {
+            "type": "string",
+            "enum": [
+              "month",
+              "year"
+            ]
+          }
+        },
+        "required": [
+          "code",
           "selectedPlan"
         ],
         "additionalProperties": false
@@ -29216,6 +29270,12 @@
           "successUrl": {
             "type": "string",
             "format": "uri"
+          },
+          "discountCode": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9_-]+$"
           }
         },
         "required": [
@@ -35516,6 +35576,51 @@
               "externallyBlocked"
             ]
           },
+          "coachState": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "connected",
+                  "checking",
+                  "degraded",
+                  "action_required",
+                  "reconnect_required",
+                  "paused",
+                  "externally_blocked"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "check_health",
+                    "repair_webhook",
+                    "reconnect",
+                    "disconnect",
+                    "review_provider_access",
+                    "retry_cleanup"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "code",
+              "label",
+              "description",
+              "actions"
+            ]
+          },
           "metaWindow": {
             "oneOf": [
               {
@@ -35575,6 +35680,7 @@
         },
         "required": [
           "composer",
+          "coachState",
           "metaWindow",
           "conversationChanged"
         ]
@@ -35670,6 +35776,9 @@
                     "description",
                     "actions"
                   ]
+                },
+                "campaignReady": {
+                  "type": "boolean"
                 },
                 "cleanup": {
                   "type": "object",
@@ -35890,6 +35999,7 @@
                 "aiDmAutoSendActive",
                 "connectedAt",
                 "coachState",
+                "campaignReady",
                 "composer"
               ]
             }
@@ -36199,6 +36309,9 @@
               "actions"
             ]
           },
+          "campaignReady": {
+            "type": "boolean"
+          },
           "cleanup": {
             "type": "object",
             "properties": {
@@ -36418,6 +36531,7 @@
           "aiDmAutoSendActive",
           "connectedAt",
           "coachState",
+          "campaignReady",
           "composer"
         ]
       },
@@ -36611,6 +36725,9 @@
                   "actions"
                 ]
               },
+              "campaignReady": {
+                "type": "boolean"
+              },
               "cleanup": {
                 "type": "object",
                 "properties": {
@@ -36830,6 +36947,7 @@
               "aiDmAutoSendActive",
               "connectedAt",
               "coachState",
+              "campaignReady",
               "composer"
             ]
           },
@@ -36944,6 +37062,9 @@
                   "actions"
                 ]
               },
+              "campaignReady": {
+                "type": "boolean"
+              },
               "cleanup": {
                 "type": "object",
                 "properties": {
@@ -37163,6 +37284,7 @@
               "aiDmAutoSendActive",
               "connectedAt",
               "coachState",
+              "campaignReady",
               "composer"
             ]
           },
@@ -37881,11 +38003,57 @@
                     "lastProbeAt",
                     "updatedAt"
                   ]
+                },
+                "coachState": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "connected",
+                        "checking",
+                        "degraded",
+                        "action_required",
+                        "reconnect_required",
+                        "paused",
+                        "externally_blocked"
+                      ]
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "actions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "check_health",
+                          "repair_webhook",
+                          "reconnect",
+                          "disconnect",
+                          "review_provider_access",
+                          "retry_cleanup"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "label",
+                    "description",
+                    "actions"
+                  ]
                 }
               },
               "required": [
                 "channelAccount",
-                "safety"
+                "safety",
+                "coachState"
               ]
             }
           }
@@ -50668,6 +50836,138 @@
           }
         ],
         "operationId": "postOnboardingComplete",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/LucaApiVersion"
+          }
+        ]
+      }
+    },
+    "/api/onboarding/discount-code": {
+      "post": {
+        "tags": [
+          "Onboarding"
+        ],
+        "summary": "Check a discount code against the selected trial plan",
+        "description": "Answers what the code takes off the paid plan once the trial ends. A code that does not exist or does not apply to the plan answers discount_code_invalid. Checking a code redeems nothing.\n\n**Session-only.** This endpoint isn't on the API-key allowlist. An organization API key gets a 403 here, whatever scopes it holds.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingDiscountCode"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingDiscountCodeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "upstream failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "operationId": "postOnboardingDiscountCode",
         "parameters": [
           {
             "$ref": "#/components/parameters/LucaApiVersion"
@@ -78370,7 +78670,7 @@
           "Account safety"
         ],
         "summary": "Per-channel safety overview",
-        "description": "One row per connected channel account, with the safety state Luca is working under: the rate-limit posture and when we last probed the account.\n\n**API key scopes:** `safety:read`.",
+        "description": "One row per channel account that is not disconnected, with the safety state Luca is working under: the rate-limit posture and when we last probed the account. `safety` is null for an account that is paused, suspended, or needs a reconnect, since Luca does not probe it. `coachState` is the state the Channels page shows, and is the field to read for how a channel is doing.\n\n**API key scopes:** `safety:read`.",
         "responses": {
           "200": {
             "description": "ok",
@@ -78394,6 +78694,16 @@
           },
           "429": {
             "description": "rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal error",
             "content": {
               "application/json": {
                 "schema": {

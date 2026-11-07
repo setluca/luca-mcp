@@ -19,7 +19,9 @@ input schema, or changing what a tool does to a workspace.
 
 ### Changed
 
-- Pinned to Luca `2d26c1f` (v0.10.0).
+- Pinned to Luca `f405e15` (v0.11.0).
+- `luca_channels_get` also answers `coachState`, the channel's state as the coach
+  sees it, with the actions it allows.
 - Built on Effect 4.1.2 and the MCP SDK 2.4.0, up from 4.0.6 and 2.3.0. The
   upgrade changes no tool's input or output schema.
 
