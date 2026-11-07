@@ -554,6 +554,24 @@ describe("GET /.well-known/mcp/server-card.json", () => {
     }
   );
 
+  it("holds a browser request to MCP_PUBLIC_ORIGIN, not the request's own Host", async () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    onTestFinished(() => consoleError.mockRestore());
+
+    const response = await worker.fetch(
+      new Request("https://evil.example/mcp", {
+        method: "POST",
+        headers: { origin: "https://evil.example" },
+      }),
+      { ...ENV, MCP_PUBLIC_ORIGIN: "https://mcp.example.com" }
+    );
+
+    expect(response.status).toBe(403);
+  });
+
   it("falls back to the request's own origin when no public origin is configured", async () => {
     const response = await worker.fetch(
       new Request(
