@@ -5,6 +5,7 @@ import type { ApiBody, Settlement } from "../scripts/sweep/plan.ts";
 import {
   auditRowsOf,
   judgeAuditLog,
+  judge,
   judgeSettled,
   hostedConnection,
   untilSettled,
@@ -167,5 +168,35 @@ describe("waiting for a sweep step's background work", () => {
     expect(await untilSettled({}, repeat, first, noWait)).toBe(first);
     expect(repeat).not.toHaveBeenCalled();
     expect(judgeSettled({}, first)).toBeUndefined();
+  });
+});
+
+describe("a step that may succeed or be refused", () => {
+  const onAnyPlan = {
+    kind: "okOrRefused",
+    because: "a trial refuses this",
+    match: /trial_campaign_cap_reached/,
+  } as const;
+
+  const answer = (exitCode: number, text: string) => ({
+    exitCode,
+    text,
+    durationMs: 10,
+    output: undefined,
+    error: undefined,
+  });
+
+  it("passes on success and on the refusal it names", () => {
+    expect(judge(answer(0, "{}"), onAnyPlan).verdict).toBe("pass");
+    expect(
+      judge(answer(5, "402 trial_campaign_cap_reached"), onAnyPlan).verdict
+    ).toBe("pass");
+  });
+
+  it("fails on any other refusal, and on a server error", () => {
+    expect(judge(answer(5, "403 needs_scope"), onAnyPlan).verdict).toBe("fail");
+    expect(
+      judge(answer(5, "500 Internal Server Error"), onAnyPlan).verdict
+    ).toBe("fail");
   });
 });

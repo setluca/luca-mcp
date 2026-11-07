@@ -57,6 +57,7 @@ export type Fixture =
   | "channel"
   | "campaign"
   | "campaignGraph"
+  | "campaignDraftUpdatedAt"
   | "broadcast"
   | "lostReason"
   | "insight"
@@ -81,8 +82,6 @@ export type Fixture =
   | "outcomeReason"
   | "sweepBookingType"
   | "attendee"
-  | "sweepCampaign"
-  | "sweepDraftUpdatedAt"
   | "simulation"
   | "enrollment"
   | "sweepBroadcast"
@@ -109,6 +108,12 @@ export type Expectation =
       /** Why the refusal is the right answer here, for the report. */
       readonly because: string;
       /** The tool's error text has to match this. */
+      readonly match: RegExp;
+    }
+  | {
+      /** Either answer is right: which one depends on the account's plan. */
+      readonly kind: "okOrRefused";
+      readonly because: string;
       readonly match: RegExp;
     }
   | {
@@ -524,6 +529,7 @@ const discover: readonly SweepStep[] = [
 
         return graph === undefined ? undefined : JSON.stringify(graph);
       },
+      campaignDraftUpdatedAt: valueAt("draft", "updatedAt"),
     },
   },
   {
@@ -797,6 +803,19 @@ const read: readonly SweepStep[] = [
   },
 ];
 
+/**
+ * A trial allows one campaign and the seed's is already there, so `create` and
+ * `duplicate` are refused until the account holds an active plan. An API key
+ * cannot archive a campaign to free the slot, so the campaign lifecycle steps
+ * run on the seeded campaign, which works on any plan.
+ */
+const ON_ANY_PLAN: Expectation = {
+  kind: "okOrRefused",
+  because:
+    "A trial's one-campaign limit refuses this; any other plan allows it.",
+  match: /trial_campaign_cap_reached/,
+};
+
 const create: readonly SweepStep[] = [
   {
     tool: "luca_leads_create",
@@ -1039,10 +1058,7 @@ const create: readonly SweepStep[] = [
     phase: "create",
     repeat: true,
     args: (_fx, ctx) => ({ body: { name: `Sweep campaign ${ctx.runId}` } }),
-    provides: {
-      sweepCampaign: valueAt("id"),
-      sweepDraftUpdatedAt: valueAt("draft", "updatedAt"),
-    },
+    expect: ON_ANY_PLAN,
   },
   {
     tool: "luca_campaigns_simulations_create",
@@ -1057,7 +1073,12 @@ const create: readonly SweepStep[] = [
     phase: "create",
     ...idFrom("campaign"),
   },
-  { tool: "luca_campaigns_duplicate", phase: "create", ...idFrom("campaign") },
+  {
+    tool: "luca_campaigns_duplicate",
+    phase: "create",
+    ...idFrom("campaign"),
+    expect: ON_ANY_PLAN,
+  },
   {
     tool: "luca_broadcasts_create",
     phase: "create",
@@ -1416,11 +1437,11 @@ const change: readonly SweepStep[] = [
   {
     tool: "luca_campaigns_draft_update",
     phase: "change",
-    needs: ["sweepCampaign", "campaignGraph", "sweepDraftUpdatedAt"],
+    needs: ["campaign", "campaignGraph", "campaignDraftUpdatedAt"],
     args: (fx) => ({
-      id: fx.sweepCampaign,
+      id: fx.campaign,
       body: {
-        expectedDraftUpdatedAt: fx.sweepDraftUpdatedAt,
+        expectedDraftUpdatedAt: fx.campaignDraftUpdatedAt,
         graph: decodeJsonText(fx.campaignGraph),
       },
     }),
@@ -1429,34 +1450,34 @@ const change: readonly SweepStep[] = [
     tool: "luca_campaigns_publish",
     phase: "change",
     gated: true,
-    ...idFrom("sweepCampaign"),
+    ...idFrom("campaign"),
   },
   {
     tool: "luca_campaigns_set_status",
     phase: "change",
     gated: true,
-    ...idFrom("sweepCampaign", () => ({ body: { status: "published" } })),
+    ...idFrom("campaign", () => ({ body: { status: "published" } })),
   },
   {
     tool: "luca_campaigns_enroll",
     phase: "change",
     gated: true,
-    needs: ["sweepCampaign", "sweepLead"],
-    args: (fx) => ({ id: fx.sweepCampaign, body: { leadId: fx.sweepLead } }),
+    needs: ["campaign", "sweepLead"],
+    args: (fx) => ({ id: fx.campaign, body: { leadId: fx.sweepLead } }),
     provides: { enrollment: valueAt("enrollment", "id") },
   },
   {
     tool: "luca_campaigns_enrollments_timeline",
     phase: "change",
-    needs: ["sweepCampaign", "enrollment"],
-    args: (fx) => ({ id: fx.sweepCampaign, enrollmentId: fx.enrollment }),
+    needs: ["campaign", "enrollment"],
+    args: (fx) => ({ id: fx.campaign, enrollmentId: fx.enrollment }),
   },
   {
     tool: "luca_campaigns_enrollments_resume",
     phase: "change",
     gated: true,
-    needs: ["sweepCampaign", "enrollment"],
-    args: (fx) => ({ id: fx.sweepCampaign, enrollmentId: fx.enrollment }),
+    needs: ["campaign", "enrollment"],
+    args: (fx) => ({ id: fx.campaign, enrollmentId: fx.enrollment }),
     expect: {
       kind: "refused",
       because:

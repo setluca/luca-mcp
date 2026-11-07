@@ -110,6 +110,7 @@ function describe(expect: Expectation): string {
     Match.discriminatorsExhaustive("kind")({
       ok: () => "succeeds",
       refused: (refused) => `refused (${refused.because})`,
+      okOrRefused: (either) => `succeeds or refused (${either.because})`,
       pending: (pending) => `pending (${pending.because})`,
     })
   );
@@ -148,7 +149,10 @@ function judgeRefusal(outcome: InspectorOutcome, match: RegExp): Judgement {
  * Whether an outcome matches what the step expected. A refusal must be the
  * tool's own error (exit 5) with matching text, never a server error.
  */
-function judge(outcome: InspectorOutcome, expect: Expectation): Judgement {
+export function judge(
+  outcome: InspectorOutcome,
+  expect: Expectation
+): Judgement {
   if (outcome.durationMs > CALL_LIMIT_MS) {
     return {
       verdict: "fail",
@@ -170,6 +174,10 @@ function judge(outcome: InspectorOutcome, expect: Expectation): Judgement {
               note: `exit ${outcome.exitCode}: ${brief(outcome.text)}`,
             },
       refused: (refused) => judgeRefusal(outcome, refused.match),
+      okOrRefused: (either): Judgement =>
+        outcome.exitCode === INSPECTOR_EXIT.ok
+          ? { verdict: "pass", note: brief(outcome.text) }
+          : judgeRefusal(outcome, either.match),
       pending: (pending): Judgement => ({
         verdict: "pending",
         note: pending.because,
@@ -471,7 +479,8 @@ async function runStep(
 
   capture(step, outcome, fixtures);
 
-  return step.repeat
+  // A refusal wrote nothing, so there is no record for a retry to match.
+  return step.repeat && outcome.exitCode === INSPECTOR_EXIT.ok
     ? [...results, await checkRetry(step, call, callArgs, outcome, base)]
     : results;
 }
