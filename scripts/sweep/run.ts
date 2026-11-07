@@ -301,6 +301,53 @@ function captured(step: SweepStep, outcome: InspectorOutcome): string {
   return Arr.map(provisions(step), ([, read]) => read(body) ?? "").join("|");
 }
 
+/** Background work gets five minutes, which is far longer than it should need. */
+const SETTLE_EVERY_MS = 15_000;
+
+const SETTLE_ATTEMPTS = 20;
+
+/** Repeats a step while its answer says its background work is still going. */
+export async function untilSettled(
+  step: Pick<SweepStep, "settles">,
+  repeat: () => Promise<InspectorOutcome>,
+  first: InspectorOutcome,
+  wait: () => Promise<void> = () => sleep(SETTLE_EVERY_MS)
+): Promise<InspectorOutcome> {
+  let outcome = first;
+
+  for (
+    let attempt = 0;
+    attempt < SETTLE_ATTEMPTS &&
+    outcome.exitCode === INSPECTOR_EXIT.ok &&
+    step.settles?.(apiBody(outcome)) === "waiting";
+    attempt += 1
+  ) {
+    await wait();
+    outcome = await repeat();
+  }
+
+  return outcome;
+}
+
+/** A failure when a step's background work never finished well, else nothing. */
+export function judgeSettled(
+  step: Pick<SweepStep, "settles">,
+  outcome: InspectorOutcome
+): Judgement | undefined {
+  if (outcome.exitCode !== INSPECTOR_EXIT.ok) {
+    return undefined;
+  }
+
+  const settlement = step.settles?.(apiBody(outcome));
+
+  return settlement === "waiting" || settlement === "failed"
+    ? {
+        verdict: "fail",
+        note: `${settlement === "waiting" ? "still unfinished after waiting" : "ended badly"}: ${brief(outcome.text)}`,
+      }
+    : undefined;
+}
+
 async function checkGate(
   step: SweepStep,
   call: Caller,
@@ -392,13 +439,19 @@ async function runStep(
     }),
   };
 
-  const outcome = await call({
-    method: "tools/call",
+  const request = {
+    method: "tools/call" as const,
     name: step.tool,
     args: callArgs,
-  });
+  };
 
-  const judgement = judge(outcome, expect);
+  const outcome = await untilSettled(
+    step,
+    () => call(request),
+    await call(request)
+  );
+
+  const judgement = judgeSettled(step, outcome) ?? judge(outcome, expect);
 
   const results: readonly CheckResult[] = [
     ...gate,
