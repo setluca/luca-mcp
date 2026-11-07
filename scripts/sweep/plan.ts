@@ -529,7 +529,6 @@ const discover: readonly SweepStep[] = [
 
         return graph === undefined ? undefined : JSON.stringify(graph);
       },
-      campaignDraftUpdatedAt: valueAt("draft", "updatedAt"),
     },
   },
   {
@@ -1433,6 +1432,14 @@ const change: readonly SweepStep[] = [
     gated: true,
     // It queues the push and answers at once; the CRM is reached later.
     ...idFrom("callEvent"),
+  },
+  {
+    tool: "luca_campaigns_get",
+    phase: "change",
+    extra:
+      "reads the draft's version just before saving it, since the comment simulation suite also saves the draft",
+    ...idFrom("campaign"),
+    provides: { campaignDraftUpdatedAt: valueAt("draft", "updatedAt") },
   },
   {
     tool: "luca_campaigns_draft_update",
