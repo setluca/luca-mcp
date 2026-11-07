@@ -28,10 +28,10 @@ tier when that is higher.
 
 | OAuth scope      | Operation tools | Task tools | API scopes added over the tier below                                                                                                                                                                                                                                                                                                  |
 | ---------------- | --------------: | ---------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `luca:read`      |             107 |          7 | `analytics:read`, `bookings:read`, `broadcasts:read`, `call_events:read`, `campaigns:read`, `channels:read`, `coach:read`, `conversations:read`, `integrations:read`, `knowledge:read`, `leads:read`, `learning:read`, `memory:read`, `reports:read`, `review_queue:read`, `safety:read`, `usage:read`, `voice:read`, `webhooks:read` |
-| `luca:draft`     |             128 |          9 | `call_events:write`, `insights:write`, `leads:write`, `learning:write`, `memory:write`                                                                                                                                                                                                                                                |
-| `luca:queue_ops` |             191 |         15 | `bookings:write`, `broadcasts:write`, `cadences:write`, `campaigns:write`, `conversations:write`, `knowledge:write`, `review_queue:write`                                                                                                                                                                                             |
-| `luca:full`      |             209 |         15 | `channels:write`, `integrations:write`, `webhooks:write`                                                                                                                                                                                                                                                                              |
+| `luca:read`      |             108 |          7 | `analytics:read`, `bookings:read`, `broadcasts:read`, `call_events:read`, `campaigns:read`, `channels:read`, `coach:read`, `conversations:read`, `integrations:read`, `knowledge:read`, `leads:read`, `learning:read`, `memory:read`, `reports:read`, `review_queue:read`, `safety:read`, `usage:read`, `voice:read`, `webhooks:read` |
+| `luca:draft`     |             129 |          9 | `call_events:write`, `insights:write`, `leads:write`, `learning:write`, `memory:write`                                                                                                                                                                                                                                                |
+| `luca:queue_ops` |             192 |         15 | `bookings:write`, `broadcasts:write`, `cadences:write`, `campaigns:write`, `conversations:write`, `knowledge:write`, `review_queue:write`                                                                                                                                                                                             |
+| `luca:full`      |             210 |         15 | `channels:write`, `integrations:write`, `webhooks:write`                                                                                                                                                                                                                                                                              |
 
 Two scopes grant no API scopes at all:
 
@@ -74,7 +74,7 @@ The middle column is the least-privilege answer.
 | `memory:read`         | `luca:read`                    |     1 | Memory                         |
 | `memory:write`        | `luca:draft`                   |     2 | Memory                         |
 | `reports:read`        | `luca:read`                    |     2 | Reports                        |
-| `review_queue:read`   | `luca:read`                    |     6 | Review Queue                   |
+| `review_queue:read`   | `luca:read`                    |     7 | Review Queue                   |
 | `review_queue:write`  | `luca:queue_ops`               |    11 | Review Queue                   |
 | `safety:read`         | `luca:read`                    |     1 | Account Safety                 |
 | `usage:read`          | `luca:read`                    |     1 | Usage                          |

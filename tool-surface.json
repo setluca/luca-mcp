@@ -2822,6 +2822,20 @@
       "outputSchema": "5858e49354831a27",
       "meta": "b378caa8dc624177"
     },
+    "luca_review_queue_kept_campaigns": {
+      "title": "List campaigns a safety approval kept paused",
+      "description": "List the campaigns that approving this safety review kept paused for the lead, and whether each one is still paused or the coach already resumed it. Use it to find the enrollment to pass to luca_campaigns_enrollments_resume. The list is empty for a review that kept nothing paused.\n\nLuca operation: GET /api/review-queue/{id}/kept-campaigns\nRequired scopes: review_queue:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List campaigns a safety approval kept paused",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "c3555e757deacd72",
+      "outputSchema": "4d9dcec8d3eda7cd",
+      "meta": "b378caa8dc624177"
+    },
     "luca_review_queue_list": {
       "title": "List the review queue",
       "description": "List review-queue items when the API key has review queue access.\n\nLuca operation: GET /api/review-queue\nRequired scopes: review_queue:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",

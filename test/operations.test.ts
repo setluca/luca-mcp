@@ -281,6 +281,7 @@ describe("operation manifest", () => {
     expect(reviewQueue?.tools).toEqual([
       "luca_review_queue_list",
       "luca_review_queue_explain",
+      "luca_review_queue_kept_campaigns",
       "luca_review_queue_approve",
       "luca_review_queue_reject",
       "luca_review_queue_restore",

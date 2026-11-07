@@ -2408,6 +2408,18 @@
         "destructive_justification": "Only reads; it overwrites and deletes nothing."
       }
     },
+    "luca_review_queue_kept_campaigns": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads which campaigns one safety approval kept paused, and whether each is still paused. It creates, changes, deletes, and sends nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
     "luca_review_queue_list": {
       "annotations": {
         "readOnlyHint": true,

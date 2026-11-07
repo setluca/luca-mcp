@@ -594,6 +594,11 @@ const read: readonly SweepStep[] = [
     args: (_fx, ctx) => ({ body: IMPORT_BODY(ctx) }),
   },
   { tool: "luca_review_queue_explain", phase: "read", ...idFrom("reviewItem") },
+  {
+    tool: "luca_review_queue_kept_campaigns",
+    phase: "read",
+    ...idFrom("reviewItem"),
+  },
   { tool: "luca_review_queue_sla", phase: "read" },
   { tool: "luca_review_queue_summary", phase: "read" },
   {

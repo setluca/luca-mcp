@@ -202,6 +202,7 @@ exports[`tool auth metadata > pins the OAuth scope every tool asks for 1`] = `
   "luca_review_queue_drafting_dismiss": "luca:queue_ops",
   "luca_review_queue_drafting_retry": "luca:queue_ops",
   "luca_review_queue_explain": "luca:read",
+  "luca_review_queue_kept_campaigns": "luca:read",
   "luca_review_queue_list": "luca:read",
   "luca_review_queue_media_retry": "luca:queue_ops",
   "luca_review_queue_objection_variant": "luca:queue_ops",
