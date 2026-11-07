@@ -216,11 +216,11 @@ The rejection is a tool error with this text:
 <toolName>: This tool requires confirm: true because it has a real-world side effect. Re-call the tool with confirm: true to proceed.
 ```
 
-Its `structuredContent.error` is
+Its `_meta["setluca.com/error"]` is
 `{ "code": "confirmation_required", "toolName": "<toolName>", "requiredArgument": "confirm" }`,
 and the server logs `mcp.write_gate.rejected`.
 
-These 36 operations carry the gate:
+These 37 operations carry the gate:
 
 - `luca_leads_import_apply`
 - `luca_leads_consents_grant`

@@ -30,8 +30,8 @@ describe("booking confirmation", () => {
       const { result, requests } = await closeLoop({ attendance: "no_show" });
 
       expect(result.isError).toBe(true);
-      expect(result.structuredContent).toEqual({
-        error: {
+      expect(result._meta).toEqual({
+        "setluca.com/error": {
           code: "confirmation_required",
           toolName: "luca_close_call_loop",
           requiredArgument: "confirm",
@@ -68,8 +68,8 @@ describe("booking confirmation", () => {
           lossReasonDefinitionId: "reason-1",
         });
 
-        expect(result.structuredContent).toEqual({
-          error: {
+        expect(result._meta).toEqual({
+          "setluca.com/error": {
             code: "confirmation_required",
             toolName: "luca_close_call_loop",
             requiredArgument: "confirm",
@@ -138,8 +138,8 @@ describe("booking confirmation", () => {
       "refuses a %s outcome without confirm before any API request",
       async (status) => {
         const { result, requests } = await record(status);
-        expect(result.structuredContent).toEqual({
-          error: {
+        expect(result._meta).toEqual({
+          "setluca.com/error": {
             code: "confirmation_required",
             toolName: "luca_bookings_outcome_record",
             requiredArgument: "confirm",

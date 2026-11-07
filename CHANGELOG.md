@@ -28,6 +28,10 @@ input schema, or changing what a tool does to a workspace.
 - The hosted server's browser origin check compares with `MCP_PUBLIC_ORIGIN`, not
   the request's own `Host`, which a DNS-rebinding page can set along with its
   `Origin`. `createRemoteHandler` takes this as `publicHostname`.
+- A confirm-gated tool's refusal no longer breaks that tool's output schema, which
+  made Inspector and any client validating as strictly reject the answer and lose
+  the message. Its machine-readable code moves from `structuredContent.error` to
+  `_meta["setluca.com/error"]`.
 
 ## [0.7.1] - 2026-11-07
 
