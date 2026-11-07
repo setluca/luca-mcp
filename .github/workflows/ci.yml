@@ -10,7 +10,57 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+
+  lint-format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      - run: bun run format:check
+      - run: bun run lint
+
+  code-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+      - name: Dead code, duplication, and security
+        run: bun run code-quality
+
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -24,9 +74,28 @@ jobs:
         with:
           node-version: 24
       - run: bun install --frozen-lockfile
-      - name: Quality, tests, MCP smoke, and deployed Luca contract pin
-        run: bun run verify
+      - name: Generated files, tests, MCP smoke, and deployed Luca contract pin
+        run: bun run verify:rest
         env:
           CI: true
       - run: bun run deploy:dry-run
       - run: npm pack --dry-run
+
+  # The one required check. A job skipped by a failed `needs` counts as passing for
+  # a required check, so this always runs and reads the results itself.
+  verify:
+    if: always()
+    needs: [typecheck, lint-format, code-quality, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check that every job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error::A job ended with: $result"
+              exit 1
+            fi
+          done
