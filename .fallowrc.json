@@ -10,5 +10,9 @@
     "src/generated/**",
     "tools/oxlint/anti-slop/**"
   ],
-  "ignoreDependencies": ["@effect/platform-bun", "@oxlint/plugins"]
+  "ignoreDependencies": [
+    "@effect/language-service",
+    "@effect/platform-bun",
+    "@oxlint/plugins"
+  ]
 }
