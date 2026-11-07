@@ -692,6 +692,27 @@ type AuditRows = (typeof AuditLogPage.Type)["items"];
 
 const decodeAuditLogPage = Schema.decodeUnknownOption(AuditLogPage);
 
+/** The only account a sweep may run on. Luca's seed allows the same one. */
+const SWEEP_ACCOUNT = "support@setluca.com";
+
+/**
+ * Why this key or sign-in must not be swept, or nothing when it is the sweep
+ * account's. A sweep calls every write tool on whichever workspace it reaches, so
+ * this keeps a key made on the wrong account away from a coach's data. The message
+ * leaves out whose account it is, because CI logs keep it.
+ */
+export function workspaceRefusal(
+  outcome: InspectorOutcome
+): string | undefined {
+  if (outcome.exitCode !== INSPECTOR_EXIT.ok) {
+    return `could not read which account this is, so it may not be ${SWEEP_ACCOUNT}`;
+  }
+
+  return field(apiBody(outcome), "email") === SWEEP_ACCOUNT
+    ? undefined
+    : `this key or sign-in does not belong to ${SWEEP_ACCOUNT}`;
+}
+
 /** The rows an audit log read returned, or nothing when it can't be read. */
 export function auditRowsOf(outcome: InspectorOutcome): AuditRows | undefined {
   return outcome.exitCode === INSPECTOR_EXIT.ok
@@ -762,6 +783,16 @@ export async function runSweep(options: RunOptions): Promise<number> {
   }
 
   const call = makeCaller(options.connection);
+
+  const refusal = workspaceRefusal(
+    await call({ method: "tools/call", name: "luca_coach_profile", args: {} })
+  );
+
+  if (refusal !== undefined) {
+    console.error(`Refusing to sweep: ${refusal}.`);
+
+    return 2;
+  }
 
   const fixtures: FoundFixtures = {};
   const results: CheckResult[] = [];

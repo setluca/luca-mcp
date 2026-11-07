@@ -347,7 +347,7 @@ const CRM_REFUSAL: Expectation = {
  * Every calendar booking the sweep makes invites this SetLuca-owned mailbox,
  * never a real lead.
  */
-const SWEEP_INVITEE = "sweep+lead@setluca.com";
+const SWEEP_INVITEE = "support+lead@setluca.com";
 
 /** A Google call type open 09:00 to 17:00 UTC every day, so it has slots. */
 const OPEN_EVERY_DAY = Arr.map(Arr.range(0, 6), (weekday) => ({
@@ -993,7 +993,7 @@ const create: readonly SweepStep[] = [
     tool: "luca_bookings_types_attendees_add",
     phase: "create",
     ...idFrom("sweepBookingType", () => ({
-      body: { email: "sweep-attendee@setluca.com" },
+      body: { email: "support+attendee@setluca.com" },
     })),
     provides: { attendee: firstOf("attendees") },
   },

@@ -10,6 +10,16 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-07
+
+No tool, schema, or hosted server behavior changes. The hosted sweep runs the
+latest release's plan, so this release is what moves it to the new account.
+
+### Changed
+
+- The tool sweep runs on `support@setluca.com` and refuses any other account. Its
+  calendar invites go to `support+lead@setluca.com`.
+
 ## [0.7.0] - 2026-11-06
 
 ### Breaking
