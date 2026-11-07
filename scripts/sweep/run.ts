@@ -116,11 +116,12 @@ function describe(expect: Expectation): string {
 }
 
 /** The first line of a tool's text, cut short for the report. */
-/** Long enough to reach an API error's details. The report is private, so this is safe. */
-const NOTE_LIMIT = 600;
+/** Long enough to reach an answer's state or details. The report is private. */
+const NOTE_LIMIT = 1500;
 
+/** The answer on one line: a tool's JSON is pretty-printed, so its first line is `{`. */
 function brief(text: string): string {
-  const line = text.split("\n").find((part) => part.trim() !== "") ?? "";
+  const line = text.replaceAll(/\s+/gu, " ").trim();
 
   return line.length > NOTE_LIMIT
     ? `${line.slice(0, NOTE_LIMIT - 3)}...`

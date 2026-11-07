@@ -1066,10 +1066,9 @@ const create: readonly SweepStep[] = [
     gated: true,
     needs: ["webhookSubscription"],
     args: () => ({ body: { type: "lead.created" } }),
-    provides: {
-      delivery: firstOf("deliveries"),
-      webhookEvent: valueAt("event", "id"),
-    },
+    // Not the event it answers with: the replay step needs the seeded, stored one
+    // that luca_webhooks_events_list found.
+    provides: { delivery: firstOf("deliveries") },
   },
   {
     tool: "luca_integrations_crm_oauth_url",
@@ -1465,7 +1464,8 @@ const change: readonly SweepStep[] = [
     }),
     expect: {
       kind: "refused",
-      because: "with no connected channel, a broadcast fails its safety check",
+      because:
+        "the sweep's broadcast has an empty segment and a campaign with no delivery action",
       match: /broadcast_safety_blocked/,
     },
   },
