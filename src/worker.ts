@@ -302,6 +302,8 @@ function route(
     resourceMetadataUrl,
     toolset: resolveToolset(new URL(request.url), env),
     allowedOrigins: parseAllowedOrigins(env.MCP_ALLOWED_ORIGINS),
+    publicHostname:
+      publicOrigin === undefined ? undefined : new URL(publicOrigin).hostname,
     // The SDK reports these through a plain callback, outside any Effect.
     onError: () => {
       // SDK errors can contain client-controlled request text. Do not log it.

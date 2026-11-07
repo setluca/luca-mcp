@@ -23,6 +23,12 @@ input schema, or changing what a tool does to a workspace.
 - Built on Effect 4.1.2 and the MCP SDK 2.4.0, up from 4.0.6 and 2.3.0. The
   upgrade changes no tool's input or output schema.
 
+### Fixed
+
+- The hosted server's browser origin check compares with `MCP_PUBLIC_ORIGIN`, not
+  the request's own `Host`, which a DNS-rebinding page can set along with its
+  `Origin`. `createRemoteHandler` takes this as `publicHostname`.
+
 ## [0.7.1] - 2026-11-07
 
 No tool, schema, or hosted server behavior changes. The hosted sweep runs the

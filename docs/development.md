@@ -51,6 +51,9 @@ it can and a failure shows up by name:
 | `test`         | `bun run verify:rest`, then the Worker dry run and `npm pack --dry-run` |
 | `verify`       | Nothing of its own. The required check, it passes only if all four did  |
 
+Slower checks run after a merge instead of on every commit. See
+[maintenance](./maintenance.md#after-a-merge).
+
 `bun install` runs the `prepare` script, which patches `tsc` with
 [`@effect/tsgo`](https://github.com/Effect-TS/tsgo), so `typecheck` and `build`
 also report the Effect language service's diagnostics. Any of them fails the

@@ -164,8 +164,8 @@ function shown(value: string | undefined): string {
     : value;
 }
 
-/** One line per value that differs. Empty means the two surfaces match. */
-export function surfaceDrift(
+/** The path of every value that differs. */
+export function changedPaths(
   expected: JsonValue,
   actual: JsonValue
 ): readonly string[] {
@@ -174,13 +174,21 @@ export function surfaceDrift(
 
   return Arr.dedupe([...want.keys(), ...have.keys()])
     .toSorted()
-    .flatMap((path) =>
-      want.get(path) === have.get(path)
-        ? []
-        : [
-            `${path}: expected ${shown(want.get(path))}, server has ${shown(have.get(path))}`,
-          ]
-    );
+    .filter((path) => want.get(path) !== have.get(path));
+}
+
+/** One line per value that differs. Empty means the two surfaces match. */
+export function surfaceDrift(
+  expected: JsonValue,
+  actual: JsonValue
+): readonly string[] {
+  const want = new Map(leaves(expected, ""));
+  const have = new Map(leaves(actual, ""));
+
+  return changedPaths(expected, actual).map(
+    (path) =>
+      `${path}: expected ${shown(want.get(path))}, server has ${shown(have.get(path))}`
+  );
 }
 
 function listing(

@@ -12,3 +12,6 @@ reports/
 
 # Tool sweep reports (scripts/sweep): they hold workspace record IDs.
 sweep-reports/
+
+# MCP conformance suite output (bun run protocol:check).
+conformance-results/

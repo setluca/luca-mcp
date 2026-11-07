@@ -12,6 +12,7 @@
   ],
   "ignoreDependencies": [
     "@effect/language-service",
+    "@modelcontextprotocol/conformance",
     "@effect/platform-bun",
     "@oxlint/plugins"
   ]

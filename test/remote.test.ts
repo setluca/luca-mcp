@@ -456,6 +456,29 @@ describe("remote transport", () => {
     }
   );
 
+  it("refuses a rebinding page that sets its own Host, once it knows its hostname", async () => {
+    const rebinding = () =>
+      new Request("http://evil.example/mcp", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${VALID_API_KEY}`,
+          origin: "http://evil.example",
+        },
+      });
+
+    const guarded = createRemoteHandler({
+      resolveToken: declines,
+      publicHostname: "mcp.test",
+    });
+
+    expect((await guarded(rebinding())).status).toBe(403);
+
+    // Without one, the request's Host is all it has to compare with.
+    const unguarded = createRemoteHandler({ resolveToken: declines });
+
+    expect((await unguarded(rebinding())).status).toBe(401);
+  });
+
   it("returns 404 for a non-MCP path", async () => {
     const handler = createRemoteHandler({
       resolveToken: apiKeyResolver(DEFAULT_SETTINGS, acceptingFetch),

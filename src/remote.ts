@@ -66,12 +66,18 @@ export type RemoteHandlerOptions = {
    */
   readonly rateLimits?: RateLimits;
   /**
-   * Hostnames a browser `Origin` header may name, in addition to the host the
-   * request was sent to. A request with no `Origin` is not a browser request
-   * and passes. Any other origin gets a 403, which is the DNS-rebinding guard
-   * the MCP transport spec requires.
+   * Hostnames a browser `Origin` header may name, in addition to this server's
+   * own. A request with no `Origin` is not a browser request and passes. Any
+   * other origin gets a 403, which is the DNS-rebinding guard the MCP transport
+   * spec requires.
    */
   readonly allowedOrigins?: readonly string[];
+  /**
+   * The hostname this server is reached at. Without it, the origin check has to
+   * take the request's own `Host` as this server's, and a DNS-rebinding page
+   * sets that along with its `Origin`, so the two match and the guard passes.
+   */
+  readonly publicHostname?: string | undefined;
   /** Out-of-band errors the SDK reports while serving. Reporting only. */
   readonly onError?: (error: Error) => void;
 };
@@ -295,7 +301,7 @@ export function createRemoteResponder(options: RemoteHandlerOptions) {
 
       // Before auth, so a page on another site learns nothing about tokens.
       const forbiddenOrigin = originValidationResponse(request, [
-        url.hostname,
+        options.publicHostname ?? url.hostname,
         ...allowedOrigins,
       ]);
 
