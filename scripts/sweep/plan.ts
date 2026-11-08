@@ -1594,6 +1594,16 @@ const change: readonly SweepStep[] = [
       eventId: fx.webhookEvent,
       body: { subscriptionId: fx.webhookSubscription },
     }),
+    // Until 0.8.0 deploys: the hosted server answers 404 at /sweep/webhook, so
+    // Luca disables the sweep's subscription and this replay finds nothing to
+    // replay to. The release that ships the receiver is swept before it
+    // deploys, so it has to allow this. Remove once 0.8.0 is live.
+    expect: {
+      kind: "okOrRefused",
+      because:
+        "Until 0.8.0 deploys the hosted webhook receiver, Luca disables the sweep's subscription after its first delivery.",
+      match: /webhook_event_not_replayable/,
+    },
   },
   {
     tool: "luca_webhooks_events_bulk_replay",
