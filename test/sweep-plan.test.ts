@@ -123,6 +123,39 @@ describe("tool sweep plan", () => {
     expect(unmetNeeds()).toEqual([]);
   });
 
+  it("retries a different voice note from the conversation and the review queue", () => {
+    const capture = (tool: string, fixture: Fixture) =>
+      primarySteps.find((step) => step.tool === tool)?.provides?.[fixture];
+
+    // The seeded thread: two voice notes in one drafted turn. The draft that
+    // turn produced lists both, in turn order.
+    const conversationMedia = capture(
+      "luca_conversations_messages",
+      "mediaId"
+    )?.({
+      messages: [
+        { id: "question", media: [] },
+        { id: "voice-1", media: [{ id: "media-1" }] },
+        { id: "voice-2", media: [{ id: "media-2" }] },
+      ],
+    });
+
+    const reviewMedia = capture(
+      "luca_review_queue_list",
+      "reviewMediaId"
+    )?.({
+      items: [
+        {
+          id: "draft",
+          sourceMessageId: "voice-2",
+          media: [{ id: "media-1" }, { id: "media-2" }],
+        },
+      ],
+    });
+
+    expect([conversationMedia, reviewMedia]).toEqual(["media-1", "media-2"]);
+  });
+
   it("explains every refusal and every pending step", () => {
     const unexplained = SWEEP_PLAN.filter(
       (step: SweepStep) =>
