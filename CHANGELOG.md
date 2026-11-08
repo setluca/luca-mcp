@@ -10,6 +10,8 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-08
+
 ### Added
 
 - `luca_campaigns_enrollments_resume` resumes a campaign enrollment that stayed
