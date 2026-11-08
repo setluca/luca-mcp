@@ -16,10 +16,10 @@ answers live calls. Reviewers can come back at any time, so keep the reviewer
 login unchanged, accept each new legal edition on it, and re-run the claude.ai
 checks after any MCP release or auth change.
 
-The tool names on the listing still match `0.6.0`. Editing them needs a reviewer's
-approval, so do it once the next MCP release is live: remove `luca_usage_messages`,
-and add `luca_broadcasts_resume`, `luca_campaigns_enrollments_resume`, and
-`luca_review_queue_kept_campaigns`.
+The tool names on the listing still match `0.6.0`. MCP `0.8.0` went live on
+November 8, 2026, so edit them now; the edit needs a reviewer's approval. Remove
+`luca_usage_messages`, and add `luca_broadcasts_resume`,
+`luca_campaigns_enrollments_resume`, and `luca_review_queue_kept_campaigns`.
 
 ## Before submitting
 
