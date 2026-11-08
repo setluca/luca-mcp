@@ -153,6 +153,17 @@ describe("worker fetch handler", () => {
     expect(response.status).toBe(404);
   });
 
+  it("accepts the live sweep's webhook deliveries, and only as a POST", async () => {
+    const delivered = await request("/sweep/webhook", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: '{"id":"evt_sweep","type":"lead.created"}',
+    });
+
+    expect(delivered.status).toBe(204);
+    expect((await request("/sweep/webhook")).status).toBe(404);
+  });
+
   it("passes all three rate-limit bindings to the remote handler", async () => {
     const perToken = vi.fn(async () => ({ success: false }));
     const perTokenAddress = vi.fn(async () => ({ success: true }));

@@ -296,6 +296,14 @@ function route(
     );
   }
 
+  // Where the live sweep's webhook steps deliver (`--webhook-url` in
+  // scripts/sweep/run.ts). Luca disables a subscription whose target answers
+  // 404, which left the replay steps nothing to replay to. A delivery is
+  // accepted and dropped: nothing is read, kept or acted on.
+  if (pathname === "/sweep/webhook" && request.method === "POST") {
+    return Effect.succeed(new Response(null, { status: 204 }));
+  }
+
   const respond = createRemoteResponder({
     resolveToken: bearerTokenResolver(settings, apiFetch),
     apiFetch,

@@ -16,6 +16,9 @@ input schema, or changing what a tool does to a workspace.
   paused after the coach approved a safety review. It needs `confirm: true`.
 - `luca_review_queue_kept_campaigns` lists the campaigns a safety approval kept
   paused, which is how to find the enrollment to resume.
+- The hosted server accepts the live sweep's webhook deliveries at
+  `POST /sweep/webhook` and drops them. It used to answer 404, which made Luca
+  disable the sweep's subscription before its replay steps ran.
 
 ### Changed
 
