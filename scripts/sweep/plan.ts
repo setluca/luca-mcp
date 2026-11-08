@@ -243,22 +243,25 @@ function valueAt(...path: readonly string[]): Capture {
   };
 }
 
-/** The id of an item's first media attachment, when it has one. */
-function firstMediaIdOf(item: JsonObject): string | undefined {
+/** The id of an item's first (`0`) or last (`-1`) media attachment, when it has one. */
+function mediaIdOf(item: JsonObject, index: 0 | -1 = 0): string | undefined {
   const media = item.media;
 
-  return isJsonArray(media) ? fixtureText(field(media[0], "id")) : undefined;
+  return isJsonArray(media)
+    ? fixtureText(field(media.at(index), "id"))
+    : undefined;
 }
 
 function hasMediaId(item: JsonObject): boolean {
-  return firstMediaIdOf(item) !== undefined;
+  return mediaIdOf(item) !== undefined;
 }
 
-function firstMediaId(key: string): Capture {
+/** The id of the first or last media attachment on the first item that has one. */
+function mediaId(key: string, index: 0 | -1 = 0): Capture {
   return (body) =>
     Option.match(Arr.findFirst(listAt(body, key), hasMediaId), {
       onNone: () => undefined,
-      onSome: firstMediaIdOf,
+      onSome: (item) => mediaIdOf(item, index),
     });
 }
 
@@ -455,7 +458,7 @@ const discover: readonly SweepStep[] = [
     provides: {
       inboundMessage: firstOf("messages", (m) => m.direction === "inbound"),
       mediaMessage: firstOf("messages", hasMediaId),
-      mediaId: firstMediaId("messages"),
+      mediaId: mediaId("messages"),
       partialMessage: firstOf("messages", (m) => Boolean(m.partialRetry)),
     },
   },
@@ -466,7 +469,10 @@ const discover: readonly SweepStep[] = [
     provides: {
       reviewItem: firstOf("items"),
       reviewMediaItem: firstOf("items", hasMediaId),
-      reviewMediaId: firstMediaId("items"),
+      // A drafted turn's item lists every voice note in the turn, in order. The
+      // conversation retry takes the first, whose job is still active when this
+      // retry runs, so this takes the last: the draft's own source message.
+      reviewMediaId: mediaId("items", -1),
     },
   },
   {
