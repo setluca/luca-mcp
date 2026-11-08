@@ -80,7 +80,7 @@
         "commerce_description": "This plugin does not sell products or process payments."
       },
       "publication": {
-        "release_notes": "Every tool now states readOnlyHint, destructiveHint, openWorldHint, and idempotentHint explicitly, matching what it does. Adds the review-queue, drafting, booking-request, and auto-send tools from MCP server 0.5, fixes the campaign analytics rollup, and keeps connections signed in past the first hour with a refresh token. The listing now uses the product name, SetLuca."
+        "release_notes": "Every tool's hints and description now match what its SetLuca handler does, after a tool-by-tool audit that corrected 37 tools, six of them in their hints. luca_campaigns_generate is read-only and creates nothing, and luca_bookings_types_list is marked as a write that reaches Cal.com and Calendly. Adds luca_broadcasts_resume, luca_campaigns_enrollments_resume, and luca_review_queue_kept_campaigns. Removes luca_usage_messages, which SetLuca no longer serves."
       }
     }
   }
