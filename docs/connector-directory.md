@@ -88,8 +88,8 @@ in `src/toolsets.ts` and a protocol test pins it.
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.
 - **Portal submissions.** The OpenAI plugin's package `0.1.5` went into review on
-  November 9, 2026, against MCP server `0.8.0`. The Claude listing was published on October 24, 2026, and its tool names
-  need the edit in `submission/claude/README.md`.
+  November 9, 2026, against MCP server `0.8.0`. The Claude listing was published on October 24, 2026; an edit
+  to its tool names for `0.8.0` went to review on November 9, 2026.
 
 ## What a human has to do in the Claude portal
 
