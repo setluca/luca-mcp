@@ -10,6 +10,11 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Changed
+
+- The server card's icons carry a new version tag, `mark-1`, so a client that
+  cached the old wordmark fetches the redesigned SetLuca mark.
+
 ## [0.8.0] - 2026-11-08
 
 ### Added

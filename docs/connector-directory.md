@@ -81,8 +81,9 @@ in `src/toolsets.ts` and a protocol test pins it.
   workspace (lead Sam Demo). Its credentials are in Infisical production at
   `/operations/claude-review`. A Claude Code sign-in passed that day, and a
   sign-in with claude.ai's own client ID metadata document passed on October 23. See `submission/claude/README.md` for the portal fields.
-- **Final icon.** The current icons point at the site favicon and app icon
-  with a `wordmark-1` version tag. The listing icon isn't final.
+- **Icon.** The server card points at the site favicon and app icon, the SetLuca
+  mark from the October 2026 redesign, with a `mark-1` version tag. The ChatGPT
+  package and the Claude listing use the same 512px app icon.
 - **OpenAI domain verification.** Completed October 6, 2026. The production
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.

@@ -88,7 +88,7 @@ November 8, 2026, so edit them now; the edit needs a reviewer's approval. Remove
 - **Privacy policy URL:** <https://setluca.com/privacy>
 - **Support contact:** support@setluca.com
 - **Icon:** `submission/openai/luca-mcp/assets/luca.png`, the 512px SetLuca
-  wordmark served at `setluca.com/android-chrome-512x512.png`.
+  mark served at `setluca.com/android-chrome-512x512.png`.
 - **URL slug:** `setluca`. It is permanent once published.
 - **Screenshots:** none. The server returns no UI.
 
