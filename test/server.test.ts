@@ -152,11 +152,11 @@ describe("server identity", () => {
     expect(LUCA_SERVER_INFO).not.toHaveProperty("icons");
     expect(LUCA_SERVER_ICONS).toEqual([
       {
-        src: "https://setluca.com/favicon.svg?v=wordmark-1",
+        src: "https://setluca.com/favicon.svg?v=mark-1",
         mimeType: "image/svg+xml",
       },
       {
-        src: "https://setluca.com/android-chrome-512x512.png?v=wordmark-1",
+        src: "https://setluca.com/android-chrome-512x512.png?v=mark-1",
         mimeType: "image/png",
         sizes: ["512x512"],
       },

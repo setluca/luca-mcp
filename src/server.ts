@@ -69,11 +69,11 @@ const LucaLive = LucaApiLive.pipe(Layer.provide(LucaConfigLive));
  */
 export const LUCA_SERVER_ICONS = [
   {
-    src: "https://setluca.com/favicon.svg?v=wordmark-1",
+    src: "https://setluca.com/favicon.svg?v=mark-1",
     mimeType: "image/svg+xml",
   },
   {
-    src: "https://setluca.com/android-chrome-512x512.png?v=wordmark-1",
+    src: "https://setluca.com/android-chrome-512x512.png?v=mark-1",
     mimeType: "image/png",
     sizes: ["512x512"],
   },
