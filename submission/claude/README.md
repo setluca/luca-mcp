@@ -16,12 +16,13 @@ answers live calls. Reviewers can come back at any time, so keep the reviewer
 login unchanged, accept each new legal edition on it, and re-run the claude.ai
 checks after any MCP release or auth change.
 
-The listing's tool names matched `0.6.0` until November 9, 2026, when an edit to
-match `0.8.0` went to review: it removes `luca_usage_messages` and adds
-`luca_broadcasts_resume`, `luca_campaigns_enrollments_resume`, and
-`luca_review_queue_kept_campaigns`, for 225 names. The live listing keeps the old
-names until a reviewer approves it. Its icon is the favicon from the server's URL,
-so it already shows the redesigned SetLuca mark.
+The listing's tool names match `0.8.0`: an edit on November 9, 2026 removed
+`luca_usage_messages` and added `luca_broadcasts_resume`,
+`luca_campaigns_enrollments_resume`, and `luca_review_queue_kept_campaigns`, for
+225 names, and a reviewer approved it the same day. A second edit that day adds the
+server's nine prompt names, which the listing had never declared; it is in review.
+The icon is the favicon from the server's URL, so it shows the redesigned SetLuca
+mark.
 
 ## Before submitting
 
