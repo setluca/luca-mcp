@@ -87,9 +87,8 @@ in `src/toolsets.ts` and a protocol test pins it.
 - **OpenAI domain verification.** Completed October 6, 2026. The production
   Worker serves the challenge token and the portal shows Domain verified.
   The token is a Worker secret and must not be committed here.
-- **Portal submissions.** The OpenAI plugin goes back in as package `0.1.5` once
-  the release matching `chatgpt-app-submission.json` is deployed and a sweep of it
-  passes. The Claude listing was published on October 24, 2026, and its tool names
+- **Portal submissions.** The OpenAI plugin's package `0.1.5` went into review on
+  November 9, 2026, against MCP server `0.8.0`. The Claude listing was published on October 24, 2026, and its tool names
   need the edit in `submission/claude/README.md`.
 
 ## What a human has to do in the Claude portal

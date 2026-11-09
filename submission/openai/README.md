@@ -76,8 +76,12 @@ read-only. Package `0.1.5` is the resubmission. The same release:
 
 MCP `0.8.0` went live on November 8, 2026, with the 225 tools the JSON lists. It
 adds `luca_campaigns_enrollments_resume` and `luca_review_queue_kept_campaigns`, and
-its release sweep passed all 303 checks against Luca v0.11.1. Package `0.1.5` has
-not gone in yet. Its release notes describe what changed since `0.1.4`.
+its release sweep passed all 303 checks against Luca v0.11.1. Package `0.1.5`, with
+the redesigned SetLuca mark as its icon, went into review on November 9, 2026. Its
+release notes describe what changed since `0.1.4`. Before submitting, the portal's
+scan connection had lapsed; reconnecting it as the reviewer account and rescanning
+found all 225 tools with no findings, which also cleared the `authorization_required`
+finding.
 
 OpenAI verified `mcp.setluca.com` on October 6, 2026. The business publisher is
 `SetLuca, LLC`, status Approved.
