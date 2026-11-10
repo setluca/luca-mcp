@@ -161,6 +161,65 @@ describe("checkOpenApiCoverage: reverse direction", () => {
   });
 });
 
+describe("checkOpenApiCoverage: route tiers", () => {
+  const openApiPaths = { "/api/leads": { get: {} } };
+
+  function tiersFor(policy: ApiKeyPolicyEntry) {
+    return checkOpenApiCoverage({
+      operations: operationsById("leads.list"),
+      policies: [policy],
+      openApiPaths,
+      optOuts: [],
+    }).capabilityBelowRoute;
+  }
+
+  it("names a tool whose tier is below the tier its route requires", () => {
+    const result = checkOpenApiCoverage({
+      operations: operationsById("leads.list"),
+      policies: [
+        { ...READ_LEADS_POLICY, requiredScope: { capability: "draft" } },
+      ],
+      openApiPaths,
+      optOuts: [],
+    });
+
+    expect(result.capabilityBelowRoute).toEqual([
+      "luca_leads_list (leads.list): asks for read, the route needs draft",
+    ]);
+    expect(hasFailures(result)).toBe(true);
+  });
+
+  it("passes a tool at its route's tier", () => {
+    expect(
+      tiersFor({ ...READ_LEADS_POLICY, requiredScope: { capability: "read" } })
+    ).toEqual([]);
+  });
+
+  it("skips a route whose allowlist entry has no requiredScope yet", () => {
+    expect(tiersFor(READ_LEADS_POLICY)).toEqual([]);
+  });
+
+  it("checks the tier the connection needs, not only the one the tool states", () => {
+    // leads.create states no capability, but its write scope already needs draft.
+    const result = checkOpenApiCoverage({
+      operations: operationsById("leads.create"),
+      policies: [
+        {
+          id: "leads.create",
+          method: "POST",
+          path: "/api/leads",
+          scopes: ["leads:write"],
+          requiredScope: { capability: "draft" },
+        },
+      ],
+      openApiPaths: { "/api/leads": { post: {} } },
+      optOuts: [],
+    });
+
+    expect(result.capabilityBelowRoute).toEqual([]);
+  });
+});
+
 layer(BunServices.layer)("real allowlist coverage", (it) => {
   it.effect(
     "covers every apps/api/api-key-policies.json entry with an MCP operation or a reasoned opt-out",
@@ -189,6 +248,7 @@ layer(BunServices.layer)("real allowlist coverage", (it) => {
 
         expect(result.allowlistRoutesWithoutOperation).toEqual([]);
         expect(result.staleOptOuts).toEqual([]);
+        expect(result.capabilityBelowRoute).toEqual([]);
       })
   );
 

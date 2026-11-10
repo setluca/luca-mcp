@@ -7,6 +7,7 @@ import * as HttpClientResponse from "effect/http/HttpClientResponse";
 import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
+import type { CapabilityTier } from "../src/operations/registry.ts";
 import { JsonValue, parseJson } from "../src/serialization.ts";
 
 const OPENAPI_URL = "https://api.setluca.com/openapi.json";
@@ -60,6 +61,12 @@ export type ApiKeyPolicyEntry = {
   readonly path: string;
   readonly scopes: readonly string[];
   readonly requireIdempotency?: boolean | undefined;
+  /**
+   * The capability tier the API requires of a key on this route, as
+   * `requireApiKeyScope` enforces it (LUC-511). Optional until the Luca
+   * commit the contracts pin writes it.
+   */
+  readonly requiredScope?: { readonly capability: CapabilityTier } | undefined;
 };
 
 type LoadedApiKeyPolicies = {
@@ -76,6 +83,11 @@ const decodeApiKeyPolicies = Schema.decodeUnknownEffect(
         path: Schema.String,
         scopes: Schema.Array(Schema.String),
         requireIdempotency: Schema.optionalKey(Schema.Boolean),
+        requiredScope: Schema.optionalKey(
+          Schema.Struct({
+            capability: Schema.Literals(["read", "draft", "queue_ops", "full"]),
+          })
+        ),
       })
     )
   )
