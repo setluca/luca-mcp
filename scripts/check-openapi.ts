@@ -1,10 +1,13 @@
 import * as Arr from "effect/Array";
 import * as Console from "effect/Console";
 import * as Effect from "effect/Effect";
+import * as HashMap from "effect/HashMap";
 import * as HashSet from "effect/HashSet";
+import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
 import { LUCA_OPERATIONS } from "../src/operations.ts";
+import { effectiveCapability, higherTier } from "../src/scopes.ts";
 import { JsonValue } from "../src/serialization.ts";
 import { exitWith, isEntryPoint, runScript } from "./lib/script.ts";
 import {
@@ -79,13 +82,16 @@ export type OpenApiCoverageResult = {
   readonly allowlistRoutesWithoutOperation: readonly string[];
   /** Opt-outs an operation now covers, or that name no allowlist entry. */
   readonly staleOptOuts: readonly string[];
+  /** Tools whose OAuth tier is below the tier the API requires on their route. */
+  readonly capabilityBelowRoute: readonly string[];
 };
 
 export function hasFailures(result: OpenApiCoverageResult): boolean {
   return (
     Arr.isReadonlyArrayNonEmpty(result.missingFromOpenApi) ||
     Arr.isReadonlyArrayNonEmpty(result.allowlistRoutesWithoutOperation) ||
-    Arr.isReadonlyArrayNonEmpty(result.staleOptOuts)
+    Arr.isReadonlyArrayNonEmpty(result.staleOptOuts) ||
+    Arr.isReadonlyArrayNonEmpty(result.capabilityBelowRoute)
   );
 }
 
@@ -99,6 +105,12 @@ export function hasFailures(result: OpenApiCoverageResult): boolean {
  * - Opt-outs: each one names an allowlist entry that no operation covers. An
  *   opt-out left behind after its tool ships would hide the next drift on
  *   that id.
+ * - Tiers (per operation): the tier an OAuth connection needs for the tool
+ *   ({@link effectiveCapability}) is at least the tier the API requires of a
+ *   key on its route (`requiredScope.capability`). A tool below its route is
+ *   listed as callable to a connection the API then refuses with 403
+ *   `needs_scope`. An allowlist entry without `requiredScope` is skipped, so
+ *   the check starts biting when the pinned Luca commit writes the field.
  *
  * What a route grants is not checked here, because a tool no longer says it.
  * `src/generated/route-catalog.ts` is generated from the allowlist and `op()`
@@ -147,7 +159,47 @@ export function checkOpenApiCoverage(input: {
       : [`${optOut.id}: no allowlist entry has this id`];
   });
 
-  return { missingFromOpenApi, allowlistRoutesWithoutOperation, staleOptOuts };
+  return {
+    missingFromOpenApi,
+    allowlistRoutesWithoutOperation,
+    staleOptOuts,
+    capabilityBelowRoute: capabilityBelowRoute(
+      input.operations,
+      input.policies
+    ),
+  };
+}
+
+/**
+ * Each tool whose effective tier is below its route's required tier, as
+ * `luca_x: asks for draft, the route needs queue_ops`.
+ */
+function capabilityBelowRoute(
+  operations: readonly Operation[],
+  policies: readonly ApiKeyPolicyEntry[]
+): readonly string[] {
+  const routeTiers = HashMap.fromIterable(
+    policies.flatMap((policy) =>
+      policy.requiredScope
+        ? [[policy.id, policy.requiredScope.capability] as const]
+        : []
+    )
+  );
+
+  return operations.flatMap((operation) =>
+    Option.match(HashMap.get(routeTiers, operation.id), {
+      onNone: () => [],
+      onSome: (routeTier) => {
+        const toolTier = effectiveCapability(operation);
+
+        return higherTier(toolTier, routeTier) === toolTier
+          ? []
+          : [
+              `${operation.toolName} (${operation.id}): asks for ${toolTier}, the route needs ${routeTier}`,
+            ];
+      },
+    })
+  );
 }
 
 /** The failure report, one line per stderr line. */
@@ -178,6 +230,15 @@ function reportLines(
       "OPT_OUT_ROUTES entries that no longer apply:",
       ...result.staleOptOuts.map((item) => `- ${item}`),
       "Fix: delete the entry from scripts/check-openapi.ts."
+    );
+  }
+
+  if (Arr.isReadonlyArrayNonEmpty(result.capabilityBelowRoute)) {
+    lines.push(
+      `Tools below the tier their route requires (${sources.policies}, requiredScope.capability):`,
+      ...result.capabilityBelowRoute.map((item) => `- ${item}`),
+      "Fix: raise the tool's `capability:` in its op({...}) entry under src/operations/groups/ to the route's tier, " +
+        "then run docs:generate and surface:generate, and note the tier change in CHANGELOG.md."
     );
   }
 
