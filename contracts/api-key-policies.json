@@ -11,7 +11,10 @@
       "broadcasts:read",
       "webhooks:read",
       "integrations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "leads.list",
@@ -19,7 +22,10 @@
     "path": "/api/leads",
     "scopes": [
       "leads:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "leads.fieldDefinitions.list",
@@ -27,7 +33,10 @@
     "path": "/api/leads/field-definitions",
     "scopes": [
       "leads:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "leads.fieldDefinitions.upsert",
@@ -36,7 +45,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.importPreview",
@@ -44,7 +56,10 @@
     "path": "/api/leads/imports/preview",
     "scopes": [
       "leads:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.importApply",
@@ -53,7 +68,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.get",
@@ -61,7 +79,10 @@
     "path": "/api/leads/{id}",
     "scopes": [
       "leads:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "leads.explain",
@@ -69,7 +90,10 @@
     "path": "/api/leads/{id}/explain",
     "scopes": [
       "leads:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "leads.create",
@@ -78,7 +102,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.update",
@@ -87,7 +114,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.identities.attach",
@@ -96,7 +126,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.consents.grant",
@@ -105,7 +138,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.consents.revoke",
@@ -114,7 +150,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.notes.add",
@@ -123,7 +162,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.draft",
@@ -132,7 +174,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.notes.delete",
@@ -141,7 +186,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "leads.drafting.pause",
@@ -150,7 +198,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "leads.drafting.resume",
@@ -159,7 +210,10 @@
     "scopes": [
       "leads:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "conversations.send_status",
@@ -167,7 +221,10 @@
     "path": "/api/conversations/{id}/send-status",
     "scopes": [
       "conversations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "conversations.summary",
@@ -175,7 +232,10 @@
     "path": "/api/conversations/summary",
     "scopes": [
       "conversations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "conversations.list",
@@ -183,7 +243,10 @@
     "path": "/api/conversations",
     "scopes": [
       "conversations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "conversations.get",
@@ -191,7 +254,10 @@
     "path": "/api/conversations/{id}",
     "scopes": [
       "conversations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "conversations.messages",
@@ -199,7 +265,10 @@
     "path": "/api/conversations/{id}/messages",
     "scopes": [
       "conversations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "conversations.profile_refresh",
@@ -208,7 +277,10 @@
     "scopes": [
       "conversations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "conversations.send",
@@ -217,7 +289,10 @@
     "scopes": [
       "conversations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "conversations.partial_send_retry",
@@ -226,7 +301,10 @@
     "scopes": [
       "conversations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "conversations.reply_failure_retry",
@@ -234,7 +312,10 @@
     "path": "/api/conversations/{id}/reply-failures/{failureId}/retry",
     "scopes": [
       "conversations:write"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "conversations.reply_failure_dismiss",
@@ -242,7 +323,10 @@
     "path": "/api/conversations/{id}/reply-failures/{failureId}/dismiss",
     "scopes": [
       "conversations:write"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "conversations.media_retry",
@@ -251,7 +335,10 @@
     "scopes": [
       "conversations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.composer",
@@ -259,7 +346,10 @@
     "path": "/api/review-queue/{id}/composer",
     "scopes": [
       "review_queue:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reviewQueue.list",
@@ -267,7 +357,10 @@
     "path": "/api/review-queue",
     "scopes": [
       "review_queue:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reviewQueue.keptCampaigns",
@@ -275,7 +368,10 @@
     "path": "/api/review-queue/{id}/kept-campaigns",
     "scopes": [
       "review_queue:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reviewQueue.explain",
@@ -283,7 +379,10 @@
     "path": "/api/review-queue/{id}/explain",
     "scopes": [
       "review_queue:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reviewQueue.approve",
@@ -292,7 +391,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.bulkApprove",
@@ -301,7 +403,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.bulkReject",
@@ -310,7 +415,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.media.retry",
@@ -319,7 +427,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.reject",
@@ -328,7 +439,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.restore",
@@ -337,7 +451,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.sla",
@@ -345,7 +462,10 @@
     "path": "/api/review-queue/sla",
     "scopes": [
       "review_queue:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reviewQueue.summary",
@@ -353,7 +473,10 @@
     "path": "/api/review-queue/summary",
     "scopes": [
       "review_queue:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reviewQueue.changes",
@@ -361,7 +484,10 @@
     "path": "/api/review-queue/changes",
     "scopes": [
       "review_queue:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reviewQueue.drafting",
@@ -369,7 +495,10 @@
     "path": "/api/review-queue/drafting",
     "scopes": [
       "review_queue:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reviewQueue.objectionVariant",
@@ -378,7 +507,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.drafting.cancel",
@@ -387,7 +519,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.drafting.retry",
@@ -396,7 +531,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.drafting.dismiss",
@@ -405,7 +543,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "reviewQueue.regenerate",
@@ -414,7 +555,10 @@
     "scopes": [
       "review_queue:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.list",
@@ -422,7 +566,10 @@
     "path": "/api/bookings",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.availability",
@@ -430,7 +577,10 @@
     "path": "/api/bookings/availability",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.managedAvailability",
@@ -438,7 +588,10 @@
     "path": "/api/bookings/managed-availability",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.types.list",
@@ -446,7 +599,10 @@
     "path": "/api/bookings/types",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.types.schedule",
@@ -454,7 +610,10 @@
     "path": "/api/bookings/types/{id}/schedule",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.types.attendees",
@@ -462,7 +621,10 @@
     "path": "/api/bookings/types/{id}/attendees",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.providers.list",
@@ -470,7 +632,10 @@
     "path": "/api/bookings/providers",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.providers.get",
@@ -478,7 +643,10 @@
     "path": "/api/bookings/providers/{provider}",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.calendars.list",
@@ -486,7 +654,10 @@
     "path": "/api/bookings/calendars",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.needsOutcome",
@@ -494,7 +665,10 @@
     "path": "/api/bookings/needs-outcome",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.lifecycleAttention",
@@ -502,7 +676,10 @@
     "path": "/api/bookings/lifecycle-attention",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.outcomeReasons.list",
@@ -510,7 +687,10 @@
     "path": "/api/bookings/outcome-reasons",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.get",
@@ -518,7 +698,10 @@
     "path": "/api/bookings/{id}",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.brief",
@@ -526,7 +709,10 @@
     "path": "/api/bookings/{id}/brief",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.recovery.get",
@@ -534,7 +720,10 @@
     "path": "/api/bookings/{id}/recovery",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.recovery.stop",
@@ -543,7 +732,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.outcome.get",
@@ -551,7 +743,10 @@
     "path": "/api/bookings/{id}/outcome",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.outcome.history",
@@ -559,7 +754,10 @@
     "path": "/api/bookings/{id}/outcome/history",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.create",
@@ -568,7 +766,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.update",
@@ -577,7 +778,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.cancel",
@@ -586,7 +790,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.providerRequests.create",
@@ -595,7 +802,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.providerRequests.get",
@@ -603,7 +813,10 @@
     "path": "/api/bookings/provider-requests/{id}",
     "scopes": [
       "bookings:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "bookings.outcome.record",
@@ -612,7 +825,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.outcomeReasons.create",
@@ -621,7 +837,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.outcomeReasons.update",
@@ -630,7 +849,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.lifecycleResolution",
@@ -639,7 +861,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.providerSync.retry",
@@ -648,7 +873,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.guestLinks.create",
@@ -657,7 +885,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.guestLinks.revoke",
@@ -666,7 +897,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.types.create",
@@ -675,7 +909,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.types.update",
@@ -684,7 +921,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.types.delete",
@@ -693,7 +933,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.types.schedule.replace",
@@ -702,7 +945,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.types.attendees.add",
@@ -711,7 +957,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.types.attendees.remove",
@@ -720,7 +969,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.calendars.select",
@@ -729,7 +981,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "bookings.calendars.remove",
@@ -738,7 +993,10 @@
     "scopes": [
       "bookings:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "callEvents.needingFeedback",
@@ -746,7 +1004,10 @@
     "path": "/api/call-events",
     "scopes": [
       "call_events:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "callEvents.byBooking",
@@ -754,7 +1015,10 @@
     "path": "/api/call-events/by-booking/{bookingId}",
     "scopes": [
       "call_events:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "callEvents.byLead",
@@ -762,7 +1026,10 @@
     "path": "/api/call-events/by-lead/{leadId}",
     "scopes": [
       "call_events:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "callEvents.get",
@@ -770,7 +1037,10 @@
     "path": "/api/call-events/{id}",
     "scopes": [
       "call_events:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "callEvents.backfill",
@@ -779,7 +1049,10 @@
     "scopes": [
       "call_events:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "callEvents.feedback",
@@ -788,7 +1061,10 @@
     "scopes": [
       "call_events:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "callEvents.summary.generate",
@@ -797,7 +1073,10 @@
     "scopes": [
       "call_events:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "callEvents.pushToCrm",
@@ -806,7 +1085,10 @@
     "scopes": [
       "call_events:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "callEvents.undoOutcome",
@@ -815,7 +1097,10 @@
     "scopes": [
       "call_events:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "callEvents.summary.replace",
@@ -824,7 +1109,10 @@
     "scopes": [
       "call_events:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "campaigns.list",
@@ -832,7 +1120,10 @@
     "path": "/api/campaigns",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.commentEvents.list",
@@ -840,7 +1131,10 @@
     "path": "/api/campaigns/comment-events",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.providerCapabilities",
@@ -848,7 +1142,10 @@
     "path": "/api/campaigns/{id}/provider-capabilities",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.get",
@@ -856,7 +1153,10 @@
     "path": "/api/campaigns/{id}",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.analytics",
@@ -864,7 +1164,10 @@
     "path": "/api/campaigns/{id}/analytics",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.simulations.list",
@@ -872,7 +1175,10 @@
     "path": "/api/campaigns/{id}/simulations",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.simulations.get",
@@ -880,7 +1186,10 @@
     "path": "/api/campaigns/{id}/simulations/{simulationId}",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.create",
@@ -889,7 +1198,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "campaigns.generate",
@@ -897,7 +1209,10 @@
     "path": "/api/campaigns/generate",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "campaigns.draft.update",
@@ -906,7 +1221,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "campaigns.simulations.create",
@@ -915,7 +1233,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "campaigns.enroll",
@@ -924,7 +1245,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "campaigns.enrollments.resume",
@@ -933,7 +1257,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "campaigns.enrollments.list",
@@ -941,7 +1268,10 @@
     "path": "/api/campaigns/{id}/enrollments",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.commentSimulationSuite.run",
@@ -950,7 +1280,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "campaigns.publish",
@@ -959,7 +1292,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "campaigns.setStatus",
@@ -968,7 +1304,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "campaigns.duplicate",
@@ -977,7 +1316,10 @@
     "scopes": [
       "campaigns:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "campaigns.versions.list",
@@ -985,7 +1327,10 @@
     "path": "/api/campaigns/{id}/versions",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "campaigns.enrollments.timeline",
@@ -993,7 +1338,10 @@
     "path": "/api/campaigns/{id}/enrollments/{enrollmentId}/timeline",
     "scopes": [
       "campaigns:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "broadcasts.list",
@@ -1001,7 +1349,10 @@
     "path": "/api/broadcasts",
     "scopes": [
       "broadcasts:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "broadcasts.get",
@@ -1009,7 +1360,10 @@
     "path": "/api/broadcasts/{id}",
     "scopes": [
       "broadcasts:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "broadcasts.create",
@@ -1018,7 +1372,10 @@
     "scopes": [
       "broadcasts:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "broadcasts.preview",
@@ -1027,7 +1384,10 @@
     "scopes": [
       "broadcasts:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "broadcasts.approve",
@@ -1036,7 +1396,10 @@
     "scopes": [
       "broadcasts:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "broadcasts.launch",
@@ -1045,7 +1408,10 @@
     "scopes": [
       "broadcasts:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "broadcasts.pause",
@@ -1054,7 +1420,10 @@
     "scopes": [
       "broadcasts:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "broadcasts.retry",
@@ -1063,7 +1432,10 @@
     "scopes": [
       "broadcasts:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "broadcasts.resume",
@@ -1072,7 +1444,10 @@
     "scopes": [
       "broadcasts:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "broadcasts.cancel",
@@ -1081,7 +1456,10 @@
     "scopes": [
       "broadcasts:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "webhooks.events.list",
@@ -1089,7 +1467,10 @@
     "path": "/api/webhook-events",
     "scopes": [
       "webhooks:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "webhooks.subscriptions.list",
@@ -1097,7 +1478,10 @@
     "path": "/api/webhook-subscriptions",
     "scopes": [
       "webhooks:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "webhooks.subscriptions.create",
@@ -1105,7 +1489,10 @@
     "path": "/api/webhook-subscriptions",
     "scopes": [
       "webhooks:write"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "webhooks.subscriptions.update",
@@ -1114,7 +1501,10 @@
     "scopes": [
       "webhooks:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "webhooks.subscriptions.delete",
@@ -1122,7 +1512,10 @@
     "path": "/api/webhook-subscriptions/{id}",
     "scopes": [
       "webhooks:write"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "webhooks.testDelivery",
@@ -1131,7 +1524,10 @@
     "scopes": [
       "webhooks:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "webhooks.deliveries.list",
@@ -1139,7 +1535,10 @@
     "path": "/api/webhook-subscriptions/deliveries",
     "scopes": [
       "webhooks:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "webhooks.signatureGuide",
@@ -1147,7 +1546,10 @@
     "path": "/api/webhook-subscriptions/signature-guide",
     "scopes": [
       "webhooks:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "webhooks.deliveries.replay",
@@ -1156,7 +1558,10 @@
     "scopes": [
       "webhooks:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "webhooks.events.replay",
@@ -1165,7 +1570,10 @@
     "scopes": [
       "webhooks:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "webhooks.events.bulkReplay",
@@ -1174,7 +1582,10 @@
     "scopes": [
       "webhooks:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.connectors.list",
@@ -1182,7 +1593,10 @@
     "path": "/api/integrations/connectors",
     "scopes": [
       "integrations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "integrations.crm.connections.list",
@@ -1190,7 +1604,10 @@
     "path": "/api/integrations/crm/connections",
     "scopes": [
       "integrations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "integrations.crm.oauthUrl",
@@ -1198,7 +1615,10 @@
     "path": "/api/integrations/crm/providers/{provider}/oauth-url",
     "scopes": [
       "integrations:write"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "integrations.crm.oauthCallback",
@@ -1207,7 +1627,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.crm.connections.create",
@@ -1216,7 +1639,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.crm.connections.schema",
@@ -1224,7 +1650,10 @@
     "path": "/api/integrations/crm/connections/{id}/schema",
     "scopes": [
       "integrations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "integrations.crm.connections.disconnect",
@@ -1233,7 +1662,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.crm.connections.health",
@@ -1242,7 +1674,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.crm.connections.webhooksSetup",
@@ -1251,7 +1686,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.crm.mappings.suggest",
@@ -1260,7 +1698,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.crm.mappings.confirm",
@@ -1269,7 +1710,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.crm.syncRuns.create",
@@ -1278,7 +1722,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.crm.syncRuns.list",
@@ -1286,7 +1733,10 @@
     "path": "/api/integrations/crm/connections/{id}/sync-runs",
     "scopes": [
       "integrations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "integrations.crm.webhooks.record",
@@ -1295,7 +1745,10 @@
     "scopes": [
       "integrations:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "integrations.events.list",
@@ -1303,7 +1756,10 @@
     "path": "/api/integrations/events",
     "scopes": [
       "integrations:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "voice.profile",
@@ -1311,7 +1767,10 @@
     "path": "/api/voice/profile",
     "scopes": [
       "voice:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "voice.corpus",
@@ -1319,7 +1778,10 @@
     "path": "/api/voice",
     "scopes": [
       "voice:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "coach.profile",
@@ -1327,7 +1789,10 @@
     "path": "/api/coaches/me",
     "scopes": [
       "coach:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "coach.niche",
@@ -1335,7 +1800,10 @@
     "path": "/api/coaches/niche",
     "scopes": [
       "coach:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "coach.nicheProfile",
@@ -1343,7 +1811,10 @@
     "path": "/api/coaches/niche-profile",
     "scopes": [
       "coach:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "coach.objectionPlaybook",
@@ -1351,7 +1822,10 @@
     "path": "/api/coaches/objection-playbook",
     "scopes": [
       "coach:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "coach.postCallSettings",
@@ -1359,7 +1833,10 @@
     "path": "/api/coaches/post-call-settings",
     "scopes": [
       "coach:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "coach.postCallCrmMapping",
@@ -1367,7 +1844,10 @@
     "path": "/api/coaches/post-call-crm-mapping",
     "scopes": [
       "coach:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "coach.postCallDealSync",
@@ -1375,7 +1855,10 @@
     "path": "/api/coaches/post-call-deal-sync",
     "scopes": [
       "coach:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "coach.auditLog",
@@ -1383,7 +1866,10 @@
     "path": "/api/audit-log",
     "scopes": [
       "coach:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "usage.spend",
@@ -1391,7 +1877,10 @@
     "path": "/api/usage",
     "scopes": [
       "usage:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "safety.accounts",
@@ -1399,7 +1888,10 @@
     "path": "/api/account-safety",
     "scopes": [
       "safety:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "channels.list",
@@ -1407,7 +1899,10 @@
     "path": "/api/channels",
     "scopes": [
       "channels:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "channels.catalog",
@@ -1415,7 +1910,10 @@
     "path": "/api/channels/catalog",
     "scopes": [
       "channels:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "channels.features",
@@ -1423,7 +1921,10 @@
     "path": "/api/channels/features",
     "scopes": [
       "channels:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "channels.get",
@@ -1431,7 +1932,10 @@
     "path": "/api/channels/{id}",
     "scopes": [
       "channels:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "channels.set_ai_dm_auto_send",
@@ -1440,7 +1944,10 @@
     "scopes": [
       "channels:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
   },
   {
     "id": "reports.morning",
@@ -1448,7 +1955,10 @@
     "path": "/api/reports/morning",
     "scopes": [
       "reports:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "reports.scorecard",
@@ -1456,7 +1966,10 @@
     "path": "/api/reports/scorecard",
     "scopes": [
       "reports:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "insights.unreadCount",
@@ -1464,7 +1977,10 @@
     "path": "/api/insights/unread-count",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "insights.markRead",
@@ -1473,7 +1989,10 @@
     "scopes": [
       "insights:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "insights.dismiss",
@@ -1482,7 +2001,10 @@
     "scopes": [
       "insights:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "insights.markActioned",
@@ -1491,7 +2013,10 @@
     "scopes": [
       "insights:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "insights.settings.get",
@@ -1499,7 +2024,10 @@
     "path": "/api/insights/settings",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "insights.settings.update",
@@ -1508,7 +2036,10 @@
     "scopes": [
       "insights:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "learning.panel",
@@ -1516,7 +2047,10 @@
     "path": "/api/teach-luca",
     "scopes": [
       "learning:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "learning.frameworkPerformance",
@@ -1524,7 +2058,10 @@
     "path": "/api/framework-performance",
     "scopes": [
       "learning:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "learning.abTests.list",
@@ -1532,7 +2069,10 @@
     "path": "/api/ab-tests",
     "scopes": [
       "learning:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "learning.abTests.get",
@@ -1540,7 +2080,10 @@
     "path": "/api/ab-tests/{id}",
     "scopes": [
       "learning:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "learning.proposals.list",
@@ -1548,7 +2091,10 @@
     "path": "/api/learning-proposals",
     "scopes": [
       "learning:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "learning.proposals.dismiss",
@@ -1557,7 +2103,10 @@
     "scopes": [
       "learning:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "knowledge.suggestions",
@@ -1565,7 +2114,10 @@
     "path": "/api/knowledge/suggestions",
     "scopes": [
       "knowledge:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "knowledge.rejectSuggestion",
@@ -1574,7 +2126,10 @@
     "scopes": [
       "knowledge:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "knowledge.sources.list",
@@ -1582,7 +2137,10 @@
     "path": "/api/knowledge/sources",
     "scopes": [
       "knowledge:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "knowledge.sources.sync",
@@ -1591,7 +2149,10 @@
     "scopes": [
       "knowledge:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "knowledge.sources.disconnect",
@@ -1600,7 +2161,10 @@
     "scopes": [
       "knowledge:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "memory.list",
@@ -1608,7 +2172,10 @@
     "path": "/api/memory",
     "scopes": [
       "memory:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "memory.update",
@@ -1617,7 +2184,10 @@
     "scopes": [
       "memory:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "memory.setArchived",
@@ -1626,7 +2196,10 @@
     "scopes": [
       "memory:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
   },
   {
     "id": "cadences.rescueStart",
@@ -1635,7 +2208,10 @@
     "scopes": [
       "cadences:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "cadences.pause",
@@ -1644,7 +2220,10 @@
     "scopes": [
       "cadences:write"
     ],
-    "requireIdempotency": true
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
   },
   {
     "id": "analytics.leadScore",
@@ -1652,7 +2231,10 @@
     "path": "/api/analytics/lead-score/{leadId}",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.funnel",
@@ -1660,7 +2242,10 @@
     "path": "/api/analytics/funnel",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.revenue",
@@ -1668,7 +2253,10 @@
     "path": "/api/analytics/revenue",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.speedImpact",
@@ -1676,7 +2264,10 @@
     "path": "/api/analytics/speed-impact",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.forecast",
@@ -1684,7 +2275,10 @@
     "path": "/api/analytics/forecast",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.callIntelligence",
@@ -1692,7 +2286,10 @@
     "path": "/api/analytics/call-intelligence",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.callIntelligenceCalls",
@@ -1700,7 +2297,10 @@
     "path": "/api/analytics/call-intelligence/calls",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.learningInsights",
@@ -1708,7 +2308,10 @@
     "path": "/api/analytics/learning-insights",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.crmSyncHealth",
@@ -1716,7 +2319,10 @@
     "path": "/api/analytics/crm-sync-health",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.objections",
@@ -1724,7 +2330,10 @@
     "path": "/api/analytics/objections",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.objectionDrilldown",
@@ -1732,7 +2341,10 @@
     "path": "/api/analytics/objections/{type}",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.ghostedLeads",
@@ -1740,7 +2352,10 @@
     "path": "/api/analytics/ghosted-leads",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.trustScore",
@@ -1748,7 +2363,10 @@
     "path": "/api/analytics/trust-score",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.trends",
@@ -1756,7 +2374,10 @@
     "path": "/api/analytics/trends",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.lossReasons",
@@ -1764,7 +2385,10 @@
     "path": "/api/analytics/loss-reasons",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.recommendations",
@@ -1772,7 +2396,10 @@
     "path": "/api/analytics/recommendations",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.contentAttribution",
@@ -1780,7 +2407,10 @@
     "path": "/api/analytics/content-attribution",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.contentPerformance",
@@ -1788,7 +2418,10 @@
     "path": "/api/analytics/content-performance",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.topicPerformance",
@@ -1796,7 +2429,10 @@
     "path": "/api/analytics/topic-performance",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.benchmarks",
@@ -1804,7 +2440,10 @@
     "path": "/api/analytics/benchmarks",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.benchmarkConsent",
@@ -1812,7 +2451,10 @@
     "path": "/api/analytics/benchmark-consent",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   },
   {
     "id": "analytics.insights",
@@ -1820,6 +2462,9 @@
     "path": "/api/insights",
     "scopes": [
       "analytics:read"
-    ]
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
   }
 ]
