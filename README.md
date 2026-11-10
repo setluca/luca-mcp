@@ -8,7 +8,7 @@ Once you're connected, try asking:
 - "Show me the review queue and recommend what to approve."
 - "Pull up everything about this lead before my call."
 - "Draft a short, warm reply for this lead."
-- "How is my broadcast performing?"
+- "How is my latest campaign doing?"
 
 ## Connect your assistant
 
@@ -23,6 +23,13 @@ https://mcp.setluca.com/mcp
 ```
 
 Then sign in to SetLuca and choose what the assistant may do. You don't need an API key.
+
+In Claude Code or Gemini CLI, you can install the SetLuca plugin instead, which connects to the same URL:
+
+```text
+/plugin install setluca --marketplace setluca/luca-mcp
+gemini extensions install https://github.com/setluca/luca-mcp
+```
 
 ### Use an API key
 

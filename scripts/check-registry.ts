@@ -47,6 +47,49 @@ export type ServerJson = typeof ServerJson.Type;
 
 export type PackageJson = typeof PackageJson.Type;
 
+const PluginManifestJson = Schema.Struct({
+  version: Schema.optionalKey(Schema.String),
+});
+
+const McpServersJson = Schema.Struct({
+  mcpServers: Schema.optionalKey(
+    Schema.Record(
+      Schema.String,
+      Schema.Struct({
+        url: Schema.optionalKey(Schema.String),
+        httpUrl: Schema.optionalKey(Schema.String),
+      })
+    )
+  ),
+});
+
+/**
+ * The client plugin manifests that ship from this repository: where each one's
+ * version lives, and the file that declares its MCP server. Gemini CLI keeps
+ * both in one file and calls the Streamable HTTP endpoint `httpUrl`.
+ */
+export const PLUGIN_MANIFESTS = [
+  {
+    manifest: "plugins/claude/.claude-plugin/plugin.json",
+    servers: "plugins/claude/.mcp.json",
+  },
+  {
+    manifest: "plugins/cursor/.cursor-plugin/plugin.json",
+    servers: "plugins/cursor/mcp.json",
+  },
+  {
+    manifest: "gemini-extension.json",
+    servers: "gemini-extension.json",
+  },
+] as const;
+
+/** What `checkPluginManifests` needs from one plugin's files. */
+export type PluginManifest = {
+  readonly path: string;
+  readonly version: string | undefined;
+  readonly serverUrls: readonly string[];
+};
+
 // The MCP registry rejects descriptions over 100 characters (422 at publish
 // time); enforce it here so CI catches it before the registry does.
 const DESCRIPTION_LIMIT = 100;
@@ -245,6 +288,40 @@ function checkRemotes(remotes: readonly (typeof RemoteEntry.Type)[]) {
 }
 
 /**
+ * Every plugin manifest whose version is not the package's, or whose MCP server
+ * is not the hosted one server.json advertises. The manifests are installed
+ * straight from this repository, so one left behind on a release would install
+ * a plugin that claims an old version or points somewhere else.
+ */
+export function checkPluginManifests(
+  manifests: readonly PluginManifest[],
+  pkg: PackageJson,
+  server: ServerJson
+): string[] {
+  const errors: string[] = [];
+  const remoteUrl = server.remotes?.[0]?.url;
+
+  Arr.forEach(manifests, (manifest) => {
+    if (manifest.version !== pkg.version) {
+      errors.push(
+        `${manifest.path} version (${manifest.version}) does not match package.json version (${pkg.version}). Fix ${manifest.path}.`
+      );
+    }
+
+    if (
+      manifest.serverUrls.length !== 1 ||
+      manifest.serverUrls[0] !== remoteUrl
+    ) {
+      errors.push(
+        `${manifest.path} must declare exactly one MCP server, at server.json's remote url (${remoteUrl}); found ${manifest.serverUrls.join(", ") || "none"}.`
+      );
+    }
+  });
+
+  return errors;
+}
+
+/**
  * A title that still reads like an identifier. Every operation title used to be
  * `"Luca " + id`, which tells a client nothing the tool name did not already
  * say. Rejecting the machine shapes here is what keeps a new operation from
@@ -328,9 +405,31 @@ function readJsonFile<S extends Schema.Top>(relativePath: string, schema: S) {
   });
 }
 
+/** Reads one plugin's version and the URLs of the MCP servers it declares. */
+function readPluginManifest(paths: (typeof PLUGIN_MANIFESTS)[number]) {
+  return Effect.gen(function* () {
+    const manifest = yield* readJsonFile(paths.manifest, PluginManifestJson);
+    const servers = yield* readJsonFile(paths.servers, McpServersJson);
+
+    return {
+      path: paths.manifest,
+      version: manifest.version,
+      serverUrls: Object.values(servers.mcpServers ?? {}).map(
+        (entry) => entry.url ?? entry.httpUrl ?? "(no url)"
+      ),
+    } satisfies PluginManifest;
+  });
+}
+
 const main = Effect.fn("check-registry")(function* () {
   const server = yield* readJsonFile("server.json", ServerJson);
   const pkg = yield* readJsonFile("package.json", PackageJson);
+
+  const manifests = yield* Effect.forEach(
+    PLUGIN_MANIFESTS,
+    readPluginManifest,
+    { concurrency: "unbounded" }
+  );
 
   const errors = checkRegistry({
     server,
@@ -338,16 +437,18 @@ const main = Effect.fn("check-registry")(function* () {
     lucaMcpVersion: LUCA_MCP_VERSION,
     operationCount: LUCA_OPERATIONS.length,
     taskToolCount: LUCA_TASK_TOOLS.length,
-  }).concat(checkOperationTitles(LUCA_OPERATIONS));
+  })
+    .concat(checkPluginManifests(manifests, pkg, server))
+    .concat(checkOperationTitles(LUCA_OPERATIONS));
 
   if (Arr.isReadonlyArrayNonEmpty(errors)) {
     return yield* exitWith([
-      "server.json is out of sync:",
+      "server.json or a plugin manifest is out of sync:",
       ...errors.map((error) => `- ${error}`),
     ]);
   }
 
-  yield* Console.log("server.json is in sync");
+  yield* Console.log("server.json and the plugin manifests are in sync");
 });
 
 // Only run the CLI when this file is the process entry point, so tests can
