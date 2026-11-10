@@ -21,7 +21,7 @@ import { leadPolicies } from "./route-policies/leads";
 import { learningPolicies } from "./route-policies/learning";
 import { memoryPolicies } from "./route-policies/memory";
 import type { PublicApiAccessPolicy } from "./route-policies/policy";
-import { isSafeMethod } from "./route-policies/policy";
+import { isSafeMethod, requiredScopeForPolicy } from "./route-policies/policy";
 import { reportPolicies } from "./route-policies/reports";
 import { reviewQueuePolicies } from "./route-policies/review-queue";
 import { safetyPolicies } from "./route-policies/safety";
@@ -404,6 +404,8 @@ export type PublicApiAccessPolicyEntry = {
   path: string;
   scopes: string[];
   requireIdempotency?: boolean;
+  /** The lowest key tier the route admits. setluca/luca-mcp pins each tool's tier to it. */
+  requiredScope: { capability: CapabilityTier };
 };
 
 /**
@@ -412,8 +414,10 @@ export type PublicApiAccessPolicyEntry = {
  * OpenAPI path template, which is the same key the snapshot and the MCP
  * catalog use, so a consumer compares templates instead of reconstructing a
  * regex. The operation id travels with it: setluca/luca-mcp generates its route
- * catalog from this file, so every tool's method, path, scopes, and
- * idempotency rule are read from here rather than written out a second time.
+ * catalog from this file, so every tool's method, path, scopes, idempotency
+ * rule, and required capability tier are read from here rather than written
+ * out a second time. A route without a declared tier serializes as `read`, the
+ * same tier `requireApiKeyScope` enforces for it.
  * Kept in sync via apps/api scripts/api-key-policies.ts, which fails CI on
  * drift.
  */
@@ -424,6 +428,7 @@ export function publicApiAccessPolicySnapshot(): PublicApiAccessPolicyEntry[] {
     path: policy.path,
     scopes: policy.scopes,
     ...(policy.requireIdempotency ? { requireIdempotency: true } : undefined),
+    requiredScope: { capability: requiredScopeForPolicy(policy).capability },
   }));
 }
 
