@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "setluca": {
+      "type": "http",
+      "url": "https://mcp.setluca.com/mcp"
+    }
+  }
+}

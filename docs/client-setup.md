@@ -16,6 +16,22 @@ Sign in to SetLuca in the browser and choose what the assistant may do. You do
 not need an API key for this path. Manage or revoke the connection in
 **SetLuca → Settings → Connected agents**.
 
+## Plugins and extensions
+
+The repository also ships each client's plugin format. All of them connect to
+the hosted server above and sign in the same way.
+
+- **Claude Code:** run
+  `/plugin install setluca --marketplace setluca/luca-mcp`. The plugin lives in
+  `plugins/claude/`, and the repository's `.claude-plugin/marketplace.json`
+  lists it.
+- **Gemini CLI:** run
+  `gemini extensions install https://github.com/setluca/luca-mcp`. It reads
+  `gemini-extension.json` at the repository root.
+- **Cursor:** the plugin in `plugins/cursor/` is for the Cursor Marketplace. Until
+  it is listed there, use the one-click install on
+  [setluca.com/connect](https://setluca.com/connect).
+
 ## Local connection
 
 1. Create an API key in **SetLuca → Settings → Developer API keys**.

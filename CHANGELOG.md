@@ -10,7 +10,18 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Added
+
+- Plugin manifests for Claude Code (`plugins/claude/`, installable through the
+  repository's `.claude-plugin/marketplace.json`), Cursor (`plugins/cursor/`),
+  and Gemini CLI (`gemini-extension.json`). Each connects to
+  `https://mcp.setluca.com/mcp`, and `registry:check` fails when a manifest's
+  version or server drifts from the package.
+
 ### Changed
+
+- The README's example prompt asks about the latest campaign, and the npm
+  keywords are `setluca`, `mcp`, `model-context-protocol`, and `dm-sales`.
 
 - The server card's icons carry a new version tag, `mark-1`, so a client that
   cached the old wordmark fetches the redesigned SetLuca mark.

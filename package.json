@@ -4,8 +4,7 @@
   "private": false,
   "description": "Connect SetLuca to Claude, ChatGPT, Cursor, or any MCP client to triage the review queue, look up leads, draft replies, and check campaigns.",
   "keywords": [
-    "ai",
-    "luca",
+    "dm-sales",
     "mcp",
     "model-context-protocol",
     "setluca"

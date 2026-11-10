@@ -6,9 +6,12 @@ import * as Path from "effect/Path";
 import * as Schema from "effect/Schema";
 
 import {
+  checkPluginManifests,
   checkRegistry,
+  PLUGIN_MANIFESTS,
   READ_ENVIRONMENT_VARIABLES,
   type PackageJson,
+  type PluginManifest,
   type RegistryCheckInputs,
   type ServerJson,
 } from "../scripts/check-registry.ts";
@@ -193,6 +196,72 @@ describe("checkRegistry", () => {
     });
 
     expect(errors.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("checkPluginManifests", () => {
+  const REMOTE_URL = "https://mcp.setluca.com/mcp";
+
+  const server: ServerJson = {
+    ...validServer(),
+    remotes: [{ type: "streamable-http", url: REMOTE_URL }],
+  };
+
+  function manifest(overrides: Partial<PluginManifest> = {}): PluginManifest {
+    return {
+      path: "plugins/claude/.claude-plugin/plugin.json",
+      version: VALID_VERSION,
+      serverUrls: [REMOTE_URL],
+      ...overrides,
+    };
+  }
+
+  it("accepts manifests at the package version that point at the hosted server", () => {
+    expect(checkPluginManifests([manifest()], validPackage(), server)).toEqual(
+      []
+    );
+  });
+
+  it("names a manifest left at an older version", () => {
+    const errors = checkPluginManifests(
+      [manifest({ version: "0.1.0" })],
+      validPackage(),
+      server
+    );
+
+    expect(errors).toEqual([
+      expect.stringContaining(
+        "plugins/claude/.claude-plugin/plugin.json version (0.1.0)"
+      ),
+    ]);
+  });
+
+  it.each([
+    { name: "another server", serverUrls: ["https://example.com/mcp"] },
+    {
+      name: "the Claude toolset",
+      serverUrls: [`${REMOTE_URL}?toolset=claude`],
+    },
+    { name: "no server", serverUrls: [] },
+    { name: "two servers", serverUrls: [REMOTE_URL, REMOTE_URL] },
+  ])("rejects a manifest that declares $name", ({ serverUrls }) => {
+    const errors = checkPluginManifests(
+      [manifest({ serverUrls })],
+      validPackage(),
+      server
+    );
+
+    expect(errors).toEqual([
+      expect.stringContaining("must declare exactly one MCP server"),
+    ]);
+  });
+
+  it("checks every plugin the repository ships", () => {
+    expect(PLUGIN_MANIFESTS.map((entry) => entry.manifest)).toEqual([
+      "plugins/claude/.claude-plugin/plugin.json",
+      "plugins/cursor/.cursor-plugin/plugin.json",
+      "gemini-extension.json",
+    ]);
   });
 });
 

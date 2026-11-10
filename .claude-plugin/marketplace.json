@@ -1,0 +1,15 @@
+{
+  "name": "setluca",
+  "description": "SetLuca's plugin for Claude Code: connects to the hosted SetLuca MCP server.",
+  "owner": {
+    "name": "SetLuca, LLC",
+    "email": "support@setluca.com"
+  },
+  "plugins": [
+    {
+      "name": "setluca",
+      "source": "./plugins/claude",
+      "description": "Connect SetLuca to Claude Code: triage the review queue, look up leads, draft replies and check campaigns."
+    }
+  ]
+}

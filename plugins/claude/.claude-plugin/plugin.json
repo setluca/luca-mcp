@@ -1,0 +1,17 @@
+{
+  "name": "setluca",
+  "displayName": "SetLuca",
+  "description": "Connect SetLuca to Claude Code: triage the review queue, look up leads, draft replies and check campaigns.",
+  "version": "0.8.0",
+  "author": {
+    "name": "SetLuca, LLC",
+    "email": "support@setluca.com"
+  },
+  "homepage": "https://setluca.com/connect",
+  "repository": "https://github.com/setluca/luca-mcp",
+  "license": "Apache-2.0",
+  "keywords": ["setluca", "mcp", "dm-sales"],
+  "privacyPolicyUrl": "https://setluca.com/privacy",
+  "termsOfServiceUrl": "https://setluca.com/terms",
+  "supportUrl": "https://setluca.com/contact"
+}

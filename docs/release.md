@@ -58,7 +58,10 @@ access; local checks cannot read the GitHub environment secrets.
 ## Cut a version
 
 1. On a release pull request, update `version` in `package.json`,
-   `server.json`, `server.json`'s npm package entry, and `src/version.ts`.
+   `server.json`, `server.json`'s npm package entry, `src/version.ts`, and the
+   three client plugin manifests: `plugins/claude/.claude-plugin/plugin.json`,
+   `plugins/cursor/.cursor-plugin/plugin.json`, and `gemini-extension.json`.
+   `bun run registry:check` fails while any of them differs.
    Move the `Unreleased` entries in
    `CHANGELOG.md` under the new version and date. Use a patch bump for a fix,
    minor for additive tools or fields, and major for a breaking tool contract.
