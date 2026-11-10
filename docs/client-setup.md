@@ -6,7 +6,12 @@ uses a developer API key from SetLuca.
 
 ## Hosted connection
 
-In a client that supports custom connectors, such as Claude or ChatGPT, add:
+In Claude, open the
+[SetLuca listing in the Claude directory](https://claude.ai/directory/connectors/setluca)
+and select **Connect**. A connection made from the listing counts toward it, and
+one added by URL does not.
+
+In ChatGPT, or any other client that supports custom connectors, add:
 
 ```text
 https://mcp.setluca.com/mcp
