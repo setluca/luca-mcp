@@ -16,7 +16,9 @@ There are two ways to connect. The [connection guide](https://setluca.com/connec
 
 ### Sign in with SetLuca
 
-If your assistant supports custom connectors, as Claude and ChatGPT do, add this URL:
+In Claude, add SetLuca from the [Claude directory](https://claude.ai/directory/connectors/setluca) and select **Connect**.
+
+In ChatGPT, or any other assistant that supports custom connectors, add this URL:
 
 ```text
 https://mcp.setluca.com/mcp

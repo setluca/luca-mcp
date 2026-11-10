@@ -197,18 +197,31 @@ private files on my laptop through SetLuca."
 
 ## 9. Tool testing
 
-A sweep on October 22, 2026 called each of the 116 read-only tools once
-against Claude Review Workspace:
+Every tool, resource, and prompt is tested live through the MCP Inspector by
+`bun run sweep` ([how it works](../../docs/inspector.md#sweep-every-tool)). It
+runs against a seeded production workspace on `support@setluca.com`, never the
+reviewer workspaces, because write tools change what they touch. The sweep for
+the `0.8.0` release passed all 303 checks against Luca v0.11.1. It covers:
 
-- 100 answered.
-- 6 needed an ID the workspace has no record for (a simulation, an enrollment,
-  a call event, a sync run, an A/B test, and the import preview's CSV body).
-- 6 answered a clear 404 for a record the workspace lacks.
-- 3 showed that a required query was not marked required. `0.5.2` fixes them.
-- `luca_bookings_availability` without `start` and `end` gets a 400 from the
-  API, although its OpenAPI marks both optional. With them it answers. Luca
-  v0.4.0 ships the fix (LUC-513): `start` defaults to now and `end` to seven
-  days after it.
+- every read and write tool, each judged against the outcome the plan expects,
+  within 30 seconds and without an internal error;
+- the confirmation gate: every tool that takes `confirm: true` refuses without
+  it, then runs with it;
+- idempotent retries, which return the same record;
+- sends, which answer the documented "channel not connected" refusal, so nothing
+  reaches a real lead;
+- live Google Calendar bookings through `luca_book_call` and
+  `luca_bookings_provider_requests_create`, rescheduled and cancelled, with every
+  invite going to a SetLuca-owned inbox;
+- `tools/list`, `prompts/list`, and `resources/list`, which have to match the
+  registry exactly;
+- read-only tools, which must leave no audit row behind.
 
-Write tools were not swept, because they change the reviewer fixtures. The
-operation and protocol suites cover them.
+`--scope-check` runs the same plan with a read-only grant, where every write has
+to be refused. setluca/luca reseeds the workspace and runs the sweep every Monday
+and on each release tag, and CI's `tools/list --strict` schema check reports 0
+errors and 0 warnings.
+
+The first sweep, on October 22, 2026, called only the 116 read-only tools,
+against Claude Review Workspace. The records it lacked and the three queries it
+found not marked required were fixed in `0.5.2` and Luca v0.4.0.

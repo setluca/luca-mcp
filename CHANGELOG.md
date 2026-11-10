@@ -27,6 +27,10 @@ tagged release, which is where Gemini CLI installs an extension from.
 
 - The README's example prompt asks about the latest campaign, and the npm
   keywords are `setluca`, `mcp`, `model-context-protocol`, and `dm-sales`.
+- The README and the client setup guide send Claude users to the SetLuca
+  listing in the Claude directory first. Pasting the URL stays the path for
+  ChatGPT and other clients.
+- `submission/claude/README.md` reports the full tool sweep in section 9.
 - The server card's icons carry a new version tag, `mark-1`, so a client that
   cached the old wordmark fetches the redesigned SetLuca mark.
 
