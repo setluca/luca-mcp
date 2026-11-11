@@ -105,8 +105,9 @@ Scripts:
 
 1. An MCP client calls a `luca_*` tool.
 2. `src/tool.ts` parses the input and maps it into a `LucaRequest`.
-3. A confirm-gated tool without `confirm: true` is rejected here, before any
-   outbound request.
+3. A confirm-gated tool stops here, before any outbound request, until it is
+   approved. A client that can show a form gets an approval prompt for the
+   coach (`src/approval.ts`). Any other client must pass `confirm: true`.
 4. `src/http.ts` builds the URL, headers, body, and idempotency key.
 5. `src/resilience.ts` bounds the attempt and retries a transient failure.
    Writes only retry when they carry an idempotency key.

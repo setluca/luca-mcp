@@ -3,7 +3,7 @@ import * as Option from "effect/Option";
 import * as P from "effect/Predicate";
 import * as Schema from "effect/Schema";
 
-import { toJsonPayload } from "./serialization.ts";
+import { JsonObject, toJsonPayload } from "./serialization.ts";
 import type { JsonValue } from "./serialization.ts";
 
 export class LucaConfigError extends Schema.TaggedError<
@@ -79,6 +79,32 @@ export class LucaConfirmationRequired extends Schema.TaggedError<
   LucaConfirmationRequired,
   { readonly brand: unique symbol }
 >()("LucaConfirmationRequired", {
+  toolName: Schema.String,
+}) {}
+
+/**
+ * A confirm-gated tool on a client that can show the coach a form, before the
+ * coach has answered. Not a failure: the tool pipeline answers
+ * `input_required` with the approval form, and the client calls again with
+ * the coach's answer. See `approval.ts`.
+ */
+export class LucaApprovalRequested extends Schema.TaggedError<
+  LucaApprovalRequested,
+  { readonly brand: unique symbol }
+>()("LucaApprovalRequested", {
+  toolName: Schema.String,
+  /** The call's arguments, which the form shows the coach. */
+  input: JsonObject,
+}) {}
+
+/**
+ * The coach declined or dismissed the approval form for a confirm-gated tool.
+ * Nothing was sent, and `confirm: true` from the model does not override it.
+ */
+export class LucaApprovalDeclined extends Schema.TaggedError<
+  LucaApprovalDeclined,
+  { readonly brand: unique symbol }
+>()("LucaApprovalDeclined", {
   toolName: Schema.String,
 }) {}
 
