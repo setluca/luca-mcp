@@ -83,6 +83,13 @@ scan connection had lapsed; reconnecting it as the reviewer account and rescanni
 found all 225 tools with no findings, which also cleared the `authorization_required`
 finding.
 
+The long description changed on November 11, 2026 (LUC-627): it now says
+"coaches, experts, creators and agencies" and "triage the replies SetLuca
+drafts". Package `0.1.5` in review still carries the old text. Don't swap it
+mid-review. Ship the new text in the next package, `0.1.6`: bump `version` in
+`luca-mcp/plugin.json` and the ZIP name above, then paste the same description
+into the portal's listing form.
+
 OpenAI verified `mcp.setluca.com` on October 6, 2026. The business publisher is
 `SetLuca, LLC`, status Approved.
 
