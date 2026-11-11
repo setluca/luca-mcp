@@ -10,6 +10,8 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-11
+
 ### Added
 
 - Confirm-gated tools ask the coach directly when the client can show a form
@@ -19,6 +21,12 @@ input schema, or changing what a tool does to a workspace.
   `confirm: true` from the model no longer skips the prompt on these clients.
   Clients without form support, including 2025-revision clients on the hosted
   server, keep the `confirm: true` rule unchanged.
+- The hosted server answers Muse's server-ownership challenge at
+  `/.well-known/muse-challenge/<token>`, for the token in
+  `MUSE_CHALLENGE_TOKEN` only.
+- A public `setluca` skill at `skills/setluca/SKILL.md`, which skills.sh and
+  ClawHub list, with the same copy inside the Claude Code plugin. The Claude
+  Code plugin also gains a README.
 
 ## [0.8.1] - 2026-11-10
 

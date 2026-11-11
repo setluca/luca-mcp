@@ -2,7 +2,7 @@
   "name": "setluca",
   "displayName": "SetLuca",
   "description": "Connect SetLuca to Cursor: triage the review queue, look up leads, draft replies and check campaigns.",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "author": {
     "name": "SetLuca, LLC",
     "email": "support@setluca.com"
