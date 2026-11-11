@@ -110,6 +110,32 @@ describe("worker fetch handler", () => {
     expect(await response.text()).toBe("challenge-token");
   });
 
+  it("serves the Muse ownership challenge for the configured token only", async () => {
+    const token =
+      "e4b425d3f7c4218e6caf9ef85f0012bad3a9f899fb52a3cc312cd37b4984873b";
+
+    const path = `/.well-known/muse-challenge/${token}`;
+
+    const configured = { ...ENV, MUSE_CHALLENGE_TOKEN: ` ${token}\n` };
+
+    const call = (
+      pathname: string,
+      env: Parameters<typeof worker.fetch>[1] = configured
+    ) => worker.fetch(new Request(`https://mcp.example.com${pathname}`), env);
+
+    const response = await call(path);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("www-authenticate")).toBeNull();
+    expect(response.headers.get("content-type")).toContain("text/plain");
+    expect(await response.text()).toBe(`muse-challenge=${token}`);
+
+    expect((await call(path, ENV)).status).toBe(404);
+    expect((await call("/.well-known/muse-challenge/other")).status).toBe(404);
+    expect((await call("/.well-known/muse-challenge/")).status).toBe(404);
+  });
+
   it("lets an allowlisted browser origin reach auth and refuses others", async () => {
     const call = (origin: string) =>
       worker.fetch(
