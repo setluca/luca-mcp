@@ -37,6 +37,9 @@ import { LUCA_TASK_TOOLS } from "./task-tools.ts";
  *   pointing OAuth clients at the Luca authorization server.
  * - GET /.well-known/openai-apps-challenge, the domain-verification token the
  *   OpenAI apps portal asks for. 404 until the token is configured.
+ * - GET /.well-known/muse-challenge/<token>, the server-ownership challenge
+ *   Muse (Meta's connector platform) fetches. 404 unless <token> is the
+ *   configured one.
  *
  * An unknown LUCA_AUTH_HEADER answers every request with 500, so a typo in
  * the deploy config fails loudly instead of sending keys in the wrong header.
@@ -70,7 +73,28 @@ type WorkerEnv = {
   readonly MCP_ALLOWED_ORIGINS?: string;
   /** Domain-verification token from the OpenAI apps portal. */
   readonly OPENAI_APPS_CHALLENGE_TOKEN?: string;
+  /** Server-ownership challenge token from Muse, Meta's connector platform. */
+  readonly MUSE_CHALLENGE_TOKEN?: string;
 };
+
+const MUSE_CHALLENGE_PATH = "/.well-known/muse-challenge/";
+
+/**
+ * Muse verifies server ownership by fetching
+ * `/.well-known/muse-challenge/<token>` and expecting exactly
+ * `muse-challenge=<token>`. Only the configured token answers, so the route
+ * can't be used to echo arbitrary text back from this host.
+ */
+function museChallenge(pathname: string, configured: string | undefined) {
+  const token = configured?.trim();
+  const requested = pathname.slice(MUSE_CHALLENGE_PATH.length);
+
+  return token && requested === token
+    ? new Response(`muse-challenge=${token}`, {
+        headers: { "content-type": "text/plain; charset=utf-8" },
+      })
+    : Response.json({ error: "not_found" }, { status: 404 });
+}
 
 /**
  * Tool count for the server card. The card doesn't vary by `?toolset=`
@@ -294,6 +318,10 @@ function route(
           })
         : Response.json({ error: "not_found" }, { status: 404 })
     );
+  }
+
+  if (pathname.startsWith(MUSE_CHALLENGE_PATH)) {
+    return Effect.succeed(museChallenge(pathname, env.MUSE_CHALLENGE_TOKEN));
   }
 
   // Where the live sweep's webhook steps deliver (`--webhook-url` in

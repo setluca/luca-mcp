@@ -65,6 +65,9 @@ MCP_PUBLIC_ORIGIN = "https://mcp.setluca.com"
 # origin check answers 403 before sign-in instead of the 401 OAuth challenge.
 MCP_ALLOWED_ORIGINS = "claude.ai,claude.com"
 LUCA_TOOLSET = "full"
+# Muse (Meta's connector platform) server-ownership challenge, LUC-729. Not a
+# secret: Muse fetches it from a public URL. A new token changes only this line.
+MUSE_CHALLENGE_TOKEN = "e4b425d3f7c4218e6caf9ef85f0012bad3a9f899fb52a3cc312cd37b4984873b"
 
 # Direct API calls avoid the public Cloudflare WAF, which challenges Worker
 # egress and prevents OAuth resolution and every authenticated tool call.
