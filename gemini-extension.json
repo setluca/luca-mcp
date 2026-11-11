@@ -1,6 +1,6 @@
 {
   "name": "setluca",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "description": "Connect SetLuca to Gemini CLI: triage the review queue, look up leads, draft replies and check campaigns.",
   "mcpServers": {
     "setluca": {
