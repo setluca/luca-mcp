@@ -4,7 +4,7 @@
   "app_info": {
     "display_name": "SetLuca",
     "subtitle": "Manage coach sales in SetLuca",
-    "description": "SetLuca helps coaches, creators, and experts manage the business work behind sales conversations in direct messages. Connect your SetLuca workspace to review leads and conversations, triage the replies Luca drafts, prepare for calls, track bookings, and inspect campaign and broadcast results. This plugin works only with the connected SetLuca account and the permissions granted to it. Tools that send a message, launch a broadcast, book, move, or cancel a call, or turn on auto-send refuse to run until you confirm.",
+    "description": "SetLuca helps coaches, experts, creators and agencies manage the business work behind sales conversations in direct messages. Connect your SetLuca workspace to review leads and conversations, triage the replies SetLuca drafts, prepare for calls, track bookings, and inspect campaign and broadcast results. This plugin works only with the connected SetLuca account and the permissions granted to it. Tools that send a message, launch a broadcast, book, move, or cancel a call, or turn on auto-send refuse to run until you confirm.",
     "category": "BUSINESS"
   },
   "tools": {
