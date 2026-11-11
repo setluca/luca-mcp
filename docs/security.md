@@ -204,11 +204,36 @@ straight to the API, which replays the first result.
 
 ### Confirmation gate for destructive tools
 
-Tools with a real-world side effect require an explicit `confirm: true`
-argument. The server instructions tell the agent to pass it only after the
-coach approves that exact action. Without it, the MCP server rejects the call
-before any outbound request. An agent hallucination or an overly literal
-instruction can't fire one silently.
+Tools with a real-world side effect need approval before the MCP server sends
+anything. How the approval arrives depends on the client.
+
+**A client that can show a form** (MCP form-mode elicitation) gets an approval
+prompt for the coach. The tool call answers `input_required` with a yes-or-no
+form that names the tool and lists its arguments. The call runs only when the
+coach ticks **Approve this action** and accepts. A decline, a dismissed form or
+an unticked box stops it. `confirm: true` from the model doesn't skip the
+prompt, because the point is that the coach answers, not the model. The answer
+is tied to the exact arguments: if a retry changes them, the coach is asked
+again. This covers:
+
+- 2026-revision clients on the hosted server, where the form rides the
+  multi-round-trip `input_required` result;
+- 2025-revision clients over stdio, where the SDK sends `elicitation/create`
+  over the open connection.
+
+A 2025-revision client on the hosted server can't be asked. The Worker serves
+each request on its own, so there is no connection to carry the answer back.
+
+A declined prompt is a tool error with
+`_meta["setluca.com/error"]` set to
+`{ "code": "approval_declined", "toolName": "<toolName>" }`, and the server
+logs `mcp.write_gate.rejected` with `reason: "approval_declined"`.
+
+**Any other client** must pass an explicit `confirm: true` argument. The server
+instructions tell the agent to pass it only after the coach approves that exact
+action. Without it, the MCP server rejects the call before any outbound request.
+An agent hallucination or an overly literal instruction can't fire one
+silently.
 
 The rejection is a tool error with this text:
 
@@ -218,7 +243,7 @@ The rejection is a tool error with this text:
 
 Its `_meta["setluca.com/error"]` is
 `{ "code": "confirmation_required", "toolName": "<toolName>", "requiredArgument": "confirm" }`,
-and the server logs `mcp.write_gate.rejected`.
+and the server logs `mcp.write_gate.rejected` with `reason: "confirm_missing"`.
 
 These 37 operations carry the gate:
 

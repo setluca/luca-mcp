@@ -1,4 +1,7 @@
-import type { McpServer } from "@modelcontextprotocol/server";
+import type {
+  InputRequiredResult,
+  McpServer,
+} from "@modelcontextprotocol/server";
 import * as Cause from "effect/Cause";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
@@ -8,7 +11,16 @@ import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
 
 import {
+  type ApprovalContext,
+  approvalContext,
+  approvalDecision,
+  approvalRequest,
+  NO_APPROVAL,
+} from "./approval.ts";
+import {
   formatError,
+  LucaApprovalDeclined,
+  LucaApprovalRequested,
   LucaConfirmationRequired,
   type LucaError,
   LucaToolInputError,
@@ -134,10 +146,58 @@ export function registerTool(
     // The client's cancellation interrupts the program, which aborts the
     // request it has in flight.
     (input, ctx) =>
-      Effect.runPromise(toolResult(source, lucaLayer, surface, input), {
-        signal: ctx.mcpReq.signal,
-      })
+      Effect.runPromise(
+        toolResult(
+          source,
+          lucaLayer,
+          surface,
+          input,
+          approvalContext(server, ctx)
+        ),
+        { signal: ctx.mcpReq.signal }
+      )
   );
+}
+
+/** The errors a gated call can stop on before any request is sent. */
+type GateStop =
+  | LucaConfirmationRequired
+  | LucaApprovalRequested
+  | LucaApprovalDeclined;
+
+/**
+ * The confirmation gate. An ungated call runs. A gated call on a client that
+ * can show a form waits for the coach's own answer, whatever the model put in
+ * `confirm`. Any other client keeps the `confirm: true` rule. See
+ * `approval.ts` for why.
+ */
+function gatedProgram(
+  source: ToolSource,
+  tool: ToolProfile,
+  approval: ApprovalContext,
+  parsed: JsonObject
+): Effect.Effect<JsonValue, LucaError | GateStop, LucaApi> {
+  if (!needsConfirmation(tool.confirm, parsed)) {
+    return toolProgram(source, parsed);
+  }
+
+  if (!approval.supported) {
+    return parsed.confirm === true
+      ? toolProgram(source, parsed)
+      : Effect.fail(new LucaConfirmationRequired({ toolName: tool.name }));
+  }
+
+  const decision = approvalDecision(approval, tool.name, parsed);
+
+  if (decision === "approved") {
+    return toolProgram(source, parsed);
+  }
+
+  return decision === "declined"
+    ? Effect.fail(new LucaApprovalDeclined({ toolName: tool.name }))
+    : Effect.fail(
+        new LucaApprovalRequested({ toolName: tool.name, input: parsed })
+      );
 }
 
 /**
@@ -167,7 +227,12 @@ function parseToolInput(input: unknown) {
  * call. `interrupted` is a call the client cancelled, logged by `onInterrupt`
  * because a cancelled program never reaches `settle`.
  */
-type ToolOutcome = "success" | "error" | "defect" | "interrupted";
+type ToolOutcome =
+  | "success"
+  | "error"
+  | "defect"
+  | "interrupted"
+  | "input_required";
 
 /**
  * A tool call's result, confirmation gate included. Every way the call can end
@@ -179,7 +244,8 @@ function toolResult(
   lucaLayer: Layer.Layer<LucaApi, LucaError, never>,
   surface: ToolSurface,
   // oxlint-disable-next-line anti-slop/no-unknown-parameters -- input is the same raw MCP JSON-RPC tool-call arguments registerTool's server.registerTool callback hands in; parseToolInput below is what actually validates it.
-  input: unknown
+  input: unknown,
+  approval: ApprovalContext = NO_APPROVAL
 ) {
   const tool = toolProfile(source);
 
@@ -197,18 +263,7 @@ function toolResult(
     });
 
   return parseToolInput(input).pipe(
-    Effect.flatMap(
-      (
-        parsed
-      ): Effect.Effect<
-        JsonValue,
-        LucaError | LucaConfirmationRequired,
-        LucaApi
-      > =>
-        needsConfirmation(tool.confirm, parsed) && parsed.confirm !== true
-          ? Effect.fail(new LucaConfirmationRequired({ toolName: tool.name }))
-          : toolProgram(source, parsed)
-    ),
+    Effect.flatMap((parsed) => gatedProgram(source, tool, approval, parsed)),
     Effect.provide(lucaLayer),
     Effect.exit,
     Effect.timed,
@@ -228,7 +283,7 @@ function toolResult(
 function settle(
   tool: ToolProfile,
   surface: ToolSurface,
-  exit: Exit.Exit<JsonValue, LucaError | LucaConfirmationRequired>
+  exit: Exit.Exit<JsonValue, LucaError | GateStop>
 ): readonly [ToolOutcome, ToolCallResult] {
   if (Exit.isSuccess(exit)) {
     return ["success", asSuccessResult(tool, exit.value)];
@@ -241,9 +296,27 @@ function settle(
     const failure = error.value;
 
     if (failure instanceof LucaConfirmationRequired) {
-      logAgentSurfaceEvent("mcp.write_gate.rejected", { toolName: tool.name });
+      logAgentSurfaceEvent("mcp.write_gate.rejected", {
+        toolName: tool.name,
+        reason: "confirm_missing",
+      });
 
       return ["error", confirmationError(tool.name)];
+    }
+
+    // Not a failure: the client shows the coach the form and calls again.
+    // `mcp.tool.called` records it with the `input_required` outcome.
+    if (failure instanceof LucaApprovalRequested) {
+      return ["input_required", approvalRequest(tool, failure.input)];
+    }
+
+    if (failure instanceof LucaApprovalDeclined) {
+      logAgentSurfaceEvent("mcp.write_gate.rejected", {
+        toolName: tool.name,
+        reason: "approval_declined",
+      });
+
+      return ["error", declinedError(tool.name)];
     }
 
     return [
@@ -267,6 +340,8 @@ function settle(
 type ToolCallResult =
   | ToolErrorResult
   | ReturnType<typeof confirmationError>
+  | ReturnType<typeof declinedError>
+  | InputRequiredResult
   | ReturnType<typeof asSuccessResult>;
 
 const POSSIBLE_REDACTION_NOTE =
@@ -370,6 +445,28 @@ function confirmationError(toolName: string) {
         code: "confirmation_required",
         toolName,
         requiredArgument: "confirm",
+      },
+    },
+  };
+}
+
+/**
+ * The coach declined the approval form. The agent should not retry on its
+ * own: the answer was the coach's, and `confirm: true` doesn't override it.
+ */
+function declinedError(toolName: string) {
+  return {
+    isError: true as const,
+    content: [
+      {
+        type: "text" as const,
+        text: `${toolName}: The coach declined this action in the approval prompt, so nothing was sent. Do not retry unless the coach asks again.`,
+      },
+    ],
+    _meta: {
+      "setluca.com/error": {
+        code: "approval_declined",
+        toolName,
       },
     },
   };

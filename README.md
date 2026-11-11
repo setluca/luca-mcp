@@ -57,7 +57,7 @@ Keep the key out of prompts, screenshots, and committed files. If it can reach m
 ## What your assistant can do
 
 - **Read and draft, unless you allow more.** A sign-in connection starts with read and draft access, and you choose anything beyond that when you sign in. An API key can do what its scopes allow.
-- **Reach a lead only with your approval.** A tool that sends a message, launches a broadcast, or books a call refuses to run without a confirmation. Your assistant is told to confirm only after you approve that exact action.
+- **Reach a lead only with your approval.** A tool that sends a message, launches a broadcast, or books a call refuses to run without a confirmation. If your assistant can show approval prompts, SetLuca asks you directly and runs the action only when you approve it. Otherwise your assistant is told to confirm only after you approve that exact action.
 - **Leave drafts for you to review.** A reply your assistant drafts waits in your SetLuca review queue until you approve it.
 
 ## Your data

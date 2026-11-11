@@ -53,6 +53,9 @@ function taskToolByName(name: string) {
   return tool;
 }
 
+/** What the fake client declares at connection: its MCP capabilities. */
+type FakeClient = { readonly capabilities?: Record<string, unknown> };
+
 /**
  * Registers one tool against a server that keeps what it was handed instead of
  * serving it, so a test can read the config a client would receive and can call
@@ -62,17 +65,20 @@ function capture(
   tool: Parameters<typeof registerTool>[1],
   layer: Layer.Layer<LucaApi, never, never> = stubLayer,
   surface: ToolSurface = { toolset: "full" },
-  signal: AbortSignal = new AbortController().signal
+  signal: AbortSignal = new AbortController().signal,
+  client: FakeClient = {}
 ) {
   const registrations: {
     config: Record<string, unknown>;
     // oxlint-disable-next-line anti-slop/no-unknown-returns -- The captured handler is the tool's own, so its types belong to the tool.
-    handler: (input: unknown) => Promise<unknown>;
+    handler: (input: unknown, inputResponses?: unknown) => Promise<unknown>;
   }[] = [];
 
-  // SAFETY: this fixture supplies only the one member registerTool calls.
+  // SAFETY: this fixture supplies only the members registerTool calls: the
+  // registration itself and the client capabilities the confirm gate reads.
   // oxlint-disable-next-line effect/avoid-any -- a partial McpServer fake; registerTool reads only registerTool
   const server = {
+    server: { getClientCapabilities: () => client.capabilities },
     registerTool: (
       _name: string,
       config: Record<string, unknown>,
@@ -82,9 +88,9 @@ function capture(
       // The SDK passes a request context with an abort signal on every call.
       registrations.push({
         config,
-        handler: (input) =>
+        handler: (input, inputResponses) =>
           handler(input, {
-            mcpReq: { signal },
+            mcpReq: { signal, inputResponses },
           }),
       });
     },
@@ -685,5 +691,164 @@ describe("luca_campaigns_enrollments_resume", () => {
       "not waiting on a safety approval"
     );
     expect(String(config.description)).toContain("already moved on");
+  });
+});
+
+describe("confirm gate with an approval form (LUC-81)", () => {
+  const input = {
+    id: "00000000-0000-0000-0000-000000000001",
+    enrollmentId: "00000000-0000-0000-0000-000000000002",
+  };
+
+  const resumed = { enrollmentId: input.enrollmentId, resumed: true };
+
+  const formClient = { capabilities: { elicitation: {} } };
+
+  /** A gated tool on a client that declares the given capabilities. */
+  function gated(client: { capabilities?: Record<string, unknown> }) {
+    const request = vi.fn(() => Effect.succeed(resumed as never));
+
+    const { handler } = capture(
+      operationByToolName("luca_campaigns_enrollments_resume"),
+      Layer.succeed(LucaApi, { request }),
+      { toolset: "full" },
+      new AbortController().signal,
+      client
+    );
+
+    return { handler, request };
+  }
+
+  /** The one form a result asks for, as its key and request. */
+  function onlyForm(result: unknown) {
+    const record = parseJsonRecord(encodeUnknownJson(result));
+
+    expect(record.resultType).toBe("input_required");
+
+    const requests = parseJsonRecord(encodeUnknownJson(record.inputRequests));
+    const keys = Object.keys(requests);
+
+    expect(keys).toHaveLength(1);
+
+    const key = keys[0] ?? "";
+
+    return { key, form: parseJsonRecord(encodeUnknownJson(requests[key])) };
+  }
+
+  const accept = (approve: boolean) => ({
+    action: "accept",
+    content: { approve },
+  });
+
+  it("asks the coach instead of running, even with confirm: true", async () => {
+    const { handler, request } = gated(formClient);
+
+    for (const args of [input, { ...input, confirm: true }]) {
+      const { key, form } = onlyForm(await handler(args));
+
+      expect(key).toMatch(/^approve_luca_campaigns_enrollments_resume_/);
+      expect(form.method).toBe("elicitation/create");
+      expect(encodeUnknownJson(form)).toContain(input.enrollmentId);
+      expect(encodeUnknownJson(form)).not.toContain("confirm:");
+    }
+
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("runs once the coach approves those exact arguments", async () => {
+    const { handler, request } = gated(formClient);
+    const { key } = onlyForm(await handler(input));
+
+    const result = await handler(input, { [key]: accept(true) });
+
+    expect(result).toMatchObject({ structuredContent: { result: resumed } });
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ["an unchecked box", accept(false)],
+    ["a decline", { action: "decline" }],
+    ["a dismissed form", { action: "cancel" }],
+  ])("refuses after %s and sends nothing", async (_label, answer) => {
+    const { handler, request } = gated(formClient);
+    const { key } = onlyForm(await handler(input));
+
+    const result = await handler(
+      { ...input, confirm: true },
+      { [key]: answer }
+    );
+
+    expect(result).toMatchObject({
+      isError: true,
+      _meta: {
+        "setluca.com/error": {
+          code: "approval_declined",
+          toolName: "luca_campaigns_enrollments_resume",
+        },
+      },
+    });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("asks again when the arguments changed after the approval", async () => {
+    const { handler, request } = gated(formClient);
+    const { key } = onlyForm(await handler(input));
+
+    const changed = {
+      ...input,
+      enrollmentId: "00000000-0000-0000-0000-000000000003",
+    };
+
+    const { key: newKey } = onlyForm(
+      await handler(changed, { [key]: accept(true) })
+    );
+
+    expect(newKey).not.toBe(key);
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["no elicitation", {}],
+    ["URL-mode elicitation only", { elicitation: { url: {} } }],
+  ])(
+    "keeps the confirm: true rule for a client with %s",
+    async (_label, capabilities) => {
+      const { handler, request } = gated({ capabilities });
+
+      expect(await handler(input)).toMatchObject({
+        isError: true,
+        _meta: { "setluca.com/error": { code: "confirmation_required" } },
+      });
+      expect(request).not.toHaveBeenCalled();
+
+      expect(await handler({ ...input, confirm: true })).toMatchObject({
+        structuredContent: { result: resumed },
+      });
+    }
+  );
+
+  it("treats a form-mode client the same however it declares it", async () => {
+    const { handler } = gated({ capabilities: { elicitation: { form: {} } } });
+
+    expect(onlyForm(await handler(input)).form.method).toBe(
+      "elicitation/create"
+    );
+  });
+
+  it("runs an ungated tool straight away on a form-capable client", async () => {
+    const request = vi.fn(() => Effect.succeed({ ok: true } as never));
+
+    const { handler } = capture(
+      operationByToolName("luca_leads_get"),
+      Layer.succeed(LucaApi, { request }),
+      { toolset: "full" },
+      new AbortController().signal,
+      formClient
+    );
+
+    expect(
+      await handler({ id: "00000000-0000-0000-0000-000000000000" })
+    ).toMatchObject({ structuredContent: { result: { ok: true } } });
+    expect(request).toHaveBeenCalledTimes(1);
   });
 });

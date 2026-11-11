@@ -46,6 +46,11 @@ It isn't in `structuredContent`, because that has to match the tool's output sch
 Re-call the tool with `confirm: true`. Nothing reached the lead. See
 `security.md` for the full list of confirm-gated tools and why each is on it.
 
+On a client that can show approval prompts, the coach is asked instead. When
+the coach declines, the call fails with code `approval_declined` and nothing
+reaches the lead. Don't retry it on your own, and don't pass `confirm: true` to
+get around it: the prompt comes back. Retry only if the coach asks again.
+
 ## The six failures
 
 `src/errors.ts` defines six tagged errors. Every one of them ends up as the text

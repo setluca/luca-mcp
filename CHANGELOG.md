@@ -10,6 +10,16 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Added
+
+- Confirm-gated tools ask the coach directly when the client can show a form
+  (MCP form-mode elicitation). The call answers `input_required` with an
+  approval prompt that names the tool and its arguments, and runs only when the
+  coach approves. A decline fails with the new `approval_declined` code, and
+  `confirm: true` from the model no longer skips the prompt on these clients.
+  Clients without form support, including 2025-revision clients on the hosted
+  server, keep the `confirm: true` rule unchanged.
+
 ## [0.8.1] - 2026-11-10
 
 No tool or schema changes. This release puts the client plugin manifests into a
