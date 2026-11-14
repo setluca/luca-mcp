@@ -1430,14 +1430,6 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": true
   },
-  "learning.panel": {
-    "method": "GET",
-    "path": "/api/teach-luca",
-    "scopes": [
-      "learning:read"
-    ],
-    "idempotencyRequired": false
-  },
   "learning.frameworkPerformance": {
     "method": "GET",
     "path": "/api/framework-performance",
