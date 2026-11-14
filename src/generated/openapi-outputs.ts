@@ -32293,6 +32293,20 @@ export const OPENAPI_OUTPUTS = {
           "null"
         ]
       },
+      "lucaLiveAt": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
+      "liveDialogSeenAt": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
       "planTier": {
         "type": "string"
       },
@@ -32329,6 +32343,7 @@ export const OPENAPI_OUTPUTS = {
       "toolBeltEnabled",
       "multiPartDraftsEnabled",
       "onboardingCompletedAt",
+      "lucaLiveAt",
       "planTier",
       "planStatus",
       "paymentGraceEndsAt",
@@ -32479,7 +32494,6 @@ export const OPENAPI_OUTPUTS = {
             },
             "description": {
               "type": "string",
-              "minLength": 1,
               "maxLength": 600
             },
             "price": {
@@ -35050,150 +35064,6 @@ export const OPENAPI_OUTPUTS = {
       "toggles",
       "thresholds",
       "updatedAt"
-    ]
-  },
-  "GET /api/teach-luca": {
-    "type": "object",
-    "properties": {
-      "progress": {
-        "type": "object",
-        "properties": {
-          "offer_and_price": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "answered",
-              "skipped"
-            ]
-          },
-          "top_objections": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "answered",
-              "skipped"
-            ]
-          },
-          "tone_boundaries": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "answered",
-              "skipped"
-            ]
-          }
-        }
-      },
-      "nextQuestion": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "enum": [
-          "offer_and_price",
-          "top_objections",
-          "tone_boundaries",
-          null
-        ]
-      },
-      "answered": {
-        "type": "integer",
-        "minimum": 0
-      },
-      "skipped": {
-        "type": "integer",
-        "minimum": 0
-      },
-      "complete": {
-        "type": "boolean"
-      },
-      "suggestions": {
-        "type": "object",
-        "properties": {
-          "offer": {
-            "type": "string"
-          },
-          "priceBand": {
-            "type": "string",
-            "enum": [
-              "lt_500",
-              "500_2k",
-              "2k_5k",
-              "5k_plus",
-              "rather_not_say"
-            ]
-          },
-          "priceDetail": {
-            "type": "string"
-          },
-          "objections": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "objection": {
-                  "type": "string"
-                },
-                "response": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "objection",
-                "response"
-              ]
-            }
-          },
-          "boundaries": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": [
-          "objections",
-          "boundaries"
-        ]
-      },
-      "exampleDm": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "x-luca-sensitive": "null"
-      },
-      "exampleDraft": {
-        "type": [
-          "string",
-          "null"
-        ],
-        "x-luca-sensitive": "null"
-      },
-      "maxObjections": {
-        "type": "number",
-        "enum": [
-          3
-        ]
-      },
-      "maxBoundaries": {
-        "type": "number",
-        "enum": [
-          5
-        ]
-      }
-    },
-    "required": [
-      "progress",
-      "nextQuestion",
-      "answered",
-      "skipped",
-      "complete",
-      "suggestions",
-      "exampleDm",
-      "exampleDraft",
-      "maxObjections",
-      "maxBoundaries"
     ]
   },
   "GET /api/framework-performance": {
@@ -38647,10 +38517,6 @@ export const OPENAPI_REDACTED_FIELDS = {
   ],
   "GET /api/reports/morning": [
     "items[].draftBody"
-  ],
-  "GET /api/teach-luca": [
-    "exampleDm",
-    "exampleDraft"
   ],
   "GET /api/memory": [
     "memories[].content",
