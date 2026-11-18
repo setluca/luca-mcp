@@ -127,8 +127,12 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Anything in what we ship
         run: bun audit --prod
+      # GHSA-fc5q-39xc-vjpf: picomatch ReDoS with no patched release yet
+      # (every version through 4.0.7). It reaches only dev tooling (knip,
+      # vitest, the inspector, ultracite), and the step above proves nothing we
+      # ship has it. Drop the ignore once picomatch publishes a fix.
       - name: High or critical in anything
-        run: bun audit --audit-level=high
+        run: bun audit --audit-level=high --ignore GHSA-fc5q-39xc-vjpf
 
   links:
     name: External links in the docs
