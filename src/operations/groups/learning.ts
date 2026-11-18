@@ -3,12 +3,6 @@ import type { LucaOperation } from "../registry.ts";
 
 export const learningOperations: readonly LucaOperation[] = [
   op({
-    id: "learning.panel",
-    title: "Read what Luca wants to learn",
-    description:
-      "Read which of the three profile questions Luca still owes an answer to, with suggested answers inferred from the coach's own words. The worked example pair is blanked for a redacted-tier key.",
-  }),
-  op({
     id: "learning.frameworkPerformance",
     title: "Read framework objection performance",
     description:

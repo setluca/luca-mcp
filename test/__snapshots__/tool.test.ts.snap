@@ -180,7 +180,6 @@ exports[`tool auth metadata > pins the OAuth scope every tool asks for 1`] = `
   "luca_learning_ab_tests_get": "luca:read",
   "luca_learning_ab_tests_list": "luca:read",
   "luca_learning_framework_performance": "luca:read",
-  "luca_learning_panel": "luca:read",
   "luca_learning_proposals_dismiss": "luca:draft",
   "luca_learning_proposals_list": "luca:read",
   "luca_memory_list": "luca:read",

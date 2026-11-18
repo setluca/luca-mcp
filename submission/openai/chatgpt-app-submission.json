@@ -2144,18 +2144,6 @@
         "destructive_justification": "Only reads; it overwrites and deletes nothing."
       }
     },
-    "luca_learning_panel": {
-      "annotations": {
-        "readOnlyHint": true,
-        "openWorldHint": false,
-        "destructiveHint": false
-      },
-      "justifications": {
-        "read_only_justification": "Reads the profile questions Luca still needs answered, with suggested answers from the coach's SetLuca workspace and returns it. It creates, changes, and deletes nothing.",
-        "open_world_justification": "Stays inside the coach's SetLuca workspace; it reaches no lead, calendar, CRM, webhook subscriber, or outside service.",
-        "destructive_justification": "Only reads the profile questions Luca still needs answered, with suggested answers; it overwrites and deletes nothing."
-      }
-    },
     "luca_learning_proposals_dismiss": {
       "annotations": {
         "readOnlyHint": false,
