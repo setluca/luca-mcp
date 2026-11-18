@@ -10,6 +10,25 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Removed
+
+- **Breaking:** `luca_learning_panel`. Luca removed `GET /api/teach-luca` along
+  with the Teach Luca questions it read, so the tool has nothing left to call.
+
+### Changed
+
+- The contracts are pinned to Luca `aa786e12fc`, which adds Go live: a
+  workspace sends nothing on its own until the coach finishes Set up Luca and
+  presses Go live in the app. The server instructions say so, and so do the
+  tools it affects. `luca_broadcasts_launch`, `luca_broadcasts_resume`,
+  `luca_campaigns_publish`, and `luca_campaigns_set_status` (to `published`)
+  answer `409 workspace_not_live` before then.
+  `luca_channels_set_ai_dm_auto_send`, `luca_cadences_rescue_start`,
+  `luca_rescue_silent_leads`, and the booking type tools explain that their
+  unattended sends wait for Go live.
+- `luca_coach_profile` returns `lucaLiveAt` and `liveDialogSeenAt`.
+  `lucaLiveAt` is null until the workspace goes live.
+
 ## [0.9.0] - 2026-11-11
 
 ### Added

@@ -227,14 +227,14 @@ export const bookingsOperations: readonly LucaOperation[] = [
     mutatesExisting: true,
     title: "Create a booking type",
     description:
-      "Define a bookable call: how long it runs, where it happens, and how it looks to the lead. Give it a schedule next \u2014 a booking type with no schedule offers no slots and will never appear in availability.",
+      "Define a bookable call: how long it runs, where it happens, and how it looks to the lead. Give it a schedule next \u2014 a booking type with no schedule offers no slots and will never appear in availability. Turning on an auto-send message mode needs conversations:write, and before the coach presses Go live in the SetLuca app those messages wait in review instead of sending.",
   }),
   op({
     id: "bookings.types.update",
     title: "Update a booking type",
     mutatesExisting: true,
     description:
-      "Update only the fields you send on one booking type. Sending `location` replaces the whole location, because its shape depends on the type.",
+      "Update only the fields you send on one booking type. Sending `location` replaces the whole location, because its shape depends on the type. Turning on an auto-send message mode needs conversations:write, and before the coach presses Go live in the SetLuca app those messages wait in review instead of sending.",
   }),
   op({
     id: "bookings.types.delete",

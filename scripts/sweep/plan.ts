@@ -750,7 +750,6 @@ const read: readonly SweepStep[] = [
   { tool: "luca_reports_morning", phase: "read" },
   { tool: "luca_insights_unread_count", phase: "read" },
   { tool: "luca_insights_settings_get", phase: "read" },
-  { tool: "luca_learning_panel", phase: "read" },
   { tool: "luca_learning_framework_performance", phase: "read" },
   { tool: "luca_learning_ab_tests_get", phase: "read", ...idFrom("abTest") },
   { tool: "luca_analytics_funnel", phase: "read", args: () => PERIOD },

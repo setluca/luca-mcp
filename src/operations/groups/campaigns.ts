@@ -117,7 +117,7 @@ export const campaignsOperations: readonly LucaOperation[] = [
     mutatesExisting: true,
     confirm: "always",
     description:
-      "Freeze the draft as a new immutable version and point new enrollments at it. Published versions never change. A live campaign reaches real leads through enrollments and through inbound DMs, comments, or story replies that match its trigger. Publish is blocked when the target provider cannot do something the campaign needs, so read the provider capabilities first.",
+      "Freeze the draft as a new immutable version and point new enrollments at it. Published versions never change. A live campaign reaches real leads through enrollments and through inbound DMs, comments, or story replies that match its trigger. Publish is blocked when the target provider cannot do something the campaign needs, so read the provider capabilities first. Before the coach presses Go live in the SetLuca app, this answers 409 workspace_not_live: say so and send them to finish setup there, rather than retrying.",
   }),
   op({
     id: "campaigns.setStatus",
@@ -132,7 +132,7 @@ export const campaignsOperations: readonly LucaOperation[] = [
       description: "status is published (resuming sends)",
     },
     description:
-      "Pause or resume a campaign. Archiving is only available in the SetLuca app, so a connected assistant gets 403 for it. A transition that does not make sense for the campaign's current state is rejected rather than forced through.",
+      "Pause or resume a campaign. Archiving is only available in the SetLuca app, so a connected assistant gets 403 for it. A transition that does not make sense for the campaign's current state is rejected rather than forced through. Before the coach presses Go live in the SetLuca app, resuming to published answers 409 workspace_not_live; pausing still works.",
   }),
   op({
     id: "campaigns.duplicate",

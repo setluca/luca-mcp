@@ -48,7 +48,8 @@ export const broadcastsOperations: readonly LucaOperation[] = [
     confirm: "always",
     // Recipient snapshot, see the note above this list.
     untrustedContent: true,
-    description: "Launch an approved broadcast. Sends messages to live leads.",
+    description:
+      "Launch an approved broadcast. Sends messages to live leads. Before the coach presses Go live in the SetLuca app, this answers 409 workspace_not_live: say so and send them to finish setup there, rather than retrying.",
   }),
   op({
     id: "broadcasts.pause",
@@ -70,7 +71,7 @@ export const broadcastsOperations: readonly LucaOperation[] = [
     // Recipient snapshot, see the note above this list.
     untrustedContent: true,
     description:
-      "Resume a broadcast that billing paused, after buying a pack or updating the card. Sends the remaining messages to live leads; recipients already sent are left alone. A broadcast paused by hand is resumed with luca_broadcasts_retry instead.",
+      "Resume a broadcast that billing paused, after buying a pack or updating the card. Sends the remaining messages to live leads; recipients already sent are left alone. Before the coach presses Go live in the SetLuca app, this answers 409 workspace_not_live: say so and send them to finish setup there, rather than retrying. A broadcast paused by hand is resumed with luca_broadcasts_retry instead.",
   }),
   op({
     id: "broadcasts.retry",

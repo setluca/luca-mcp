@@ -6932,7 +6932,6 @@ export const OPENAPI_INPUT_SPECS = {
     },
     "bodyRequired": true
   },
-  "GET /api/teach-luca": {},
   "GET /api/framework-performance": {
     "query": {
       "type": "object",

@@ -2042,17 +2042,6 @@
     }
   },
   {
-    "id": "learning.panel",
-    "method": "GET",
-    "path": "/api/teach-luca",
-    "scopes": [
-      "learning:read"
-    ],
-    "requiredScope": {
-      "capability": "read"
-    }
-  },
-  {
     "id": "learning.frameworkPerformance",
     "method": "GET",
     "path": "/api/framework-performance",
