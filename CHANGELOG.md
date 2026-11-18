@@ -10,9 +10,11 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
-### Removed
+## [0.10.0] - 2026-11-18
 
-- **Breaking:** `luca_learning_panel`. Luca removed `GET /api/teach-luca` along
+### Breaking
+
+- Removed `luca_learning_panel`. Luca removed `GET /api/teach-luca` along
   with the Teach Luca questions it read, so the tool has nothing left to call.
 
 ### Changed
