@@ -14,7 +14,9 @@ order:
    [post-merge checks](./maintenance.md#after-a-merge) passed. It waits for them if
    they're still running. If they failed, fix them or re-run a flaky one, then re-run
    this workflow.
-2. Sweep the release build in setluca/luca, and stop if it fails. Without a
+2. Sweep the release build in setluca/luca, and stop if it fails. The sweep
+   runs from the Luca tag of the commit production runs, not `master`, because it
+   reseeds the production database with Luca's code. Without a
    `LUCA_REPO_TOKEN` secret this skips with a warning, and the release goes out
    unswept.
 3. Run `verify` and publish the stdio package to npm.
