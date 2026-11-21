@@ -2,32 +2,18 @@ import * as Arr from "effect/Array";
 import * as MutableHashSet from "effect/MutableHashSet";
 import { z } from "zod";
 
-/**
- * Two-dimensional scope model for agent/API-key access. A key carries a
- * granted (capability, dataSensitivity) pair; each tool/route declares the pair
- * it requires; a call is allowed only when the granted tiers meet or exceed the
- * required ones.
- *
- * This is the shared vocabulary. Enforcement against real Better Auth key
- * claims (plus the migration/backfill it needs) is the decision-gated remainder
- * of this model — see docs/agent-scope-model.md.
- */
-
 /** What a key may do, from least to most powerful. */
 export const CapabilityTierSchema = z.enum([
-  "read", // see data
-  "draft", // create drafts/proposals and reversible records
-  "queue_ops", // operate the live queue: send, enroll, replay
-  "full", // everything the underlying key scope allows
+  "read",
+  "draft",
+  "queue_ops",
+  "full",
 ]);
 
 export type CapabilityTier = z.infer<typeof CapabilityTierSchema>;
 
 /** How much of a lead's content a key may see. */
-export const DataSensitivityTierSchema = z.enum([
-  "redacted", // metadata and summaries only, no verbatim external-user text
-  "full_content", // verbatim conversation/lead text
-]);
+export const DataSensitivityTierSchema = z.enum(["redacted", "full_content"]);
 
 export type DataSensitivityTier = z.infer<typeof DataSensitivityTierSchema>;
 
@@ -140,16 +126,7 @@ export function capabilityTierFromOauthScopes(
 
     if (
       tier &&
-      // Equal indices mean tier === highest (indexOf is unique), so promoting
-      // `>` to `>=` only re-assigns the same value — an unobservable no-op.
-      // Stryker disable next-line ConditionalExpression: forcing this
-      // sub-condition to false is unobservable too. `tier` only ever holds a
-      // real CapabilityTier looked up from SCOPE_TO_CAPABILITY, so
-      // CAPABILITY_ORDER.indexOf(tier) is always >= 0, while
-      // CAPABILITY_ORDER.indexOf(highest) is -1 exactly when highest is
-      // still null. The right-hand comparison alone already evaluates to
-      // true on the first iteration for the same reason the short-circuit
-      // would have taken — the two paths never disagree.
+      // Stryker disable next-line ConditionalExpression: forcing this sub-condition to false is unobservable too. `tier` only ever holds a real CapabilityTier looked up from SCOPE_TO_CAPABILITY, so CAPABILITY_ORDER.indexOf(tier) is always >= 0, while CAPABILITY_ORDER.indexOf(highest) is -1 exactly when highest is still null. The right-hand comparison alone already evaluates to true on the first iteration for the same reason the short-circuit would have taken — the two paths never disagree.
       (highest === null ||
         // Stryker disable next-line EqualityOperator: equal indices re-assign the same tier, an unobservable no-op
         CAPABILITY_ORDER.indexOf(tier) > CAPABILITY_ORDER.indexOf(highest))

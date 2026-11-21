@@ -363,6 +363,17 @@
     }
   },
   {
+    "id": "reviewQueue.snapshot",
+    "method": "GET",
+    "path": "/api/review-queue/snapshot",
+    "scopes": [
+      "review_queue:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
     "id": "reviewQueue.keptCampaigns",
     "method": "GET",
     "path": "/api/review-queue/{id}/kept-campaigns",
@@ -1891,6 +1902,63 @@
     ],
     "requiredScope": {
       "capability": "read"
+    }
+  },
+  {
+    "id": "safety.deadLetters.list",
+    "method": "GET",
+    "path": "/api/core-dead-letters",
+    "scopes": [
+      "safety:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "safety.deadLetters.metrics",
+    "method": "GET",
+    "path": "/api/core-dead-letters/metrics",
+    "scopes": [
+      "safety:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "safety.deadLetters.get",
+    "method": "GET",
+    "path": "/api/core-dead-letters/{id}",
+    "scopes": [
+      "safety:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "safety.deadLetters.replay",
+    "method": "POST",
+    "path": "/api/core-dead-letters/{id}/replay",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
+  },
+  {
+    "id": "safety.deadLetters.discard",
+    "method": "POST",
+    "path": "/api/core-dead-letters/{id}/discard",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
     }
   },
   {

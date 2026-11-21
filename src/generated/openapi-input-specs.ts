@@ -234,6 +234,44 @@ export const OPENAPI_INPUT_SPECS = {
               },
               "maxItems": 20,
               "default": []
+            },
+            "lifecycle": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "column": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "target": {
+                    "type": "string",
+                    "enum": [
+                      "client_status",
+                      "client_since",
+                      "client_ended_on",
+                      "program_start",
+                      "program_end",
+                      "program_name",
+                      "payment_status",
+                      "payment_due_on",
+                      "birthday",
+                      "application_status",
+                      "checkout_status"
+                    ]
+                  },
+                  "offerKey": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "column",
+                  "target"
+                ]
+              },
+              "maxItems": 20,
+              "default": []
             }
           },
           "required": [
@@ -409,6 +447,44 @@ export const OPENAPI_INPUT_SPECS = {
                 "required": [
                   "purpose",
                   "grantedColumn"
+                ]
+              },
+              "maxItems": 20,
+              "default": []
+            },
+            "lifecycle": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "column": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "target": {
+                    "type": "string",
+                    "enum": [
+                      "client_status",
+                      "client_since",
+                      "client_ended_on",
+                      "program_start",
+                      "program_end",
+                      "program_name",
+                      "payment_status",
+                      "payment_due_on",
+                      "birthday",
+                      "application_status",
+                      "checkout_status"
+                    ]
+                  },
+                  "offerKey": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "column",
+                  "target"
                 ]
               },
               "maxItems": 20,
@@ -1538,6 +1614,55 @@ export const OPENAPI_INPUT_SPECS = {
     }
   },
   "GET /api/review-queue": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "approved",
+            "rejected",
+            "sent",
+            "superseded",
+            "stale"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "faq",
+            "qualification",
+            "objection",
+            "scheduling",
+            "pricing-adjacent",
+            "other"
+          ]
+        },
+        "leadId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "order": {
+          "type": "string",
+          "enum": [
+            "priority",
+            "fifo"
+          ]
+        }
+      }
+    }
+  },
+  "GET /api/review-queue/snapshot": {
     "query": {
       "type": "object",
       "properties": {
@@ -3458,6 +3583,16 @@ export const OPENAPI_INPUT_SPECS = {
                 "review_first",
                 "auto_send"
               ]
+            },
+            "prepQuestions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "maxItems": 2,
+              "description": "Up to two questions for the pre-call prep message. It asks the first one before the call."
             }
           },
           "default": {},
@@ -3701,6 +3836,16 @@ export const OPENAPI_INPUT_SPECS = {
                 "review_first",
                 "auto_send"
               ]
+            },
+            "prepQuestions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "maxItems": 2,
+              "description": "Up to two questions for the pre-call prep message. It asks the first one before the call."
             }
           },
           "additionalProperties": false
@@ -4648,7 +4793,8 @@ export const OPENAPI_INPUT_SPECS = {
             "recover",
             "reactivation",
             "event_webinar",
-            "promo"
+            "promo",
+            "lead_magnet"
           ]
         },
         "primaryChannel": {
@@ -6751,6 +6897,81 @@ export const OPENAPI_INPUT_SPECS = {
     }
   },
   "GET /api/account-safety": {},
+  "GET /api/core-dead-letters": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "replayed",
+            "discarded",
+            "quarantined"
+          ]
+        },
+        "lane": {
+          "type": "string",
+          "enum": [
+            "interactive",
+            "bulk",
+            "jobs",
+            "provider-sync",
+            "replies",
+            "outbound"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        }
+      }
+    }
+  },
+  "GET /api/core-dead-letters/metrics": {},
+  "GET /api/core-dead-letters/{id}": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "POST /api/core-dead-letters/{id}/replay": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "POST /api/core-dead-letters/{id}/discard": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
   "GET /api/channels": {},
   "GET /api/channels/catalog": {},
   "GET /api/channels/features": {},
