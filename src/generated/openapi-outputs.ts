@@ -299,6 +299,29 @@ export const OPENAPI_OUTPUTS = {
             "additionalProperties": {},
             "description": "Opaque JSON object",
             "x-luca-sensitive": "empty"
+          },
+          "referredBy": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "leadId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "displayName": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "x-luca-sensitive": "null"
+              }
+            },
+            "required": [
+              "leadId",
+              "displayName"
+            ]
           }
         },
         "required": [
@@ -1749,7 +1772,8 @@ export const OPENAPI_OUTPUTS = {
                     "failed_retryable",
                     "failed_not_retryable",
                     "failed_account_blocked",
-                    "delivery_unknown"
+                    "delivery_unknown",
+                    "marked_not_sent"
                   ]
                 },
                 "accountIssue": {
@@ -1792,6 +1816,9 @@ export const OPENAPI_OUTPUTS = {
                 "unavailable",
                 null
               ]
+            },
+            "deliveryResolvable": {
+              "type": "boolean"
             },
             "receivedAt": {
               "type": [
@@ -1837,6 +1864,7 @@ export const OPENAPI_OUTPUTS = {
             "delivery",
             "sentParts",
             "partialRetry",
+            "deliveryResolvable",
             "receivedAt",
             "sentAt",
             "deliveredAt",
@@ -2341,7 +2369,8 @@ export const OPENAPI_OUTPUTS = {
                     "failed_retryable",
                     "failed_not_retryable",
                     "failed_account_blocked",
-                    "delivery_unknown"
+                    "delivery_unknown",
+                    "marked_not_sent"
                   ]
                 },
                 "accountIssue": {
@@ -2584,7 +2613,9 @@ export const OPENAPI_OUTPUTS = {
           "reason": {
             "type": "string",
             "enum": [
-              "messaging_window_closed"
+              "messaging_window_closed",
+              "follow_up_cap_reached",
+              "follow_up_draft_held"
             ]
           }
         },
@@ -2864,7 +2895,8 @@ export const OPENAPI_OUTPUTS = {
                     "failed_retryable",
                     "failed_not_retryable",
                     "failed_account_blocked",
-                    "delivery_unknown"
+                    "delivery_unknown",
+                    "marked_not_sent"
                   ]
                 },
                 "accountIssue": {
@@ -2907,6 +2939,9 @@ export const OPENAPI_OUTPUTS = {
                 "unavailable",
                 null
               ]
+            },
+            "deliveryResolvable": {
+              "type": "boolean"
             },
             "receivedAt": {
               "type": [
@@ -2952,6 +2987,7 @@ export const OPENAPI_OUTPUTS = {
             "delivery",
             "sentParts",
             "partialRetry",
+            "deliveryResolvable",
             "receivedAt",
             "sentAt",
             "deliveredAt",
@@ -4218,6 +4254,1080 @@ export const OPENAPI_OUTPUTS = {
     "required": [
       "items",
       "nextCursor"
+    ]
+  },
+  "GET /api/review-queue/snapshot": {
+    "type": "object",
+    "properties": {
+      "list": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "conversationId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "origin": {
+                  "type": "string",
+                  "enum": [
+                    "ai_dm_reply",
+                    "manual_reply",
+                    "booking_notice",
+                    "other"
+                  ]
+                },
+                "sourceMessageId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                },
+                "sourceTurnId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                },
+                "sourceCommentId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "restartsLeft": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 3
+                },
+                "channelAccountId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "draftBody": {
+                  "type": "string",
+                  "x-luca-sensitive": "blank"
+                },
+                "draftParts": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": null,
+                  "x-luca-sensitive": "empty"
+                },
+                "draftContent": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "version": {
+                      "type": "number",
+                      "enum": [
+                        1
+                      ]
+                    },
+                    "parts": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "text"
+                                ]
+                              },
+                              "text": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "textGroupId": {
+                                "type": "string",
+                                "format": "uuid"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "text"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "media"
+                                ]
+                              },
+                              "uploadId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "mediaKind": {
+                                "type": "string",
+                                "enum": [
+                                  "image",
+                                  "video",
+                                  "audio",
+                                  "voice",
+                                  "document"
+                                ]
+                              },
+                              "fileName": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 255
+                              },
+                              "caption": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 1024
+                              },
+                              "altText": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 1000
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "uploadId",
+                              "mediaKind"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "interactive"
+                                ]
+                              },
+                              "interactionKind": {
+                                "type": "string",
+                                "enum": [
+                                  "buttons",
+                                  "list",
+                                  "quick_replies",
+                                  "inline_buttons"
+                                ]
+                              },
+                              "prompt": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 1024
+                              },
+                              "options": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 200
+                                    },
+                                    "title": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 200
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 200
+                                    },
+                                    "action": {
+                                      "oneOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "enum": [
+                                                "booking.select_slot"
+                                              ]
+                                            },
+                                            "bookingTypeId": {
+                                              "type": "string",
+                                              "format": "uuid"
+                                            },
+                                            "slotId": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "maxLength": 500
+                                            },
+                                            "startsAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "endsAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "timezone": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "maxLength": 200
+                                            },
+                                            "inviteeEmail": {
+                                              "type": "string",
+                                              "format": "email"
+                                            },
+                                            "inviteeName": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "maxLength": 200
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "bookingTypeId",
+                                            "slotId",
+                                            "startsAt",
+                                            "endsAt",
+                                            "timezone",
+                                            "inviteeEmail"
+                                          ]
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "enum": [
+                                                "booking.reschedule"
+                                              ]
+                                            },
+                                            "bookingId": {
+                                              "type": "string",
+                                              "format": "uuid"
+                                            },
+                                            "bookingTypeId": {
+                                              "type": "string",
+                                              "format": "uuid"
+                                            },
+                                            "slotId": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "maxLength": 500
+                                            },
+                                            "startsAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "endsAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "timezone": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "maxLength": 200
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "bookingId",
+                                            "bookingTypeId",
+                                            "slotId",
+                                            "startsAt",
+                                            "endsAt",
+                                            "timezone"
+                                          ]
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "type": {
+                                              "type": "string",
+                                              "enum": [
+                                                "booking.cancel"
+                                              ]
+                                            },
+                                            "bookingId": {
+                                              "type": "string",
+                                              "format": "uuid"
+                                            },
+                                            "reason": {
+                                              "type": "string",
+                                              "minLength": 1,
+                                              "maxLength": 500
+                                            }
+                                          },
+                                          "required": [
+                                            "type",
+                                            "bookingId"
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "title"
+                                  ]
+                                },
+                                "minItems": 1,
+                                "maxItems": 20
+                              },
+                              "expiresAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "interactionKind",
+                              "prompt",
+                              "options"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "template"
+                                ]
+                              },
+                              "templateId": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "name": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "language": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "versionHash": {
+                                "type": "string",
+                                "pattern": "^sha256:[a-f0-9]{64}$"
+                              },
+                              "parameters": {
+                                "type": "array",
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 200
+                                        },
+                                        "component": {
+                                          "type": "string",
+                                          "enum": [
+                                            "header",
+                                            "body",
+                                            "button"
+                                          ]
+                                        },
+                                        "index": {
+                                          "type": "integer",
+                                          "minimum": 0
+                                        },
+                                        "parameterName": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 200
+                                        },
+                                        "buttonIndex": {
+                                          "type": "integer",
+                                          "minimum": 0
+                                        },
+                                        "kind": {
+                                          "type": "string",
+                                          "enum": [
+                                            "text"
+                                          ]
+                                        },
+                                        "value": {
+                                          "type": "string",
+                                          "maxLength": 4096
+                                        }
+                                      },
+                                      "required": [
+                                        "key",
+                                        "component",
+                                        "index",
+                                        "kind",
+                                        "value"
+                                      ]
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 200
+                                        },
+                                        "component": {
+                                          "type": "string",
+                                          "enum": [
+                                            "header"
+                                          ]
+                                        },
+                                        "index": {
+                                          "type": "integer",
+                                          "minimum": 0
+                                        },
+                                        "parameterName": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 200
+                                        },
+                                        "buttonIndex": {
+                                          "type": "integer",
+                                          "minimum": 0
+                                        },
+                                        "kind": {
+                                          "type": "string",
+                                          "enum": [
+                                            "image",
+                                            "video",
+                                            "document"
+                                          ]
+                                        },
+                                        "uploadId": {
+                                          "type": "string",
+                                          "format": "uuid"
+                                        },
+                                        "fileName": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "maxLength": 255
+                                        }
+                                      },
+                                      "required": [
+                                        "key",
+                                        "component",
+                                        "index",
+                                        "kind",
+                                        "uploadId"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "maxItems": 100
+                              },
+                              "renderedPreview": {
+                                "type": "string",
+                                "maxLength": 16000
+                              },
+                              "providerMetadata": {
+                                "type": "object",
+                                "additionalProperties": {}
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "type",
+                              "templateId",
+                              "name",
+                              "language",
+                              "versionHash",
+                              "parameters",
+                              "renderedPreview"
+                            ]
+                          }
+                        ]
+                      },
+                      "minItems": 1,
+                      "maxItems": 12
+                    }
+                  },
+                  "default": null,
+                  "required": [
+                    "version",
+                    "parts"
+                  ],
+                  "x-luca-sensitive": "null"
+                },
+                "qualification": {
+                  "x-luca-sensitive": "null"
+                },
+                "confidence": {
+                  "type": "number"
+                },
+                "voiceMatchScore": {
+                  "type": "number"
+                },
+                "criticIssues": {
+                  "x-luca-sensitive": "null"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "approved",
+                    "rejected",
+                    "sent",
+                    "superseded",
+                    "stale"
+                  ]
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": [
+                    "urgent",
+                    "normal"
+                  ],
+                  "default": "normal"
+                },
+                "signals": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": null,
+                  "x-luca-sensitive": "null"
+                },
+                "holdKind": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "safety_review",
+                    "unchecked",
+                    "safety_block",
+                    "media_review",
+                    null
+                  ],
+                  "default": null
+                },
+                "category": {
+                  "type": "string"
+                },
+                "isHotLead": {
+                  "type": "boolean"
+                },
+                "isDemo": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "whatsappFreeformOpen": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "conversationChanged": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "resolvedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "default": null
+                },
+                "sentBy": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "luca",
+                    "approved",
+                    "you",
+                    "elsewhere",
+                    null
+                  ],
+                  "default": null
+                },
+                "sentBody": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "default": null,
+                  "x-luca-sensitive": "null"
+                },
+                "leadId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "leadDisplayName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "x-luca-sensitive": "null"
+                },
+                "leadProfilePhotoUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "default": null,
+                  "x-luca-sensitive": "null"
+                },
+                "lastInboundMessages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "body": {
+                        "type": "string"
+                      },
+                      "receivedAt": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "body",
+                      "receivedAt"
+                    ]
+                  },
+                  "default": [],
+                  "x-luca-sensitive": "empty"
+                },
+                "leadPaused": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "leadPausedUntil": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "default": null
+                },
+                "leadChannel": {
+                  "type": "string",
+                  "enum": [
+                    "telegram",
+                    "instagram",
+                    "messenger",
+                    "whatsapp"
+                  ]
+                },
+                "safetyReasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "default": []
+                },
+                "mediaContext": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "default": null,
+                  "x-luca-sensitive": "null"
+                },
+                "safetyFindings": {
+                  "type": "array",
+                  "items": {},
+                  "default": [],
+                  "x-luca-sensitive": "empty"
+                },
+                "media": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "mediaType": {
+                        "type": "string",
+                        "enum": [
+                          "audio",
+                          "image",
+                          "file"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "pending",
+                          "completed",
+                          "failed",
+                          "skipped",
+                          "blocked",
+                          "cancelled"
+                        ]
+                      },
+                      "safetyStatus": {
+                        "type": "string",
+                        "enum": [
+                          "safe",
+                          "needs_review",
+                          "blocked"
+                        ]
+                      },
+                      "transcript": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "default": null
+                      },
+                      "processingReason": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "retry": {
+                        "type": [
+                          "object",
+                          "null"
+                        ],
+                        "properties": {
+                          "eligible": {
+                            "type": "boolean"
+                          },
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "attemptsUsed": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 3
+                          },
+                          "attemptsRemaining": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 3
+                          },
+                          "unavailableReason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "retry_active",
+                              "retry_exhausted",
+                              "original_missing",
+                              "cancelled",
+                              "not_retryable",
+                              null
+                            ]
+                          }
+                        },
+                        "required": [
+                          "eligible",
+                          "active",
+                          "attemptsUsed",
+                          "attemptsRemaining",
+                          "unavailableReason"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "mediaType",
+                      "url",
+                      "status",
+                      "safetyStatus"
+                    ]
+                  },
+                  "default": [],
+                  "x-luca-sensitive": "empty"
+                },
+                "objectionVariants": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "maxLength": 60
+                      },
+                      "body": {
+                        "type": "string",
+                        "maxLength": 1500
+                      },
+                      "rationale": {
+                        "type": "string",
+                        "maxLength": 400
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "body",
+                      "rationale"
+                    ]
+                  },
+                  "default": null,
+                  "x-luca-sensitive": "null"
+                }
+              },
+              "required": [
+                "id",
+                "conversationId",
+                "restartsLeft",
+                "channelAccountId",
+                "draftBody",
+                "qualification",
+                "confidence",
+                "voiceMatchScore",
+                "criticIssues",
+                "status",
+                "category",
+                "isHotLead",
+                "whatsappFreeformOpen",
+                "createdAt",
+                "leadId",
+                "leadDisplayName",
+                "leadChannel"
+              ]
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "asOf": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ]
+      },
+      "summary": {
+        "type": "object",
+        "properties": {
+          "pendingCount": {
+            "type": "integer"
+          },
+          "recent": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "isHotLead": {
+                  "type": "boolean"
+                },
+                "leadDisplayName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "x-luca-sensitive": "null"
+                }
+              },
+              "required": [
+                "id",
+                "createdAt",
+                "isHotLead",
+                "leadDisplayName"
+              ]
+            }
+          }
+        },
+        "required": [
+          "pendingCount",
+          "recent"
+        ]
+      },
+      "drafting": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "turnId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "leadId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "leadDisplayName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "x-luca-sensitive": "null"
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "telegram",
+                    "instagram",
+                    "messenger",
+                    "whatsapp"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "collecting",
+                    "sealed",
+                    "waiting_media",
+                    "ready",
+                    "processing",
+                    "paused",
+                    "cancelled",
+                    "review_required",
+                    "blocked"
+                  ]
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "drafting",
+                    "pausing",
+                    "cancelling",
+                    "paused",
+                    "cancelled",
+                    "failed",
+                    "plan_blocked",
+                    "plan_blocked_payment"
+                  ]
+                },
+                "preview": {
+                  "type": "string",
+                  "x-luca-sensitive": "blank"
+                },
+                "attempt": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "restartsLeft": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3
+                },
+                "leadPaused": {
+                  "type": "boolean"
+                },
+                "leadPausedUntil": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "resumeSkippedReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "already_replied",
+                    "window_closed",
+                    null
+                  ]
+                },
+                "startedAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "turnId",
+                "leadId",
+                "leadDisplayName",
+                "channel",
+                "status",
+                "state",
+                "preview",
+                "attempt",
+                "restartsLeft",
+                "leadPaused",
+                "leadPausedUntil",
+                "resumeSkippedReason",
+                "startedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      }
+    },
+    "required": [
+      "list",
+      "summary",
+      "drafting"
     ]
   },
   "GET /api/review-queue/{id}/kept-campaigns": {
@@ -6429,7 +7539,8 @@ export const OPENAPI_OUTPUTS = {
                     "applied",
                     "rejected",
                     "synced",
-                    "failed"
+                    "failed",
+                    "uncertain"
                   ]
                 },
                 "attempts": {
@@ -6742,16 +7853,27 @@ export const OPENAPI_OUTPUTS = {
               "pending_provider"
             ]
           },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Luca Core operation that carries the change to the provider. Null when the change was applied without one."
+          },
           "providerSyncId": {
             "type": [
               "string",
               "null"
             ],
-            "format": "uuid"
+            "format": "uuid",
+            "deprecated": true,
+            "description": "Deprecated: use `operationId`. The provider-sync row id that `GET /api/bookings` returns as `providerSync.id`, or null when the booking has none."
           }
         },
         "required": [
           "state",
+          "operationId",
           "providerSyncId"
         ]
       }
@@ -6825,6 +7947,31 @@ export const OPENAPI_OUTPUTS = {
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 500
+              },
+              "theyToldUs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "answer": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "maxLength": 3100
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "answer"
+                  ]
+                },
+                "maxItems": 4
               }
             },
             "required": [
@@ -7624,16 +8771,27 @@ export const OPENAPI_OUTPUTS = {
               "pending_provider"
             ]
           },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Luca Core operation that carries the change to the provider. Null when the change was applied without one."
+          },
           "providerSyncId": {
             "type": [
               "string",
               "null"
             ],
-            "format": "uuid"
+            "format": "uuid",
+            "deprecated": true,
+            "description": "Deprecated: use `operationId`. The provider-sync row id that `GET /api/bookings` returns as `providerSync.id`, or null when the booking has none."
           }
         },
         "required": [
           "state",
+          "operationId",
           "providerSyncId"
         ]
       }
@@ -7839,16 +8997,27 @@ export const OPENAPI_OUTPUTS = {
               "pending_provider"
             ]
           },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Luca Core operation that carries the change to the provider. Null when the change was applied without one."
+          },
           "providerSyncId": {
             "type": [
               "string",
               "null"
             ],
-            "format": "uuid"
+            "format": "uuid",
+            "deprecated": true,
+            "description": "Deprecated: use `operationId`. The provider-sync row id that `GET /api/bookings` returns as `providerSync.id`, or null when the booking has none."
           }
         },
         "required": [
           "state",
+          "operationId",
           "providerSyncId"
         ]
       }
@@ -8054,16 +9223,27 @@ export const OPENAPI_OUTPUTS = {
               "pending_provider"
             ]
           },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Luca Core operation that carries the change to the provider. Null when the change was applied without one."
+          },
           "providerSyncId": {
             "type": [
               "string",
               "null"
             ],
-            "format": "uuid"
+            "format": "uuid",
+            "deprecated": true,
+            "description": "Deprecated: use `operationId`. The provider-sync row id that `GET /api/bookings` returns as `providerSync.id`, or null when the booking has none."
           }
         },
         "required": [
           "state",
+          "operationId",
           "providerSyncId"
         ]
       }
@@ -8611,16 +9791,27 @@ export const OPENAPI_OUTPUTS = {
               "pending_provider"
             ]
           },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Luca Core operation that carries the change to the provider. Null when the change was applied without one."
+          },
           "providerSyncId": {
             "type": [
               "string",
               "null"
             ],
-            "format": "uuid"
+            "format": "uuid",
+            "deprecated": true,
+            "description": "Deprecated: use `operationId`. The provider-sync row id that `GET /api/bookings` returns as `providerSync.id`, or null when the booking has none."
           }
         },
         "required": [
           "state",
+          "operationId",
           "providerSyncId"
         ]
       }
@@ -33486,6 +34677,444 @@ export const OPENAPI_OUTPUTS = {
       "accounts"
     ]
   },
+  "GET /api/core-dead-letters": {
+    "type": "object",
+    "properties": {
+      "deadLetters": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "lane": {
+              "type": "string",
+              "enum": [
+                "interactive",
+                "bulk",
+                "jobs",
+                "provider-sync",
+                "replies",
+                "outbound"
+              ]
+            },
+            "eventName": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "subscriber": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "idempotencyKey": {
+              "type": "string"
+            },
+            "coachId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "error": {
+              "type": "string"
+            },
+            "attempts": {
+              "type": "integer"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "open",
+                "replayed",
+                "discarded",
+                "quarantined"
+              ]
+            },
+            "firstSeenAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "lastSeenAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "replayedAt": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "id",
+            "lane",
+            "eventName",
+            "subscriber",
+            "idempotencyKey",
+            "coachId",
+            "error",
+            "attempts",
+            "status",
+            "firstSeenAt",
+            "lastSeenAt",
+            "replayedAt"
+          ]
+        }
+      }
+    },
+    "required": [
+      "deadLetters"
+    ]
+  },
+  "GET /api/core-dead-letters/metrics": {
+    "type": "object",
+    "properties": {
+      "generatedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "lanes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "lane": {
+              "type": "string",
+              "enum": [
+                "interactive",
+                "bulk",
+                "jobs",
+                "provider-sync",
+                "replies",
+                "outbound"
+              ]
+            },
+            "openDeadLetters": {
+              "type": "integer"
+            },
+            "failuresLast24Hours": {
+              "type": "integer"
+            },
+            "lastFailureAt": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "unsentEvents": {
+              "type": "integer"
+            },
+            "oldestUnsentEventAt": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          "required": [
+            "lane",
+            "openDeadLetters",
+            "failuresLast24Hours",
+            "lastFailureAt",
+            "unsentEvents",
+            "oldestUnsentEventAt"
+          ]
+        }
+      }
+    },
+    "required": [
+      "generatedAt",
+      "lanes"
+    ]
+  },
+  "GET /api/core-dead-letters/{id}": {
+    "type": "object",
+    "properties": {
+      "deadLetter": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lane": {
+            "type": "string",
+            "enum": [
+              "interactive",
+              "bulk",
+              "jobs",
+              "provider-sync",
+              "replies",
+              "outbound"
+            ]
+          },
+          "eventName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subscriber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "coachId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "replayed",
+              "discarded",
+              "quarantined"
+            ]
+          },
+          "firstSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "replayedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lane",
+          "eventName",
+          "subscriber",
+          "idempotencyKey",
+          "coachId",
+          "error",
+          "attempts",
+          "status",
+          "firstSeenAt",
+          "lastSeenAt",
+          "replayedAt"
+        ]
+      }
+    },
+    "required": [
+      "deadLetter"
+    ]
+  },
+  "POST /api/core-dead-letters/{id}/replay": {
+    "type": "object",
+    "properties": {
+      "deadLetter": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lane": {
+            "type": "string",
+            "enum": [
+              "interactive",
+              "bulk",
+              "jobs",
+              "provider-sync",
+              "replies",
+              "outbound"
+            ]
+          },
+          "eventName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subscriber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "coachId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "replayed",
+              "discarded",
+              "quarantined"
+            ]
+          },
+          "firstSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "replayedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lane",
+          "eventName",
+          "subscriber",
+          "idempotencyKey",
+          "coachId",
+          "error",
+          "attempts",
+          "status",
+          "firstSeenAt",
+          "lastSeenAt",
+          "replayedAt"
+        ]
+      }
+    },
+    "required": [
+      "deadLetter"
+    ]
+  },
+  "POST /api/core-dead-letters/{id}/discard": {
+    "type": "object",
+    "properties": {
+      "deadLetter": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lane": {
+            "type": "string",
+            "enum": [
+              "interactive",
+              "bulk",
+              "jobs",
+              "provider-sync",
+              "replies",
+              "outbound"
+            ]
+          },
+          "eventName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subscriber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "coachId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "replayed",
+              "discarded",
+              "quarantined"
+            ]
+          },
+          "firstSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "replayedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lane",
+          "eventName",
+          "subscriber",
+          "idempotencyKey",
+          "coachId",
+          "error",
+          "attempts",
+          "status",
+          "firstSeenAt",
+          "lastSeenAt",
+          "replayedAt"
+        ]
+      }
+    },
+    "required": [
+      "deadLetter"
+    ]
+  },
   "GET /api/channels": {
     "type": "object",
     "properties": {
@@ -34425,6 +36054,37 @@ export const OPENAPI_OUTPUTS = {
             "status",
             "confidence",
             "createdAt"
+          ]
+        }
+      },
+      "clientsNeedingCoach": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "leadId": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "name": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "x-luca-sensitive": "null"
+            },
+            "state": {
+              "type": "string",
+              "enum": [
+                "stuck",
+                "at_risk"
+              ]
+            }
+          },
+          "required": [
+            "leadId",
+            "name",
+            "state"
           ]
         }
       }
@@ -38133,6 +39793,7 @@ export const OPENAPI_REDACTED_FIELDS = {
     "identities[].externalUserId",
     "lead.customFields",
     "lead.displayName",
+    "lead.referredBy.displayName",
     "messages[].body",
     "messages[].media",
     "notes[].body"
@@ -38204,6 +39865,25 @@ export const OPENAPI_REDACTED_FIELDS = {
     "items[].safetyFindings",
     "items[].sentBody",
     "items[].signals"
+  ],
+  "GET /api/review-queue/snapshot": [
+    "drafting.items[].leadDisplayName",
+    "drafting.items[].preview",
+    "list.items[].criticIssues",
+    "list.items[].draftBody",
+    "list.items[].draftContent",
+    "list.items[].draftParts",
+    "list.items[].lastInboundMessages",
+    "list.items[].leadDisplayName",
+    "list.items[].leadProfilePhotoUrl",
+    "list.items[].media",
+    "list.items[].mediaContext",
+    "list.items[].objectionVariants",
+    "list.items[].qualification",
+    "list.items[].safetyFindings",
+    "list.items[].sentBody",
+    "list.items[].signals",
+    "summary.recent[].leadDisplayName"
   ],
   "GET /api/review-queue/{id}/explain": [
     "criticIssues",
@@ -38516,6 +40196,7 @@ export const OPENAPI_REDACTED_FIELDS = {
     "entries[].content"
   ],
   "GET /api/reports/morning": [
+    "clientsNeedingCoach[].name",
     "items[].draftBody"
   ],
   "GET /api/memory": [

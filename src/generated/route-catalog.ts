@@ -262,6 +262,14 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": false
   },
+  "reviewQueue.snapshot": {
+    "method": "GET",
+    "path": "/api/review-queue/snapshot",
+    "scopes": [
+      "review_queue:read"
+    ],
+    "idempotencyRequired": false
+  },
   "reviewQueue.keptCampaigns": {
     "method": "GET",
     "path": "/api/review-queue/{id}/kept-campaigns",
@@ -1325,6 +1333,46 @@ export const ROUTE_CATALOG = {
       "safety:read"
     ],
     "idempotencyRequired": false
+  },
+  "safety.deadLetters.list": {
+    "method": "GET",
+    "path": "/api/core-dead-letters",
+    "scopes": [
+      "safety:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "safety.deadLetters.metrics": {
+    "method": "GET",
+    "path": "/api/core-dead-letters/metrics",
+    "scopes": [
+      "safety:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "safety.deadLetters.get": {
+    "method": "GET",
+    "path": "/api/core-dead-letters/{id}",
+    "scopes": [
+      "safety:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "safety.deadLetters.replay": {
+    "method": "POST",
+    "path": "/api/core-dead-letters/{id}/replay",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "idempotencyRequired": true
+  },
+  "safety.deadLetters.discard": {
+    "method": "POST",
+    "path": "/api/core-dead-letters/{id}/discard",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "idempotencyRequired": true
   },
   "channels.list": {
     "method": "GET",
