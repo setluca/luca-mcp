@@ -13,7 +13,7 @@ const rescueSilentLeads = taskTool({
   name: "luca_rescue_silent_leads",
   title: "Enroll silent leads into the rescue cadence",
   description:
-    'Enroll one or more silent leads into the multi-day rescue cadence. THIS STARTS OUTBOUND TOUCHES to real leads over the coming days. Luca drafts each one, and with auto-send off each waits in the review queue first. Before the coach presses Go live in the SetLuca app, the touches wait for it, and the cadence is cancelled after 30 days if the workspace is still not live. Pass confirm: true to proceed. cadenceTemplate is light | standard | aggressive (default standard). Example: { leadIds: ["..."], cadenceTemplate: "standard", confirm: true }.',
+    'Enroll one or more silent leads into the follow-up plan that fits each one (day 1, 3, 7 and 14 for a lead who went quiet, faster after a price, timing or booking question, a rebook plan after a missed call). THIS STARTS OUTBOUND TOUCHES to real leads over the coming days. Luca drafts each one, and with auto-send off each waits in the review queue first. Before the coach presses Go live in the SetLuca app, the touches wait for it, and the cadence is cancelled after 30 days if the workspace is still not live. Pass confirm: true to proceed. cadenceTemplate (light | standard | aggressive) is stored for compatibility and no longer sets timing. Example: { leadIds: ["..."], cadenceTemplate: "standard", confirm: true }.',
   inputSchema: {
     ...WORKSPACE_INPUT_FIELDS,
     leadIds: Schema.Array(NonEmptyString)
@@ -24,7 +24,8 @@ const rescueSilentLeads = taskTool({
       }),
     cadenceTemplate: Schema.optionalKey(
       Schema.Literals(["light", "standard", "aggressive"]).annotate({
-        description: "Cadence intensity (default standard).",
+        description:
+          "Stored for compatibility; it no longer sets the touches' timing.",
       })
     ),
     ...idempotencyKeyInput(

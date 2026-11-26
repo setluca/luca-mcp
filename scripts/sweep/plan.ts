@@ -68,6 +68,8 @@ export type Fixture =
   | "knowledgeSuggestion"
   | "memory"
   | "crmConnection"
+  // The dry run the sweep previews, which the apply step runs.
+  | "crmSyncRun"
   | "callEvent"
   | "recoveryCase"
   | "recoveryVersion"
@@ -731,6 +733,40 @@ const read: readonly SweepStep[] = [
     ...idFrom("crmConnection"),
   },
   { tool: "luca_integrations_events_list", phase: "read" },
+  { tool: "luca_integrations_catalog", phase: "read" },
+  { tool: "luca_integrations_connections_list", phase: "read" },
+  {
+    tool: "luca_integrations_activity_list",
+    phase: "read",
+    args: () => ({ provider: "hubspot" }),
+  },
+  { tool: "luca_integrations_usage_read", phase: "read" },
+  { tool: "luca_integrations_crm_mappings_read", phase: "read" },
+  { tool: "luca_review_queue_snapshot", phase: "read" },
+  { tool: "luca_campaigns_overlaps", phase: "read" },
+  {
+    tool: "luca_campaigns_instagram_media",
+    phase: "read",
+    expect: {
+      kind: "okOrRefused",
+      because:
+        "it reads Instagram live, so a workspace whose Instagram is not connected is refused",
+      match: /instagram_not_connected/,
+    },
+  },
+  { tool: "luca_autonomy_list", phase: "read" },
+  { tool: "luca_safety_dead_letters_list", phase: "read" },
+  { tool: "luca_safety_dead_letters_metrics", phase: "read" },
+  {
+    tool: "luca_safety_dead_letters_get",
+    phase: "read",
+    args: () => ({ id: NO_SUCH_RECORD }),
+    expect: {
+      kind: "refused",
+      because: "the seed cannot make a dead letter, so this id names none",
+      match: /not_found/,
+    },
+  },
   { tool: "luca_voice_profile", phase: "read" },
   { tool: "luca_voice_corpus", phase: "read" },
   { tool: "luca_coach_profile", phase: "read" },
@@ -741,6 +777,12 @@ const read: readonly SweepStep[] = [
   { tool: "luca_coach_post_call_crm_mapping", phase: "read" },
   { tool: "luca_coach_post_call_deal_sync", phase: "read" },
   { tool: "luca_coach_audit_log", phase: "read" },
+  { tool: "luca_features_list", phase: "read" },
+  {
+    tool: "luca_features_preview",
+    phase: "read",
+    args: () => ({ feature: "campaigns", body: { state: "off" } }),
+  },
   { tool: "luca_usage_spend", phase: "read" },
   { tool: "luca_safety_accounts", phase: "read" },
   { tool: "luca_channels_catalog", phase: "read" },
@@ -819,6 +861,14 @@ const ON_ANY_PLAN: Expectation = {
     "A trial's one-campaign limit refuses this; any other plan allows it.",
   match: /trial_campaign_cap_reached/,
 };
+
+/**
+ * An id no record has, for the steps whose record the seed cannot make: a dead
+ * letter only exists after Luca gives up on real work, and a hidden comment
+ * only after Instagram delivers one. The step then proves the tool reaches its
+ * route and the route looks the record up.
+ */
+const NO_SUCH_RECORD = "00000000-0000-4000-8000-000000000000";
 
 const create: readonly SweepStep[] = [
   {
@@ -1138,6 +1188,7 @@ const create: readonly SweepStep[] = [
     tool: "luca_integrations_crm_sync_runs_create",
     phase: "create",
     ...idFrom("crmConnection", () => ({ body: { mode: "dry_run" } })),
+    provides: { crmSyncRun: valueAt("id") },
   },
 ];
 
@@ -1641,7 +1692,6 @@ const change: readonly SweepStep[] = [
   {
     tool: "luca_channels_set_ai_dm_auto_send",
     phase: "change",
-    gated: true,
     ...idFrom("channel", () => ({ body: { enabled: true } })),
     expect: {
       kind: "refused",
@@ -1653,7 +1703,7 @@ const change: readonly SweepStep[] = [
   {
     tool: "luca_channels_set_ai_dm_auto_send",
     phase: "change",
-    extra: "turns auto-send back off, which needs no confirmation",
+    extra: "turns auto-send back off",
     ...idFrom("channel", () => ({ body: { enabled: false } })),
     expect: {
       kind: "refused",
@@ -1672,6 +1722,90 @@ const change: readonly SweepStep[] = [
     tool: "luca_insights_settings_update",
     phase: "change",
     args: () => ({ body: { digestEnabled: true } }),
+  },
+  {
+    tool: "luca_features_set",
+    phase: "change",
+    gated: true,
+    // Call summaries start on in a new workspace, so this changes nothing.
+    args: () => ({ feature: "call_summaries", body: { state: "on" } }),
+  },
+  {
+    tool: "luca_features_set_many",
+    phase: "change",
+    gated: true,
+    args: () => ({
+      body: {
+        features: [
+          { feature: "call_summaries", state: "on" },
+          { feature: "booking_messages", state: "on" },
+        ],
+      },
+    }),
+  },
+  {
+    tool: "luca_autonomy_set",
+    phase: "change",
+    gated: true,
+    args: () => ({ trigger: "campaign", body: { state: "review" } }),
+    expect: {
+      kind: "refused",
+      because:
+        "campaigns send coach-written text, so their trigger is read-only and changes nothing",
+      match: /autonomy_read_only/,
+    },
+  },
+  {
+    tool: "luca_leads_opt_out_restore",
+    phase: "change",
+    gated: true,
+    // The sweep lead never opted out, so this restores nothing.
+    ...idFrom("sweepLead"),
+  },
+  {
+    tool: "luca_campaigns_comment_events_unhide",
+    phase: "change",
+    gated: true,
+    args: () => ({ id: NO_SUCH_RECORD }),
+    expect: {
+      kind: "refused",
+      because: "the seed cannot make a hidden comment, so this id names none",
+      match: /comment_event_not_found/,
+    },
+  },
+  {
+    tool: "luca_integrations_crm_sync_runs_apply",
+    phase: "change",
+    gated: true,
+    needs: ["crmConnection", "crmSyncRun"],
+    args: (fx) => ({ id: fx.crmConnection, runId: fx.crmSyncRun }),
+    expect: {
+      kind: "okOrRefused",
+      because:
+        "the sweep's CRM connection holds test credentials, so the provider may ask for a reconnect",
+      match: /crm_reauth_required|crm_connection_disabled/,
+    },
+  },
+  {
+    tool: "luca_safety_dead_letters_replay",
+    phase: "change",
+    gated: true,
+    args: () => ({ id: NO_SUCH_RECORD }),
+    expect: {
+      kind: "refused",
+      because: "the seed cannot make a dead letter, so this id names none",
+      match: /not_found/,
+    },
+  },
+  {
+    tool: "luca_safety_dead_letters_discard",
+    phase: "change",
+    args: () => ({ id: NO_SUCH_RECORD }),
+    expect: {
+      kind: "refused",
+      because: "the seed cannot make a dead letter, so this id names none",
+      match: /not_found/,
+    },
   },
   {
     tool: "luca_learning_proposals_dismiss",

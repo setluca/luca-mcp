@@ -386,6 +386,34 @@
       "outputSchema": "7ae9b7313fc82f4f",
       "meta": "1b5a56c606a88080"
     },
+    "luca_autonomy_list": {
+      "title": "List what Luca may do alone",
+      "description": "List every trigger that can start Luca acting without the coach, each off, review, or auto: DM replies and comment replies per channel account, then booking messages, follow-ups, campaigns, broadcasts, and business-signal actions. state is what the coach chose; effective is what Luca does now, since nothing acts on its own before Go live and a DM reply on WhatsApp or on a channel still waiting for its send mode stays in review. Campaigns, broadcasts, and comment replies send coach-written text and cannot be changed here.\n\nLuca operation: GET /api/autonomy\nRequired scopes: features:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List what Luca may do alone",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "3fbac634759b99de",
+      "outputSchema": "fbc5e43fc476e0c6",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_autonomy_set": {
+      "title": "Set what Luca may do alone",
+      "description": "Set one trigger to off or review. Through this connection auto answers 403 auto_needs_coach: only the coach can choose auto, in the SetLuca app. For dm_reply, body.channelAccountId names one channel account, and without it every account changes; off for dm_reply turns AI replies off for the whole workspace. Off for booking_message or follow_up turns that feature off and holds its queued work, and review turns it back on, releasing that work. campaign, broadcast, and comment_reply answer 409 autonomy_read_only. Read luca_autonomy_list first, and pass confirm: true after the coach approves.\n\nLuca operation: PUT /api/autonomy/{trigger}\nRequired scopes: features:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Set what Luca may do alone",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": "68fe6798938c4863",
+      "outputSchema": "fc944fd242ed464c",
+      "meta": "c8163f8c80645628"
+    },
     "luca_book_call": {
       "title": "Book a call with a lead",
       "description": "Book a call on the coach's calendar provider and have the provider invite the lead's email; Luca can also queue a booking confirmation draft for the coach to review. Works for call types on Calendly, Cal.com, or Google Calendar. Reads the open slots of the call type first and books the one that starts at slotAt. When that slot is taken it books nothing and returns the open slots instead, so pick one of them and call again. The answer is usually pending while the provider confirms; check it with luca_bookings_provider_requests_get. The booking puts an event on the coach's calendar and invites the lead, so pass confirm: true only after the coach approves this exact slot. If a retry answers slot_not_available, the first attempt may have taken the slot, so check luca_bookings_list before booking again. To record a call that is already on a calendar, use luca_bookings_create instead. Example: call with { leadId, bookingTypeId, slotAt: \"2026-07-14T15:00:00Z\", inviteeEmail: \"sam@example.com\", confirm: true } after the lead agreed to a time.",
@@ -425,7 +453,7 @@
         "openWorldHint": false
       },
       "inputSchema": "c3555e757deacd72",
-      "outputSchema": "859b8e31e38bb7fe",
+      "outputSchema": "815593c920650eb2",
       "meta": "b378caa8dc624177"
     },
     "luca_bookings_calendars_list": {
@@ -472,7 +500,7 @@
     },
     "luca_bookings_cancel": {
       "title": "Cancel a booking",
-      "description": "Cancel a booking. A Google Calendar or Cal.com booking is cancelled on that calendar too, and the calendar can email the lead about it.\n\nLuca operation: DELETE /api/bookings/{id}\nRequired scopes: bookings:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Cancel a booking. A Google Calendar or Cal.com booking is cancelled on that calendar too, and the calendar can email the lead about it. When the provider still has to apply the cancellation, operation.state is pending_provider and operation.operationId names the operation carrying it.\n\nLuca operation: DELETE /api/bookings/{id}\nRequired scopes: bookings:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Cancel a booking",
         "readOnlyHint": false,
@@ -481,7 +509,7 @@
         "openWorldHint": true
       },
       "inputSchema": "e0bea99d4bf176ef",
-      "outputSchema": "7dc76a44326bea3a",
+      "outputSchema": "c0a8a09bdcb3dbed",
       "meta": "1b5a56c606a88080"
     },
     "luca_bookings_create": {
@@ -495,7 +523,7 @@
         "openWorldHint": true
       },
       "inputSchema": "2b3a95b8de93fdef",
-      "outputSchema": "7dc76a44326bea3a",
+      "outputSchema": "c0a8a09bdcb3dbed",
       "meta": "1b5a56c606a88080"
     },
     "luca_bookings_get": {
@@ -509,7 +537,7 @@
         "openWorldHint": false
       },
       "inputSchema": "c3555e757deacd72",
-      "outputSchema": "7dc76a44326bea3a",
+      "outputSchema": "c0a8a09bdcb3dbed",
       "meta": "b378caa8dc624177"
     },
     "luca_bookings_guest_links_create": {
@@ -565,7 +593,7 @@
         "openWorldHint": true
       },
       "inputSchema": "33bcaf89bf6846d3",
-      "outputSchema": "7dc76a44326bea3a",
+      "outputSchema": "c0a8a09bdcb3dbed",
       "meta": "1b5a56c606a88080"
     },
     "luca_bookings_list": {
@@ -844,7 +872,7 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
-      "inputSchema": "9fda58c044414bfc",
+      "inputSchema": "d9d19c6fed74da5d",
       "outputSchema": "842dd1aab31523b3",
       "meta": "1b5a56c606a88080"
     },
@@ -914,13 +942,13 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
-      "inputSchema": "9afc030b28690f2d",
+      "inputSchema": "780d17263102a2f7",
       "outputSchema": "842dd1aab31523b3",
       "meta": "1b5a56c606a88080"
     },
     "luca_bookings_update": {
       "title": "Reschedule or edit a booking",
-      "description": "Reschedule or update booking status. A Google Calendar or Cal.com booking changes on that calendar too, and the calendar can email the lead about it.\n\nLuca operation: PATCH /api/bookings/{id}\nRequired scopes: bookings:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Reschedule or update booking status. A Google Calendar or Cal.com booking changes on that calendar too, and the calendar can email the lead about it. A new body.slotAt keeps the booking's length, or its booking type's; a booking with neither needs body.endAt with it, or Luca answers 400 booking_duration_required. When the provider still has to apply the move, operation.state is pending_provider and operation.operationId names the operation carrying it.\n\nLuca operation: PATCH /api/bookings/{id}\nRequired scopes: bookings:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Reschedule or edit a booking",
         "readOnlyHint": false,
@@ -929,7 +957,7 @@
         "openWorldHint": true
       },
       "inputSchema": "3193ccdbc95b8aca",
-      "outputSchema": "7dc76a44326bea3a",
+      "outputSchema": "c0a8a09bdcb3dbed",
       "meta": "1b5a56c606a88080"
     },
     "luca_broadcasts_approve": {
@@ -1088,7 +1116,7 @@
     },
     "luca_cadences_rescue_start": {
       "title": "Start a silent-lead rescue",
-      "description": "Enroll silent leads into the multi-day rescue cadence. Starts outbound touches to real leads. Before the coach presses Go live in the SetLuca app, the touches wait for it, and the cadence is cancelled if the workspace is still not live after 30 days.\n\nLuca operation: POST /api/cadences/rescue\nRequired scopes: cadences:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Enroll silent leads into the follow-up plan that fits each one: day 1, 3, 7 and 14 for a lead who went quiet, a faster plan for one who asked about price, timing or booking, and a rebook plan after a missed call. Luca writes each touch when it is due. Starts outbound touches to real leads. Before the coach presses Go live in the SetLuca app, the touches wait for it, and the cadence is cancelled if the workspace is still not live after 30 days.\n\nLuca operation: POST /api/cadences/rescue\nRequired scopes: cadences:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Start a silent-lead rescue",
         "readOnlyHint": false,
@@ -1186,7 +1214,7 @@
     },
     "luca_call_events_push_to_crm": {
       "title": "Push a call to the CRM",
-      "description": "Send the current summary to the CRM now, without waiting out the review window. Re-pushing updates the existing note.\n\nLuca operation: POST /api/call-events/{id}/push-to-crm\nRequired scopes: call_events:write\nRequired OAuth scope: luca:full; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Send the current summary to the CRM now, without waiting out the review window. Re-pushing updates the existing note. A push that stopped goes again once the CRM can take it, and a note Luca cannot yet confirm the CRM created answers 409 until it reconciles.\n\nLuca operation: POST /api/call-events/{id}/push-to-crm\nRequired scopes: call_events:write\nRequired OAuth scope: luca:full; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Push a call to the CRM",
         "readOnlyHint": false,
@@ -1265,8 +1293,22 @@
         "openWorldHint": false
       },
       "inputSchema": "ce0a2e34e5d006c9",
-      "outputSchema": "50c741075c2c8903",
+      "outputSchema": "058e78830d39ce32",
       "meta": "b378caa8dc624177"
+    },
+    "luca_campaigns_comment_events_unhide": {
+      "title": "Unhide a comment a campaign hid",
+      "description": "Make a comment a campaign hid visible on Instagram again, and record it in comment activity. Pass confirm: true after the coach approves. Answers status failed with a failureCode when Instagram refuses, and 409 when the comment is not hidden or Instagram is not connected.\n\nLuca operation: POST /api/campaigns/comment-events/{id}/unhide\nRequired scopes: campaigns:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Unhide a comment a campaign hid",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": "e0bea99d4bf176ef",
+      "outputSchema": "cf9f3be511f98bbf",
+      "meta": "1b5a56c606a88080"
     },
     "luca_campaigns_comment_simulation_suite_run": {
       "title": "Run the comment automation suite",
@@ -1292,7 +1334,7 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
-      "inputSchema": "61dc3ed566b14577",
+      "inputSchema": "7d60f08eccaa0ff6",
       "outputSchema": "da3681281f8b15f3",
       "meta": "1b5a56c606a88080"
     },
@@ -1306,7 +1348,7 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
-      "inputSchema": "40ddbf8e84767309",
+      "inputSchema": "0a6d4dee054e3ee9",
       "outputSchema": "da3681281f8b15f3",
       "meta": "1b5a56c606a88080"
     },
@@ -1354,7 +1396,7 @@
     },
     "luca_campaigns_enrollments_resume": {
       "title": "Resume an enrollment a safety approval kept paused",
-      "description": "Resume a campaign enrollment that stayed paused after the coach approved a safety review on the lead's reply. Use it once the coach has approved the review and decided the lead is ready for the campaign again. It sends the campaign's next message to the lead. Luca answers 404 when the enrollment does not exist. It answers 409 when the enrollment is not waiting on a safety approval, or when it has already moved on from its wait.\n\nLuca operation: POST /api/campaigns/{id}/enrollments/{enrollmentId}/resume\nRequired scopes: campaigns:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Resume a campaign enrollment that stayed paused after the coach approved a safety review on the lead's reply. Use it once the coach has approved the review and decided the lead is ready for the campaign again. It sends the campaign's next message to the lead. Luca answers 404 when the enrollment does not exist. It answers 409 feature_off while the feature that runs the enrollment is turned off (Campaigns, or Broadcasts for an enrollment a broadcast made); luca_features_list shows which. It answers 409 when the enrollment is not waiting on a safety approval, or when it has already moved on from its wait.\n\nLuca operation: POST /api/campaigns/{id}/enrollments/{enrollmentId}/resume\nRequired scopes: campaigns:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Resume an enrollment a safety approval kept paused",
         "readOnlyHint": false,
@@ -1390,7 +1432,7 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
-      "inputSchema": "6aa796f264b53005",
+      "inputSchema": "a0edca4ab59585fd",
       "outputSchema": "117541485d7dce36",
       "meta": "55ca42dc0cc1c859"
     },
@@ -1408,9 +1450,23 @@
       "outputSchema": "da3681281f8b15f3",
       "meta": "b378caa8dc624177"
     },
+    "luca_campaigns_instagram_media": {
+      "title": "List Instagram posts for a campaign",
+      "description": "List the coach's Instagram posts and reels, newest first, or (query.kind stories) the stories from the last 24 hours, read live from Instagram, to pick what a comment or story campaign watches. query.ids looks up media by ID, and query.link the post or reel behind a pasted Instagram link. Answers 409 when Instagram is not connected.\n\nLuca operation: GET /api/campaigns/instagram-media\nRequired scopes: campaigns:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List Instagram posts for a campaign",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": "c6b8911e1d71d097",
+      "outputSchema": "4499639535b35d7f",
+      "meta": "b378caa8dc624177"
+    },
     "luca_campaigns_list": {
       "title": "List campaigns",
-      "description": "List campaigns. Query supports limit, cursor, and status.\n\nLuca operation: GET /api/campaigns\nRequired scopes: campaigns:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "List campaigns. Query supports limit, cursor, status (or open for every campaign not archived), and search, which matches the name or description.\n\nLuca operation: GET /api/campaigns\nRequired scopes: campaigns:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "List campaigns",
         "readOnlyHint": true,
@@ -1418,8 +1474,22 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
-      "inputSchema": "6903e921169d2e14",
+      "inputSchema": "235976953bfb3dfb",
       "outputSchema": "c440d058eef46aa1",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_campaigns_overlaps": {
+      "title": "List overlapping campaigns",
+      "description": "List pairs of published campaigns that can start on the same comment, message, or story event, the rules they share, and which one answers. With query.campaignId, compare that campaign's current draft with the published campaigns. Check this before publishing a campaign.\n\nLuca operation: GET /api/campaigns/overlaps\nRequired scopes: campaigns:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List overlapping campaigns",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "60e99d1dc490a097",
+      "outputSchema": "c9acc256600a7375",
       "meta": "b378caa8dc624177"
     },
     "luca_campaigns_provider_capabilities": {
@@ -1592,15 +1662,15 @@
     },
     "luca_channels_set_ai_dm_auto_send": {
       "title": "Turn auto-send on or off for a channel",
-      "description": "Turn Luca's DM auto-send on or off for one channel account. Off puts every Luca draft on that account in the review queue. On lets drafts that pass Luca's safety checks send without review while the workspace switch is also on; this tool leaves that switch as it was. Nothing sends without review until the coach presses Go live in the SetLuca app, so before then the switch is saved but has no effect. Campaign sends follow their own policy. WhatsApp and disconnected accounts answer 404.\n\nLuca operation: PATCH /api/channels/{id}/auto-send\nRequired scopes: channels:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive when enabled is true (lets Luca's replies reach leads without review): has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Turn Luca's DM auto-send off for one channel account. Off moves that account's DM replies to review, so every Luca draft on it lands in the review queue; other accounts keep theirs. Turning it on is the coach's choice in the SetLuca app: through this connection, enabled true answers 403 auto_needs_coach unless the account is already at auto, which changes nothing. workspaceAutoSendEnabled in the response says whether any account is at auto. Luca has deprecated this route in favor of its Autonomy settings, and each change is saved as a Set up Luca version the coach can undo. Campaign sends follow their own policy. WhatsApp and disconnected accounts answer 404.\n\nLuca operation: PATCH /api/channels/{id}/auto-send\nRequired scopes: channels:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Turn auto-send on or off for a channel",
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": false,
-        "openWorldHint": true
+        "openWorldHint": false
       },
-      "inputSchema": "70369bbe07eb92e3",
+      "inputSchema": "b3a69cb5d8917769",
       "outputSchema": "489f300b1ccd4f1e",
       "meta": "c8163f8c80645628"
     },
@@ -1741,7 +1811,7 @@
         "openWorldHint": false
       },
       "inputSchema": "c3555e757deacd72",
-      "outputSchema": "42c9a664b5e3a401",
+      "outputSchema": "b8c6f4786ccddee2",
       "meta": "b378caa8dc624177"
     },
     "luca_conversations_list": {
@@ -1870,6 +1940,62 @@
       "outputSchema": "e64cb309f126dcf8",
       "meta": "55ca42dc0cc1c859"
     },
+    "luca_features_list": {
+      "title": "List feature switches",
+      "description": "List Luca's six features and whether each one runs for the coach: ai_replies (off, review or auto_send), and campaigns, broadcasts, follow_ups, booking_messages and call_summaries (on or off). An isLocked feature is not in the coach's plan, so its switch does nothing until they upgrade to requiredPlanId. changedBy and changedAt say who last changed a switch and when. Any Luca tool that answers 409 feature_off was refused because the feature behind it is turned off. Read this to see which one, and preview with luca_features_preview before changing a switch.\n\nLuca operation: GET /api/features\nRequired scopes: features:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List feature switches",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "3fbac634759b99de",
+      "outputSchema": "bbb2cacf5e8008d4",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_features_preview": {
+      "title": "Preview a feature switch change",
+      "description": "Preview setting one feature to body.state, changing nothing. Answers the feature's current state and the work turning it down would hold: active campaign enrollments, queued sends, scheduled follow-ups, running broadcasts and booking messages still to go out. Turning a feature up holds nothing, so its counts are zero. Call this before luca_features_set and show the coach the counts, so they know what the change holds. Held work keeps its place and continues when the feature is turned back on. Any Luca tool that answers 409 feature_off was refused because the feature behind it is turned off.\n\nLuca operation: POST /api/features/{feature}/preview\nRequired scopes: features:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Preview a feature switch change",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "188fe3c8146d2fb8",
+      "outputSchema": "dd91d4a39090181a",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_features_set": {
+      "title": "Turn a feature on or off",
+      "description": "Set one feature's switch, which changes what Luca does for the coach. Preview the change with luca_features_preview first, show the coach what it holds, and pass confirm: true only after they approve this exact change. ai_replies takes off, review or auto_send; every other feature takes on or off. Turning a feature off stops new work at once and holds queued work; turning it back on releases the held work in order, so held messages go out to leads. ai_replies at review moves every channel's DM replies to review. Through this connection auto_send is only stored: no channel moves to auto, and nothing auto-sends until the coach chooses auto in the SetLuca app. After Go live, turning on a feature whose skipped setup steps are still unconfirmed answers 409 confirm_steps_needed. Nothing sends on its own before Go live. Any Luca tool that answers 409 feature_off was refused because the feature behind it is turned off.\n\nLuca operation: PUT /api/features/{feature}\nRequired scopes: features:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Turn a feature on or off",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": "3c3cc394580aa85b",
+      "outputSchema": "09af05d9e0c02726",
+      "meta": "c8163f8c80645628"
+    },
+    "luca_features_set_many": {
+      "title": "Set several feature switches",
+      "description": "Set several feature switches in one change, as Luca's setup step does for a preset. Each entry in body.features works as luca_features_set does, a feature may appear once, and either every change is stored or none is. Preview each change with luca_features_preview, and pass confirm: true only after the coach approves the whole set. Answers every feature as it now reads. Any Luca tool that answers 409 feature_off was refused because the feature behind it is turned off.\n\nLuca operation: PUT /api/features\nRequired scopes: features:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Set several feature switches",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": "33973d171c7a668a",
+      "outputSchema": "bbb2cacf5e8008d4",
+      "meta": "c8163f8c80645628"
+    },
     "luca_find_leads": {
       "title": "Find leads",
       "description": "Search the coach's leads by free-text query and optional channel. Use this to locate a lead before drafting, booking, or flagging. Example: call with { query: \"maria instagram\" } to find Maria's Instagram lead.",
@@ -1982,6 +2108,48 @@
       "outputSchema": "a2b05e4115c1981c",
       "meta": "b378caa8dc624177"
     },
+    "luca_integrations_activity_list": {
+      "title": "List a CRM's sync activity",
+      "description": "List a CRM integration's sync activity, newest first: sync runs, post-call summary pushes, and deal-stage moves. Each row says why it failed, whether its outcome is unknown, until when a failed row keeps retrying, and whether its summary can be pushed again. provider is a CRM catalog key, such as hubspot.\n\nLuca operation: GET /api/integrations/{provider}/activity\nRequired scopes: integrations:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List a CRM's sync activity",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "92e1b658081585a7",
+      "outputSchema": "23b481ac40a5d923",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_integrations_catalog": {
+      "title": "List integrations the coach can connect",
+      "description": "List every integration the coach can connect, grouped by family: CRM, booking and calendars, channels, knowledge, automation, and developer. Each entry says how it connects and which page manages it. Connecting happens in the SetLuca app.\n\nLuca operation: GET /api/integrations/catalog\nRequired scopes: integrations:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List integrations the coach can connect",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "3fbac634759b99de",
+      "outputSchema": "f18eed2c8025ac9d",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_integrations_connections_list": {
+      "title": "List integration statuses",
+      "description": "List every integration's status: connected, needs_attention with the reason and any missing scope, or not_connected. needsAttentionCount is the number the app's sidebar badge shows. Read this to find what the coach has to reconnect.\n\nLuca operation: GET /api/integrations/connections\nRequired scopes: integrations:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List integration statuses",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "3fbac634759b99de",
+      "outputSchema": "17452a7d634d1a20",
+      "meta": "b378caa8dc624177"
+    },
     "luca_integrations_connectors_list": {
       "title": "List available connectors",
       "description": "List Zapier, Make, and CRM provider capabilities.\n\nLuca operation: GET /api/integrations/connectors\nRequired scopes: integrations:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
@@ -1998,7 +2166,7 @@
     },
     "luca_integrations_crm_connections_create": {
       "title": "Create a CRM connection",
-      "description": "Create or update a workspace-scoped CRM connection.\n\nLuca operation: POST /api/integrations/crm/connections\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Create or update a workspace-scoped CRM connection. Luca checks the supplied credentials before storing them, so a malformed key fails here, without calling the CRM. HubSpot connects only through OAuth (luca_integrations_crm_oauth_url), so raw HubSpot credentials answer 400 crm_oauth_required. A coach with another CRM already connected gets 409 crm_family_taken.\n\nLuca operation: POST /api/integrations/crm/connections\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Create a CRM connection",
         "readOnlyHint": false,
@@ -2007,21 +2175,21 @@
         "openWorldHint": false
       },
       "inputSchema": "7003ad26da5f7923",
-      "outputSchema": "629612927ab07b82",
+      "outputSchema": "75f7cae103fc300c",
       "meta": "c8163f8c80645628"
     },
     "luca_integrations_crm_connections_disconnect": {
       "title": "Disconnect a CRM",
-      "description": "Disable a CRM connection and clear the credentials Luca holds, which stops every sync with that CRM until the coach connects it again. Saved mappings and event history stay. It does not revoke access on the CRM's side.\n\nLuca operation: POST /api/integrations/crm/connections/{id}/disconnect\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Disable a CRM connection and clear the credentials Luca holds, which stops every sync with that CRM until the coach connects it again. Saved mappings and event history stay. For HubSpot, Luca also deletes the Composio account that held its access, at once or by a later cleanup job. Other CRMs keep the access they granted on their own side.\n\nLuca operation: POST /api/integrations/crm/connections/{id}/disconnect\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Disconnect a CRM",
         "readOnlyHint": false,
         "destructiveHint": true,
         "idempotentHint": true,
-        "openWorldHint": false
+        "openWorldHint": true
       },
       "inputSchema": "e0bea99d4bf176ef",
-      "outputSchema": "629612927ab07b82",
+      "outputSchema": "75f7cae103fc300c",
       "meta": "c8163f8c80645628"
     },
     "luca_integrations_crm_connections_health": {
@@ -2054,7 +2222,7 @@
     },
     "luca_integrations_crm_connections_schema": {
       "title": "Read a CRM's field schema",
-      "description": "Discover CRM provider schema.\n\nLuca operation: GET /api/integrations/crm/connections/{id}/schema\nRequired scopes: integrations:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Discover CRM provider schema: the objects and fields the connected CRM exposes, which field mapping works from. A connection that must be reconnected answers 409 crm_reauth_required, and a disconnected one answers 409 crm_connection_disabled.\n\nLuca operation: GET /api/integrations/crm/connections/{id}/schema\nRequired scopes: integrations:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Read a CRM's field schema",
         "readOnlyHint": false,
@@ -2062,7 +2230,7 @@
         "idempotentHint": true,
         "openWorldHint": true
       },
-      "inputSchema": "c3555e757deacd72",
+      "inputSchema": "858d0e571a08238b",
       "outputSchema": "5c26f01133018bad",
       "meta": "b378caa8dc624177"
     },
@@ -2094,6 +2262,20 @@
       "outputSchema": "cf0addde52167fcd",
       "meta": "c8163f8c80645628"
     },
+    "luca_integrations_crm_mappings_read": {
+      "title": "Read saved CRM field mappings",
+      "description": "Read the confirmed field mappings of the coach's CRM connection and the suggestions not confirmed yet. query.provider picks a connection. A coach without a CRM connection gets empty lists.\n\nLuca operation: GET /api/integrations/crm/mappings\nRequired scopes: integrations:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Read saved CRM field mappings",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "801dcb505befebb0",
+      "outputSchema": "521a70c9e6d99d4c",
+      "meta": "b378caa8dc624177"
+    },
     "luca_integrations_crm_mappings_suggest": {
       "title": "Suggest CRM field mappings",
       "description": "Suggest CRM field mappings.\n\nLuca operation: POST /api/integrations/crm/connections/{id}/mappings/suggest\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
@@ -2110,21 +2292,35 @@
     },
     "luca_integrations_crm_oauth_url": {
       "title": "Start a CRM connection",
-      "description": "Create a CRM provider OAuth URL and store its one-time state.\n\nLuca operation: GET /api/integrations/crm/providers/{provider}/oauth-url\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Create a CRM provider OAuth URL and store its one-time state. For HubSpot, Luca asks Composio to start the connection and returns Composio's sign-in link; a failure there answers 502 crm_oauth_failed.\n\nLuca operation: GET /api/integrations/crm/providers/{provider}/oauth-url\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Start a CRM connection",
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": false,
-        "openWorldHint": false
+        "openWorldHint": true
       },
       "inputSchema": "396c89b800927656",
       "outputSchema": "26059a77df12f946",
       "meta": "c8163f8c80645628"
     },
+    "luca_integrations_crm_sync_runs_apply": {
+      "title": "Run a CRM sync from its preview",
+      "description": "Run the sync a dry run previewed (luca_integrations_crm_sync_runs_create): send the failed post-call summaries and deal-stage moves its resend listed to the CRM now, if they are still failed and inside their three-day retry window. It never sends one the preview did not list. Show the coach the preview, and pass confirm: true after they approve. A preview older than an hour or already applied is refused, and one made before the CRM was reconnected answers 409 crm_connection_changed. A connection that must be reconnected answers 409 crm_reauth_required, and a disconnected one 409 crm_connection_disabled.\n\nLuca operation: POST /api/integrations/crm/connections/{id}/sync-runs/{runId}/apply\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Run a CRM sync from its preview",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": "63e814a6bb86757e",
+      "outputSchema": "471cf0f34fef77b1",
+      "meta": "c8163f8c80645628"
+    },
     "luca_integrations_crm_sync_runs_create": {
       "title": "Preview a CRM sync",
-      "description": "Record a dry-run preview of the changes a CRM sync would make, as a new sync run. Nothing is written to the CRM: the API refuses a live sync.\n\nLuca operation: POST /api/integrations/crm/connections/{id}/sync-runs\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Record a dry-run preview of the changes a CRM sync would make, as a new sync run. Nothing is written to the CRM: body.mode live answers 400 crm_live_sync_unavailable, because a live sync applies a dry-run preview: pass this run's id to luca_integrations_crm_sync_runs_apply. When this CRM is the post-call target, resend lists the failed post-call summaries and deal-stage moves a sync would send again, up to 25 of each.\n\nLuca operation: POST /api/integrations/crm/connections/{id}/sync-runs\nRequired scopes: integrations:write\nRequired OAuth scope: luca:full; data sensitivity: full_content\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Preview a CRM sync",
         "readOnlyHint": false,
@@ -2133,7 +2329,7 @@
         "openWorldHint": false
       },
       "inputSchema": "431b39e7474b4a6b",
-      "outputSchema": "14126d8d659772b2",
+      "outputSchema": "471cf0f34fef77b1",
       "meta": "c8163f8c80645628"
     },
     "luca_integrations_crm_sync_runs_list": {
@@ -2162,6 +2358,20 @@
       },
       "inputSchema": "05f80fd49e5038fb",
       "outputSchema": "ab95c05691189578",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_integrations_usage_read": {
+      "title": "Read integration request usage",
+      "description": "Count the requests the coach's integrations sent to providers today and this month (UTC), with their cost, against the daily cap. With query.provider, today and month count that provider only; remainingToday is always the cap left across providers.\n\nLuca operation: GET /api/integrations/usage\nRequired scopes: integrations:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Read integration request usage",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "1b90ab6391f07990",
+      "outputSchema": "0e2d325dc7152d43",
       "meta": "b378caa8dc624177"
     },
     "luca_knowledge_reject_suggestion": {
@@ -2371,7 +2581,7 @@
         "openWorldHint": false
       },
       "inputSchema": "c3555e757deacd72",
-      "outputSchema": "92762275bc9da1e3",
+      "outputSchema": "0a5f658e573db3c9",
       "meta": "b378caa8dc624177"
     },
     "luca_leads_identities_attach": {
@@ -2398,7 +2608,7 @@
         "idempotentHint": false,
         "openWorldHint": false
       },
-      "inputSchema": "b76d1d5a7ebe81df",
+      "inputSchema": "b9d063a100647318",
       "outputSchema": "90acff21c936813a",
       "meta": "1b5a56c606a88080"
     },
@@ -2412,7 +2622,7 @@
         "idempotentHint": true,
         "openWorldHint": false
       },
-      "inputSchema": "d8a268f1b33a77b7",
+      "inputSchema": "8c5a661e1460cee3",
       "outputSchema": "90acff21c936813a",
       "meta": "55ca42dc0cc1c859"
     },
@@ -2457,6 +2667,20 @@
       "inputSchema": "6e393698a02bd122",
       "outputSchema": "fe78709930afee1e",
       "meta": "55ca42dc0cc1c859"
+    },
+    "luca_leads_opt_out_restore": {
+      "title": "Restore a lead after an opt-out",
+      "description": "Undo a lead's opt-out: grant back every follow-up consent they withdrew and lift the drafting pause the opt-out set, so Luca may message them again. A consent the coach withdrew stays withdrawn, and campaigns the opt-out ended stay ended. Only do this when the lead has asked to hear from the coach again, and pass confirm: true after the coach approves. restoredConsents counts the consents restored, 0 when none were withdrawn.\n\nLuca operation: POST /api/leads/{id}/opt-out/restore\nRequired scopes: leads:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Restore a lead after an opt-out",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": "e0bea99d4bf176ef",
+      "outputSchema": "c6215c914a53bf98",
+      "meta": "1b5a56c606a88080"
     },
     "luca_leads_update": {
       "title": "Update a lead",
@@ -2595,7 +2819,7 @@
         "openWorldHint": false
       },
       "inputSchema": "3fbac634759b99de",
-      "outputSchema": "76ef2da88e94978a",
+      "outputSchema": "9ecb6a1b36d16dc2",
       "meta": "b378caa8dc624177"
     },
     "luca_pause_cadence": {
@@ -2628,7 +2852,7 @@
     },
     "luca_reports_morning": {
       "title": "Read the morning report",
-      "description": "Structured 24h review-queue digest (items + counts) for the coach. No model call; summarize client-side.\n\nLuca operation: GET /api/reports/morning\nRequired scopes: reports:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "description": "Structured 24h review-queue digest (items + counts) for the coach, with the clients whose latest messages read stuck or at risk. No model call; summarize client-side.\n\nLuca operation: GET /api/reports/morning\nRequired scopes: reports:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
       "annotations": {
         "title": "Read the morning report",
         "readOnlyHint": true,
@@ -2637,7 +2861,7 @@
         "openWorldHint": false
       },
       "inputSchema": "3fbac634759b99de",
-      "outputSchema": "76ef2da88e94978a",
+      "outputSchema": "9ecb6a1b36d16dc2",
       "meta": "b378caa8dc624177"
     },
     "luca_reports_scorecard": {
@@ -2665,12 +2889,12 @@
         "openWorldHint": true
       },
       "inputSchema": "05a9277281c6110a",
-      "outputSchema": "561f4824163641f6",
+      "outputSchema": "b3ef1b72a3620dac",
       "meta": "1b5a56c606a88080"
     },
     "luca_rescue_silent_leads": {
       "title": "Enroll silent leads into the rescue cadence",
-      "description": "Enroll one or more silent leads into the multi-day rescue cadence. THIS STARTS OUTBOUND TOUCHES to real leads over the coming days. Luca drafts each one, and with auto-send off each waits in the review queue first. Before the coach presses Go live in the SetLuca app, the touches wait for it, and the cadence is cancelled after 30 days if the workspace is still not live. Pass confirm: true to proceed. cadenceTemplate is light | standard | aggressive (default standard). Example: { leadIds: [\"...\"], cadenceTemplate: \"standard\", confirm: true }.",
+      "description": "Enroll one or more silent leads into the follow-up plan that fits each one (day 1, 3, 7 and 14 for a lead who went quiet, faster after a price, timing or booking question, a rebook plan after a missed call). THIS STARTS OUTBOUND TOUCHES to real leads over the coming days. Luca drafts each one, and with auto-send off each waits in the review queue first. Before the coach presses Go live in the SetLuca app, the touches wait for it, and the cadence is cancelled after 30 days if the workspace is still not live. Pass confirm: true to proceed. cadenceTemplate (light | standard | aggressive) is stored for compatibility and no longer sets timing. Example: { leadIds: [\"...\"], cadenceTemplate: \"standard\", confirm: true }.",
       "annotations": {
         "title": "Enroll silent leads into the rescue cadence",
         "readOnlyHint": false,
@@ -2678,7 +2902,7 @@
         "idempotentHint": false,
         "openWorldHint": true
       },
-      "inputSchema": "6a3e6840c28ea58d",
+      "inputSchema": "ac991c20c1579ceb",
       "outputSchema": "398f69578feca667",
       "meta": "1b5a56c606a88080"
     },
@@ -2920,6 +3144,20 @@
       "outputSchema": "402f39a538dc6183",
       "meta": "b378caa8dc624177"
     },
+    "luca_review_queue_snapshot": {
+      "title": "Read a review queue snapshot",
+      "description": "Read the review queue's first page, the pending count, and the replies Luca is still drafting, in one call. Query takes the same filters as luca_review_queue_list: limit, status, category, leadId, and order (priority or fifo). Use luca_review_queue_list to page further.\n\nLuca operation: GET /api/review-queue/snapshot\nRequired scopes: review_queue:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Read a review queue snapshot",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "24a76070f4a30b20",
+      "outputSchema": "d66a4672dfae5477",
+      "meta": "b378caa8dc624177"
+    },
     "luca_review_queue_summary": {
       "title": "Summarize the review queue",
       "description": "Read how many drafts are pending and the newest few, with lead names and hot-lead flags but no draft text. Cheaper than listing the queue.\n\nLuca operation: GET /api/review-queue/summary\nRequired scopes: review_queue:read\nRequired OAuth scope: luca:read; data sensitivity: full_content\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
@@ -2947,6 +3185,76 @@
       "inputSchema": "3fbac634759b99de",
       "outputSchema": "a24a6a4867522607",
       "meta": "b378caa8dc624177"
+    },
+    "luca_safety_dead_letters_discard": {
+      "title": "Discard a dead letter",
+      "description": "Mark an open dead letter handled without resending it, so its work never happens. Answers 409 dead_letter_not_open when it is not open. Use luca_safety_dead_letters_replay instead to retry it.\n\nLuca operation: POST /api/core-dead-letters/{id}/discard\nRequired scopes: review_queue:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Discard a dead letter",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "6061a0f46ab87b2a",
+      "outputSchema": "77dc0124f0c2f997",
+      "meta": "1b5a56c606a88080"
+    },
+    "luca_safety_dead_letters_get": {
+      "title": "Get a dead letter",
+      "description": "Read one dead letter's lane, event, error, attempts, and status. The stored message is not returned.\n\nLuca operation: GET /api/core-dead-letters/{id}\nRequired scopes: safety:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Get a dead letter",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "c3555e757deacd72",
+      "outputSchema": "77dc0124f0c2f997",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_safety_dead_letters_list": {
+      "title": "List dead letters",
+      "description": "List the workspace's dead letters, newest first: work Luca gave up on after its retries, with the lane, event, error, and attempts. The stored message is not returned. Filter by query.status (open, replayed, discarded, quarantined) and query.lane.\n\nLuca operation: GET /api/core-dead-letters\nRequired scopes: safety:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "List dead letters",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "a3baf592e25b7403",
+      "outputSchema": "48bc0aebbc7844a2",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_safety_dead_letters_metrics": {
+      "title": "Read dead letter metrics",
+      "description": "Read per-lane counts for the workspace: open dead letters, failures in the last 24 hours, and events still waiting in the outbox.\n\nLuca operation: GET /api/core-dead-letters/metrics\nRequired scopes: safety:read\nRequired OAuth scope: luca:read; data sensitivity: redacted\nDoes not require idempotency.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Read dead letter metrics",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": "3fbac634759b99de",
+      "outputSchema": "0f0254b1be3dcade",
+      "meta": "b378caa8dc624177"
+    },
+    "luca_safety_dead_letters_replay": {
+      "title": "Replay a dead letter",
+      "description": "Send a dead letter's original message back to its lane and mark it replayed. A message on an outbound or reply lane can then reach the lead, so pass confirm: true only after the coach approves. It keeps its idempotency key, so work that already happened is not done twice. Answers 409 dead_letter_not_open or not_replayable, and 503 replay_unavailable when the lane refuses it.\n\nLuca operation: POST /api/core-dead-letters/{id}/replay\nRequired scopes: review_queue:write\nRequired OAuth scope: luca:queue_ops; data sensitivity: redacted\nRequires Idempotency-Key. Provide idempotencyKey for safe retries, or the server will generate one.\nDestructive: has a real-world side effect. You must pass confirm: true; the call is rejected without it.\nUse workspaceId or workspaceSlug to override the default workspace configured by environment.",
+      "annotations": {
+        "title": "Replay a dead letter",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": "e0bea99d4bf176ef",
+      "outputSchema": "77dc0124f0c2f997",
+      "meta": "1b5a56c606a88080"
     },
     "luca_triage_inbox": {
       "title": "Triage the review queue",

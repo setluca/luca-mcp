@@ -1,6 +1,7 @@
 import * as R from "effect/Record";
 
 import { analyticsOperations } from "./groups/analytics.ts";
+import { autonomyOperations } from "./groups/autonomy.ts";
 import { bookingsOperations } from "./groups/bookings.ts";
 import { broadcastsOperations } from "./groups/broadcasts.ts";
 import { cadencesOperations } from "./groups/cadences.ts";
@@ -16,6 +17,7 @@ import { capabilitiesOperations } from "./groups/capabilities.ts";
 import { channelsOperations } from "./groups/channels.ts";
 import { coachOperations } from "./groups/coach.ts";
 import { conversationsOperations } from "./groups/conversations.ts";
+import { featuresOperations } from "./groups/features.ts";
 import { insightsOperations } from "./groups/insights.ts";
 import { integrationsOperations } from "./groups/integrations.ts";
 import { knowledgeOperations } from "./groups/knowledge.ts";
@@ -43,6 +45,8 @@ export const LUCA_OPERATIONS: readonly LucaOperation[] = [
   ...integrationsOperations,
   ...voiceOperations,
   ...coachOperations,
+  ...featuresOperations,
+  ...autonomyOperations,
   ...usageOperations,
   ...safetyOperations,
   ...channelsOperations,

@@ -297,6 +297,7 @@ describe("operation manifest", () => {
       "luca_review_queue_regenerate",
       "luca_review_queue_bulk_approve",
       "luca_review_queue_bulk_reject",
+      "luca_review_queue_snapshot",
     ]);
   });
 
@@ -522,7 +523,13 @@ describe("operation manifest", () => {
         "reviewQueue.drafting.retry",
         "reviewQueue.regenerate",
         "bookings.providerRequests.create",
-        "channels.set_ai_dm_auto_send",
+        "features.set",
+        "features.setMany",
+        "autonomy.set",
+        "leads.optOut.restore",
+        "campaigns.commentEvents.unhide",
+        "integrations.crm.syncRuns.apply",
+        "safety.deadLetters.replay",
       ])
     );
   });
@@ -643,11 +650,13 @@ describe("operation manifest", () => {
     "broadcasts.list",
     "campaigns.commentEvents.list",
     "campaigns.enrollments.list",
+    "campaigns.instagramMedia",
     "campaigns.list",
     "campaigns.simulations.list",
     "coach.auditLog",
     "conversations.list",
     "conversations.messages",
+    "integrations.activity.list",
     "integrations.events.list",
     "leads.list",
     "reviewQueue.list",
@@ -747,7 +756,17 @@ describe("operation manifest", () => {
         "leads.drafting.pause",
         "reviewQueue.drafting.retry",
         "reviewQueue.regenerate",
-        "channels.set_ai_dm_auto_send",
+        // Turning a feature back on releases the sends it held.
+        "features.set",
+        "features.setMany",
+        "autonomy.set",
+        // Restored consent and a lifted drafting pause let Luca message the
+        // lead again.
+        "leads.optOut.restore",
+        // A dead letter on an outbound or reply lane goes to the lead.
+        "safety.deadLetters.replay",
+        // Makes a comment visible on Instagram again.
+        "campaigns.commentEvents.unhide",
         // An outside URL.
         "webhooks.subscriptions.create",
         "webhooks.subscriptions.update",
@@ -773,6 +792,10 @@ describe("operation manifest", () => {
         "callEvents.pushToCrm",
         "callEvents.summary.generate",
         "callEvents.backfill",
+        "integrations.crm.syncRuns.apply",
+        // Composio, which holds a HubSpot connection.
+        "integrations.crm.oauthUrl",
+        "integrations.crm.connections.disconnect",
         // The coach's webhook subscribers, which hear about the change.
         "leads.create",
         "leads.update",
@@ -787,6 +810,7 @@ describe("operation manifest", () => {
         "leads.draft",
         // These read outside Luca without changing the outside system.
         "integrations.crm.connections.schema",
+        "campaigns.instagramMedia",
         "integrations.crm.connections.health",
         "knowledge.sources.sync",
       ])
@@ -948,6 +972,7 @@ describe("operation manifest", () => {
       "integrations.crm.connections.schema",
       "integrations.crm.syncRuns.list",
       "integrations.crm.syncRuns.create",
+      "integrations.crm.syncRuns.apply",
       "integrations.events.list",
       "leads.draft",
       // A memory edit returns the corrected fact Luca extracted from a lead's
@@ -1001,6 +1026,7 @@ describe("operation manifest", () => {
       "memory.setArchived",
       "leads.drafting.pause",
       "leads.drafting.resume",
+      "leads.optOut.restore",
       "conversations.reply_failure_retry",
       "conversations.reply_failure_dismiss",
       "conversations.media_retry",
@@ -1242,14 +1268,25 @@ describe("operation manifest", () => {
       "queue_ops"
     );
 
-    // Only GETs are ever read capability.
+    // Only reads are ever read capability: GETs, and POSTs that only send a
+    // body, such as a preview the API asks no more than read of.
     const readCapability = LUCA_OPERATIONS.filter(
       (operation) => operation.requiredScope.capability === "read"
     );
 
     Arr.forEach(readCapability, (operation) => {
-      expect(operation.method).toBe("GET");
+      expect(operation.method === "GET" || operation.readOnly).toBe(true);
     });
+    expect(getOperation("features.preview").requiredScope.capability).toBe(
+      "read"
+    );
+    // The API asks draft of a key for these two, so they keep it.
+    expect(getOperation("leads.importPreview").requiredScope.capability).toBe(
+      "draft"
+    );
+    expect(getOperation("campaigns.generate").requiredScope.capability).toBe(
+      "draft"
+    );
 
     Arr.forEach(LUCA_OPERATIONS, (operation) => {
       // full_content is exactly the untrusted-content set.
@@ -1396,6 +1433,16 @@ describe("operation manifest", () => {
         "bookings.types.schedule.replace",
         "bookings.calendars.select",
         "insights.settings.update",
+        "features.set",
+        "features.setMany",
+        "autonomy.set",
+        "leads.optOut.restore",
+        // A second call finds the comment visible, the run applied, or the
+        // dead letter no longer open, and answers 409.
+        "campaigns.commentEvents.unhide",
+        "integrations.crm.syncRuns.apply",
+        "safety.deadLetters.replay",
+        "safety.deadLetters.discard",
         "integrations.crm.connections.create",
         "integrations.crm.mappings.suggest",
         "integrations.crm.mappings.confirm",
@@ -1573,5 +1620,206 @@ describe("toStandardSchema", () => {
 
     expect(jsonSchema.input(options)).toBe(jsonSchema.input(options));
     expect(jsonSchema.output(options)).toBe(jsonSchema.output(options));
+  });
+});
+
+describe("feature switch tools", () => {
+  it("lists the switches as a plain read", () => {
+    const operation = getOperation("features.list");
+
+    expect(operation).toMatchObject({
+      group: "features",
+      toolName: "luca_features_list",
+      method: "GET",
+      path: "/api/features",
+      scopes: ["features:read"],
+      idempotencyRequired: false,
+    });
+    expect(operation.confirm).toBeUndefined();
+    expect(annotationsOf(operation)).toMatchObject({
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    });
+  });
+
+  it("previews a change without making it", () => {
+    const operation = getOperation("features.preview");
+
+    expect(operation).toMatchObject({
+      toolName: "luca_features_preview",
+      method: "POST",
+      path: "/api/features/{feature}/preview",
+      scopes: ["features:read"],
+      idempotencyRequired: false,
+    });
+    // A POST only so the requested state fits in a body.
+    expect(operation.confirm).toBeUndefined();
+    expect(annotationsOf(operation)).toMatchObject({
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    });
+    expect(
+      operation.buildRequest({ feature: "campaigns", body: { state: "off" } })
+    ).toEqual({
+      pathParams: { feature: "campaigns" },
+      body: { state: "off" },
+      workspace: {},
+    });
+  });
+
+  it("gates setting a switch behind confirm: true on every call", () => {
+    const operation = getOperation("features.set");
+
+    expect(operation).toMatchObject({
+      toolName: "luca_features_set",
+      method: "PUT",
+      path: "/api/features/{feature}",
+      scopes: ["features:write"],
+      idempotencyRequired: true,
+      confirm: "always",
+      requiredScope: { capability: "full", dataSensitivity: "redacted" },
+    });
+    expect(oauthScopeForOperation(operation)).toBe("luca:full");
+    expect(
+      needsConfirmation(operation.confirm, { body: { state: "off" } })
+    ).toBe(true);
+    expect(annotationsOf(operation)).toMatchObject({
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    });
+    expect(
+      operation.buildRequest({
+        feature: "follow_ups",
+        body: { state: "off" },
+        idempotencyKey: "feature-set",
+        confirm: true,
+      })
+    ).toEqual({
+      pathParams: { feature: "follow_ups" },
+      body: { state: "off" },
+      idempotencyKey: "feature-set",
+      workspace: {},
+    });
+  });
+
+  it("takes only the six features and the four states", () => {
+    const set = toolSchema("features.set");
+    const preview = toolSchema("features.preview");
+
+    for (const schema of [set, preview]) {
+      expect(
+        accepts(schema, { feature: "ai_replies", body: { state: "review" } })
+      ).toBe(true);
+      expect(
+        accepts(schema, { feature: "autonomy", body: { state: "off" } })
+      ).toBe(false);
+      expect(
+        accepts(schema, { feature: "campaigns", body: { state: "paused" } })
+      ).toBe(false);
+      expect(accepts(schema, { feature: "campaigns" })).toBe(false);
+    }
+  });
+
+  it("tells the client to preview first and what feature_off means", () => {
+    for (const id of ["features.list", "features.preview", "features.set"]) {
+      expect(getOperation(id).description).toContain("409 feature_off");
+    }
+
+    expect(getOperation("features.set").description).toContain(
+      "luca_features_preview first"
+    );
+    expect(getOperation("features.preview").description).toContain(
+      "before luca_features_set"
+    );
+  });
+});
+
+describe("tools added with the contract sync", () => {
+  it("maps both path ids of a CRM sync apply", () => {
+    const operation = getOperation("integrations.crm.syncRuns.apply");
+
+    expect(operation).toMatchObject({
+      toolName: "luca_integrations_crm_sync_runs_apply",
+      method: "POST",
+      path: "/api/integrations/crm/connections/{id}/sync-runs/{runId}/apply",
+      idempotencyRequired: true,
+      confirm: "always",
+    });
+    expect(
+      operation.buildRequest({ id: "conn-1", runId: "run-1", confirm: true })
+    ).toEqual({
+      pathParams: { id: "conn-1", runId: "run-1" },
+      workspace: {},
+    });
+  });
+
+  it("files the autonomy tools under their own group", () => {
+    const set = getOperation("autonomy.set");
+
+    expect(set).toMatchObject({
+      group: "autonomy",
+      toolName: "luca_autonomy_set",
+      method: "PUT",
+      path: "/api/autonomy/{trigger}",
+      scopes: ["features:write"],
+      confirm: "always",
+    });
+    expect(getOperation("autonomy.list").group).toBe("autonomy");
+    expect(
+      set.buildRequest({ trigger: "dm_reply", body: { state: "review" } })
+    ).toEqual({
+      pathParams: { trigger: "dm_reply" },
+      body: { state: "review" },
+      workspace: {},
+    });
+    expect(
+      accepts(toolSchema("autonomy.set"), {
+        trigger: "dm_reply",
+        body: { state: "review" },
+      })
+    ).toBe(true);
+    expect(
+      accepts(toolSchema("autonomy.set"), {
+        trigger: "everything",
+        body: { state: "review" },
+      })
+    ).toBe(false);
+  });
+
+  it("sets several switches only with confirm: true", () => {
+    const operation = getOperation("features.setMany");
+
+    expect(operation).toMatchObject({
+      toolName: "luca_features_set_many",
+      method: "PUT",
+      path: "/api/features",
+      confirm: "always",
+    });
+    expect(
+      accepts(toolSchema("features.setMany"), {
+        body: { features: [{ feature: "campaigns", state: "off" }] },
+      })
+    ).toBe(true);
+    expect(
+      accepts(toolSchema("features.setMany"), { body: { features: [] } })
+    ).toBe(false);
+  });
+
+  it("keeps dead letter reads in the read tier and their writes gated where they send", () => {
+    for (const id of [
+      "safety.deadLetters.list",
+      "safety.deadLetters.metrics",
+      "safety.deadLetters.get",
+    ]) {
+      expect(oauthScopeForOperation(getOperation(id))).toBe("luca:read");
+    }
+
+    expect(getOperation("safety.deadLetters.replay").confirm).toBe("always");
+    expect(getOperation("safety.deadLetters.discard").confirm).toBeUndefined();
   });
 });

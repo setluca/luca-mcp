@@ -56,6 +56,8 @@ export const leadsOperations: readonly LucaOperation[] = [
     title: "Preview a lead import",
     // A POST only so the CSV fits in a body. It checks the mapping and saves nothing.
     readOnly: true,
+    // The API asks draft of a key for an import preview.
+    capability: "draft",
     description: "Preview a mapped CSV lead import before applying it.",
   }),
   op({
@@ -150,5 +152,19 @@ export const leadsOperations: readonly LucaOperation[] = [
     confirm: "always",
     description:
       "Clear a lead's pause and have Luca draft one reply over each conversation's unanswered messages. With auto-send on for the channel, that reply can send without review. A conversation is skipped when the coach already replied or the messaging window closed, and skippedReason says why nothing restarted. Resuming a lead that isn't paused succeeds.",
+  }),
+  op({
+    id: "leads.optOut.restore",
+    title: "Restore a lead after an opt-out",
+    // Answers with the consents it restored; no lead-authored text.
+    untrustedContent: false,
+    mutatesExisting: true,
+    idempotent: true,
+    // Consent is what lets Luca message the lead again, and lifting the
+    // drafting pause lets drafts go back through the channel's auto-send.
+    openWorld: true,
+    confirm: "always",
+    description:
+      "Undo a lead's opt-out: grant back every follow-up consent they withdrew and lift the drafting pause the opt-out set, so Luca may message them again. A consent the coach withdrew stays withdrawn, and campaigns the opt-out ended stay ended. Only do this when the lead has asked to hear from the coach again, and pass confirm: true after the coach approves. restoredConsents counts the consents restored, 0 when none were withdrawn.",
   }),
 ];

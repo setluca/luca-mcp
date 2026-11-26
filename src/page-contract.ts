@@ -36,6 +36,8 @@ const OUTPUTS_BY_ROUTE = HashMap.fromIterable<string, JsonSchema | null>(
 const ITEMS_KEY_BY_ROUTE: Readonly<Record<string, string>> = {
   // `availableChannels` is the filter's option list, not a page of records.
   "GET /api/conversations": "conversations",
+  // `missing` lists the requested ids Instagram had no media for.
+  "GET /api/campaigns/instagram-media": "items",
 };
 
 /**

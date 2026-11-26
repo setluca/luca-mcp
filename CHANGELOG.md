@@ -10,6 +10,58 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Added
+
+- `luca_features_list`, `luca_features_preview`, and `luca_features_set` read
+  and change the coach's feature switches: AI replies, Campaigns, Broadcasts,
+  Follow-ups, Booking messages, and Call summaries. Preview counts the work a
+  change would hold and changes nothing. Set needs `confirm: true`, because
+  turning a feature off holds its queued work and turning it back on releases
+  it. A tool that answers `409 feature_off` was refused because its feature is
+  off. The new `features:read` scope is in `luca:read`, so list and preview need
+  no more, and `features:write` is in `luca:full`.
+- `luca_features_set_many` sets several switches in one change, and
+  `luca_autonomy_list` and `luca_autonomy_set` read and change what Luca may
+  do without the coach, per trigger. Through a connection a trigger can move
+  to off or review only; auto answers `403 auto_needs_coach`.
+- `luca_safety_dead_letters_list`, `luca_safety_dead_letters_metrics`,
+  `luca_safety_dead_letters_get`, `luca_safety_dead_letters_replay`, and
+  `luca_safety_dead_letters_discard` show the work Luca gave up on and retry or
+  drop it. Replay needs `confirm: true`, because a message on an outbound lane
+  reaches the lead.
+- `luca_integrations_catalog`, `luca_integrations_connections_list`,
+  `luca_integrations_activity_list`, `luca_integrations_usage_read`, and
+  `luca_integrations_crm_mappings_read` read what the coach can connect, each
+  integration's status, a CRM's sync activity, provider request usage, and the
+  saved CRM field mappings. `luca_integrations_crm_sync_runs_apply` runs a
+  previewed CRM sync, with `confirm: true`.
+- `luca_review_queue_snapshot` reads the queue's first page, pending count,
+  and drafting rows in one call. `luca_campaigns_overlaps` lists campaigns that
+  start on the same event, `luca_campaigns_instagram_media` lists the coach's
+  Instagram posts for a campaign, and `luca_campaigns_comment_events_unhide`
+  unhides a comment a campaign hid, with `confirm: true`.
+- `luca_leads_opt_out_restore` restores the consents a lead's opt-out
+  withdrew and lifts its drafting pause, with `confirm: true`.
+
+### Changed
+
+- The contracts are pinned to Luca `1faeb47da9` on `master`, ahead of its
+  production deploy.
+- `luca_channels_set_ai_dm_auto_send` can only turn auto-send off through a
+  connection. Raising an account to auto answers `403 auto_needs_coach`, and
+  Luca has deprecated the route in favor of its Autonomy settings. So the tool
+  no longer asks for `confirm: true` and is no longer marked open-world.
+- `luca_integrations_crm_oauth_url` and
+  `luca_integrations_crm_connections_disconnect` are marked open-world: for
+  HubSpot they start and delete the connection's account at Composio.
+- `luca_campaigns_enrollments_resume` explains `409 feature_off`.
+  `luca_campaigns_list` takes `status: open` and `search`.
+  `luca_cadences_rescue_start` and `luca_rescue_silent_leads` describe the
+  follow-up plans that replaced the fixed cadence; `cadenceTemplate` no longer
+  sets timing.
+- The booking, CRM connection, CRM sync, CRM push, and morning report tools
+  describe what their routes now return and refuse.
+
 ## [0.10.0] - 2026-11-18
 
 ### Breaking
