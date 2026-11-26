@@ -1,4 +1,3 @@
-import { isJsonObject } from "../../serialization.ts";
 import { op } from "../registry.ts";
 import type { LucaOperation } from "../registry.ts";
 
@@ -30,17 +29,10 @@ export const channelsOperations: readonly LucaOperation[] = [
   op({
     id: "channels.set_ai_dm_auto_send",
     title: "Turn auto-send on or off for a channel",
-    // Turning it on lets Luca's replies reach leads on this account without
-    // review, while the workspace switch is on. An API key leaves that switch
-    // as it was.
-    openWorld: true,
-    confirm: {
-      applies: (input) =>
-        isJsonObject(input.body) && input.body.enabled === true,
-      description:
-        "enabled is true (lets Luca's replies reach leads without review)",
-    },
+    // Through an API key, which every MCP connection uses, Luca only moves an
+    // account to review. A request to raise it to auto answers 403
+    // auto_needs_coach, so no call here lets a reply reach a lead unreviewed.
     description:
-      "Turn Luca's DM auto-send on or off for one channel account. Off moves that account's DM replies to review, so every Luca draft on it lands in the review queue; other accounts keep theirs. Turning it on is the coach's choice in the SetLuca app: through this connection Luca answers 403 auto_needs_coach. workspaceAutoSendEnabled in the response says whether any account is at auto. Luca has deprecated this route in favor of its Autonomy settings, and each change is saved as a Set up Luca version the coach can undo. Campaign sends follow their own policy. WhatsApp and disconnected accounts answer 404.",
+      "Turn Luca's DM auto-send off for one channel account. Off moves that account's DM replies to review, so every Luca draft on it lands in the review queue; other accounts keep theirs. Turning it on is the coach's choice in the SetLuca app: through this connection, enabled true answers 403 auto_needs_coach unless the account is already at auto, which changes nothing. workspaceAutoSendEnabled in the response says whether any account is at auto. Luca has deprecated this route in favor of its Autonomy settings, and each change is saved as a Set up Luca version the coach can undo. Campaign sends follow their own policy. WhatsApp and disconnected accounts answer 404.",
   }),
 ];

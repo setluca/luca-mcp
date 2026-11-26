@@ -32,4 +32,13 @@ export const featuresOperations: readonly LucaOperation[] = [
     confirm: "always",
     description: `Set one feature's switch, which changes what Luca does for the coach. Preview the change with luca_features_preview first, show the coach what it holds, and pass confirm: true only after they approve this exact change. ai_replies takes off, review or auto_send; every other feature takes on or off. Turning a feature off stops new work at once and holds queued work; turning it back on releases the held work in order, so held messages go out to leads. ai_replies at review moves every channel's DM replies to review. Through this connection auto_send is only stored: no channel moves to auto, and nothing auto-sends until the coach chooses auto in the SetLuca app. After Go live, turning on a feature whose skipped setup steps are still unconfirmed answers 409 confirm_steps_needed. Nothing sends on its own before Go live. ${FEATURE_OFF}`,
   }),
+  op({
+    id: "features.setMany",
+    title: "Set several feature switches",
+    idempotent: true,
+    // Turning a feature back on releases the sends it held.
+    openWorld: true,
+    confirm: "always",
+    description: `Set several feature switches in one change, as Luca's setup step does for a preset. Each entry in body.features works as luca_features_set does, a feature may appear once, and either every change is stored or none is. Preview each change with luca_features_preview, and pass confirm: true only after the coach approves the whole set. Answers every feature as it now reads. ${FEATURE_OFF}`,
+  }),
 ];

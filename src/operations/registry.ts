@@ -77,7 +77,8 @@ export const LUCA_OPERATION_GROUPS = {
   },
   integrations: {
     title: "Integrations",
-    description: "CRM connections, OAuth, mappings, sync runs, and event logs.",
+    description:
+      "The integrations the coach can connect and their status, CRM connections, OAuth, mappings, sync runs and activity, provider usage, and event logs.",
   },
   voice: {
     title: "Voice",
@@ -94,13 +95,19 @@ export const LUCA_OPERATION_GROUPS = {
     description:
       "The coach's feature switches: which of Luca's features run, what a change would hold, and turning one on or off.",
   },
+  autonomy: {
+    title: "Autonomy",
+    description:
+      "What Luca may do without the coach, per trigger, and moving a trigger to off or review.",
+  },
   usage: {
     title: "Usage",
     description: "Message-pool and model-spend counters for the current plan.",
   },
   safety: {
     title: "Account Safety",
-    description: "Per-channel account health and send pacing.",
+    description:
+      "Per-channel account health and send pacing, and the dead letters Luca gave up on.",
   },
   channels: {
     title: "Channels",
@@ -274,6 +281,7 @@ export type RequiredScope = {
  */
 function requiredScopeFor(input: {
   readonly method: LucaMethod;
+  readonly readOnly: boolean;
   readonly scopes: readonly string[];
   readonly confirm: ConfirmGate | undefined;
   readonly capability: CapabilityTier | undefined;
@@ -281,7 +289,8 @@ function requiredScopeFor(input: {
 }): RequiredScope {
   let capability: CapabilityTier = "draft";
 
-  if (input.method === "GET") {
+  if (input.method === "GET" || input.readOnly) {
+    // A read-only POST, such as a preview, is a read sent with a body.
     capability = "read";
   } else if (input.confirm === "always") {
     // Real-world side effect (sends, enrollments, replays) = operating the
@@ -571,6 +580,7 @@ export function op(input: {
     untrustedContent,
     requiredScope: requiredScopeFor({
       method,
+      readOnly,
       scopes,
       confirm: input.confirm,
       capability: input.capability,

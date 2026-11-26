@@ -164,4 +164,10 @@ export const reviewQueueOperations: readonly LucaOperation[] = [
     description:
       "Reject several pending drafts so none of them sends, with no reason recorded. Returns one outcome per id; a draft already handled or not in the queue is skipped.",
   }),
+  op({
+    id: "reviewQueue.snapshot",
+    title: "Read a review queue snapshot",
+    description:
+      "Read the review queue's first page, the pending count, and the replies Luca is still drafting, in one call. Query takes the same filters as luca_review_queue_list: limit, status, category, leadId, and order (priority or fifo). Use luca_review_queue_list to page further.",
+  }),
 ];

@@ -26,6 +26,8 @@ export const campaignsOperations: readonly LucaOperation[] = [
     // A POST only so the brief fits in a body. It computes a plan and saves
     // nothing.
     readOnly: true,
+    // The API asks draft of a key for a generated plan.
+    capability: "draft",
     description:
       'Build a campaign plan from a brief with fixed rules, not an AI model. Nothing is created or published: create the draft from the plan, review it, and publish it yourself. A new brief has to say where leads come from: set body.source, or say it in body.prompt, for example a comment on a post or a DM. A comment campaign also has to name the word people comment in body.prompt, for example comment "GUIDE". If either is missing, Luca answers 400 and says what to add.',
   }),
@@ -153,5 +155,30 @@ export const campaignsOperations: readonly LucaOperation[] = [
     untrustedContent: true,
     description:
       "Read every step one enrollment has been through: what got sent, when, and how the lead responded.",
+  }),
+  op({
+    id: "campaigns.commentEvents.unhide",
+    title: "Unhide a comment a campaign hid",
+    mutatesExisting: true,
+    idempotent: true,
+    // Makes the comment visible on Instagram again.
+    openWorld: true,
+    confirm: "always",
+    description:
+      "Make a comment a campaign hid visible on Instagram again, and record it in comment activity. Pass confirm: true after the coach approves. Answers status failed with a failureCode when Instagram refuses, and 409 when the comment is not hidden or Instagram is not connected.",
+  }),
+  op({
+    id: "campaigns.overlaps",
+    title: "List overlapping campaigns",
+    description:
+      "List pairs of published campaigns that can start on the same comment, message, or story event, the rules they share, and which one answers. With query.campaignId, compare that campaign's current draft with the published campaigns. Check this before publishing a campaign.",
+  }),
+  op({
+    id: "campaigns.instagramMedia",
+    title: "List Instagram posts for a campaign",
+    // Read live from Instagram's Graph API.
+    openWorld: true,
+    description:
+      "List the coach's Instagram posts and reels, newest first, or (query.kind stories) the stories from the last 24 hours, read live from Instagram, to pick what a comment or story campaign watches. query.ids looks up media by ID, and query.link the post or reel behind a pasted Instagram link. Answers 409 when Instagram is not connected.",
   }),
 ];

@@ -1292,6 +1292,42 @@
         "destructive_justification": "Only reads a campaign's published version history from the coach's SetLuca workspace, so it overwrites and deletes nothing."
       }
     },
+    "luca_campaigns_comment_events_unhide": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Makes a comment a campaign hid visible again and records the change in the coach's comment activity.",
+        "open_world_justification": "Changes the comment's visibility on Instagram, an outside service, where the commenter and the coach's followers see it.",
+        "destructive_justification": "Overwrites the comment's hidden state on Instagram, so people can see it again. Refuses to run without confirm: true."
+      }
+    },
+    "luca_campaigns_overlaps": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads which published campaigns can start on the same event and which one answers; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_campaigns_instagram_media": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": true,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads the coach's Instagram posts, reels, and stories for a campaign picker; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Reads the media live from the coach's connected Instagram account, an outside service, without changing anything there.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
     "luca_capabilities_get": {
       "annotations": {
         "readOnlyHint": true,
@@ -1355,13 +1391,13 @@
     "luca_channels_set_ai_dm_auto_send": {
       "annotations": {
         "readOnlyHint": false,
-        "openWorldHint": true,
+        "openWorldHint": false,
         "destructiveHint": true
       },
       "justifications": {
-        "read_only_justification": "Turns Luca's DM auto-send on or off for one channel account in the coach's SetLuca workspace. The workspace auto-send switch stays as it was.",
-        "open_world_justification": "When on, and while the workspace switch is also on, drafts that pass safety checks go to leads' Instagram, Telegram, or Messenger inboxes on this account without review.",
-        "destructive_justification": "Overwrites the auto-send setting. Turning it on lets later drafts reach leads without review, and a sent message cannot be unsent. Turning it off is safe: drafts go to the review queue. A call that turns it on refuses to run without confirm: true."
+        "read_only_justification": "Moves one channel account's DM replies to review in the coach's SetLuca workspace and saves the change as a version the coach can undo.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace. Through this connection Luca refuses to raise an account to auto, so no reply reaches a lead without review.",
+        "destructive_justification": "Overwrites the account's auto-send setting, so an account the coach had at auto goes back to review until they choose auto again in the SetLuca app."
       }
     },
     "luca_close_call_loop": {
@@ -1506,6 +1542,42 @@
         "read_only_justification": "Changes one of Luca's feature switches in the coach's SetLuca workspace, which stops or restarts that kind of work.",
         "open_world_justification": "Turning a feature back on releases the work it held, so held messages go out to leads' inboxes.",
         "destructive_justification": "Overwrites the feature's switch. Turning a feature off holds its queued work, and turning it on releases held messages that cannot be unsent. Every call refuses to run without confirm: true."
+      }
+    },
+    "luca_features_set_many": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Changes several of Luca's feature switches at once in the coach's SetLuca workspace, which stops or restarts those kinds of work.",
+        "open_world_justification": "Turning a feature back on releases the work it held, so held messages go out to leads' inboxes.",
+        "destructive_justification": "Overwrites each named switch. Turning a feature off holds its queued work, and turning it on releases held messages that cannot be unsent. Every call refuses to run without confirm: true."
+      }
+    },
+    "luca_autonomy_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads what Luca may do without the coach for each trigger; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_autonomy_set": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Moves one trigger to off or review in the coach's SetLuca workspace. Through this connection it cannot set auto.",
+        "open_world_justification": "Review for booking messages or follow-ups turns that feature back on, which releases held messages to leads' inboxes.",
+        "destructive_justification": "Overwrites the trigger's setting. Off holds queued work, and review can release held messages that cannot be unsent. Every call refuses to run without confirm: true."
       }
     },
     "luca_conversations_get": {
@@ -1751,13 +1823,13 @@
     "luca_integrations_crm_connections_disconnect": {
       "annotations": {
         "readOnlyHint": false,
-        "openWorldHint": false,
+        "openWorldHint": true,
         "destructiveHint": true
       },
       "justifications": {
         "read_only_justification": "Disables one CRM connection and clears the credentials SetLuca holds for it in the coach's workspace.",
-        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
-        "destructive_justification": "Stops every sync with that CRM until the coach reconnects it, and deletes the stored credentials so they must be re-entered. Saved mappings and event history stay, and access on the CRM's own side is not revoked. Refuses to run without confirm: true."
+        "open_world_justification": "For HubSpot it deletes the Composio account that held the CRM access, an outside service. For other CRMs it stays inside the coach's SetLuca workspace.",
+        "destructive_justification": "Stops every sync with that CRM until the coach reconnects it, and deletes the stored credentials so they must be re-entered. For HubSpot the Composio account is deleted too. Saved mappings and event history stay. Refuses to run without confirm: true."
       }
     },
     "luca_integrations_crm_connections_health": {
@@ -1835,12 +1907,12 @@
     "luca_integrations_crm_oauth_url": {
       "annotations": {
         "readOnlyHint": false,
-        "openWorldHint": false,
+        "openWorldHint": true,
         "destructiveHint": false
       },
       "justifications": {
         "read_only_justification": "Writes one short-lived, one-time OAuth state record in the coach's SetLuca workspace and returns a CRM sign-in URL.",
-        "open_world_justification": "Only builds the sign-in URL and stores state inside SetLuca; it does not contact the CRM or any outside service until the coach opens the URL.",
+        "open_world_justification": "For HubSpot it asks Composio, the service that holds the HubSpot connection, to start a sign-in. For other CRMs it only builds the URL and contacts nothing until the coach opens it.",
         "destructive_justification": "Only adds a new one-time state record; it overwrites and deletes nothing, and connects no CRM by itself."
       }
     },
@@ -1878,6 +1950,78 @@
         "read_only_justification": "Reads the integration event log from the coach's SetLuca workspace and returns it. It creates, changes, and deletes nothing.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace; it reads the stored event log and contacts no CRM or webhook URL.",
         "destructive_justification": "Only reads the integration event log; it overwrites and deletes nothing."
+      }
+    },
+    "luca_integrations_catalog": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads the list of integrations the coach can connect; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_integrations_connections_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads each integration's stored status and the reason one needs attention; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_integrations_activity_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads a CRM integration's recorded sync runs, summary pushes, and deal-stage moves; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_integrations_usage_read": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads the counts of provider requests the coach's integrations sent, and the daily cap; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_integrations_crm_mappings_read": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads the saved and suggested CRM field mappings; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_integrations_crm_sync_runs_apply": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Runs a previewed CRM sync and records the live run in the coach's SetLuca workspace.",
+        "open_world_justification": "Sends the post-call summaries and deal-stage moves the preview listed to the coach's connected CRM.",
+        "destructive_justification": "Writes notes and deal stages into the coach's CRM, which this tool cannot take back. It sends only what the preview listed. Refuses to run without confirm: true."
       }
     },
     "luca_knowledge_reject_suggestion": {
@@ -2142,6 +2286,18 @@
         "read_only_justification": "Writes to an existing lead in the coach's SetLuca workspace: its display name, stage, custom fields, or tags.",
         "open_world_justification": "Notifies the coach's own webhook subscribers with a lead.updated or lead.stage_changed event. A tag change can wake a campaign step waiting on that lead's tags, which may then message the lead.",
         "destructive_justification": "Overwrites the lead's current name, stage, custom fields, and tags with the values sent (tags are replaced as a list); old values are not kept, though they can be set back by another update. Does not send anything itself."
+      }
+    },
+    "luca_leads_opt_out_restore": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Grants back the consents a lead withdrew when they opted out and lifts the drafting pause the opt-out set, in the coach's SetLuca workspace.",
+        "open_world_justification": "Restored consent and a lifted pause let Luca message the lead again, and with auto-send on a drafted reply can reach the lead's inbox without review.",
+        "destructive_justification": "Overwrites the lead's opt-out, so Luca may contact someone who had asked it to stop. Campaigns the opt-out ended stay ended. Refuses to run without confirm: true."
       }
     },
     "luca_learning_ab_tests_get": {
@@ -2540,6 +2696,18 @@
         "destructive_justification": "Only reads; it overwrites and deletes nothing."
       }
     },
+    "luca_review_queue_snapshot": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads the review queue's first page, its pending count, and the replies still drafting; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
     "luca_safety_accounts": {
       "annotations": {
         "readOnlyHint": true,
@@ -2550,6 +2718,66 @@
         "read_only_justification": "Only reads each connected channel account's safety status and 24-hour send count from the coach's SetLuca workspace; it changes nothing.",
         "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
         "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_safety_dead_letters_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads the workspace's dead letters, without their stored messages; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_safety_dead_letters_metrics": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads per-lane counts of dead letters, recent failures, and waiting events; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_safety_dead_letters_get": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads one dead letter, without its stored message; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_safety_dead_letters_replay": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Sends a dead letter's message back to its lane and marks the dead letter replayed in the coach's SetLuca workspace.",
+        "open_world_justification": "A message on an outbound or reply lane goes to the lead's inbox once replayed.",
+        "destructive_justification": "Marks the dead letter replayed, and the work it carried runs, which can send a message that cannot be unsent. It keeps its idempotency key, so done work is not repeated. Refuses to run without confirm: true."
+      }
+    },
+    "luca_safety_dead_letters_discard": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Marks an open dead letter handled in the coach's SetLuca workspace without resending it.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Overwrites the dead letter's status, so the work it carried never happens unless it is replayed before then; a discarded one cannot be replayed."
       }
     },
     "luca_triage_inbox": {
