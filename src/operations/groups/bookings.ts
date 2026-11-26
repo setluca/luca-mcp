@@ -142,7 +142,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
     // Moves the call on the provider calendar and re-arms the lead's reminder.
     confirm: "always",
     description:
-      "Reschedule or update booking status. A Google Calendar or Cal.com booking changes on that calendar too, and the calendar can email the lead about it.",
+      "Reschedule or update booking status. A Google Calendar or Cal.com booking changes on that calendar too, and the calendar can email the lead about it. A new body.slotAt keeps the booking's length, or its booking type's; a booking with neither needs body.endAt with it, or Luca answers 400 booking_duration_required. When the provider still has to apply the move, operation.state is pending_provider and operation.operationId names the operation carrying it.",
     // Each booking carries a cancellation reason the invitee may have written.
     untrustedContent: true,
   }),
@@ -154,7 +154,7 @@ export const bookingsOperations: readonly LucaOperation[] = [
     // Cancels a real call on the lead's and the coach's calendars.
     confirm: "always",
     description:
-      "Cancel a booking. A Google Calendar or Cal.com booking is cancelled on that calendar too, and the calendar can email the lead about it.",
+      "Cancel a booking. A Google Calendar or Cal.com booking is cancelled on that calendar too, and the calendar can email the lead about it. When the provider still has to apply the cancellation, operation.state is pending_provider and operation.operationId names the operation carrying it.",
     // Each booking carries a cancellation reason the invitee may have written.
     untrustedContent: true,
   }),

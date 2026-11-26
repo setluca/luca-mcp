@@ -741,6 +741,12 @@ const read: readonly SweepStep[] = [
   { tool: "luca_coach_post_call_crm_mapping", phase: "read" },
   { tool: "luca_coach_post_call_deal_sync", phase: "read" },
   { tool: "luca_coach_audit_log", phase: "read" },
+  { tool: "luca_features_list", phase: "read" },
+  {
+    tool: "luca_features_preview",
+    phase: "read",
+    args: () => ({ feature: "campaigns", body: { state: "off" } }),
+  },
   { tool: "luca_usage_spend", phase: "read" },
   { tool: "luca_safety_accounts", phase: "read" },
   { tool: "luca_channels_catalog", phase: "read" },
@@ -1672,6 +1678,13 @@ const change: readonly SweepStep[] = [
     tool: "luca_insights_settings_update",
     phase: "change",
     args: () => ({ body: { digestEnabled: true } }),
+  },
+  {
+    tool: "luca_features_set",
+    phase: "change",
+    gated: true,
+    // Call summaries start on in a new workspace, so this changes nothing.
+    args: () => ({ feature: "call_summaries", body: { state: "on" } }),
   },
   {
     tool: "luca_learning_proposals_dismiss",

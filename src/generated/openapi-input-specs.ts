@@ -234,6 +234,44 @@ export const OPENAPI_INPUT_SPECS = {
               },
               "maxItems": 20,
               "default": []
+            },
+            "lifecycle": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "column": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "target": {
+                    "type": "string",
+                    "enum": [
+                      "client_status",
+                      "client_since",
+                      "client_ended_on",
+                      "program_start",
+                      "program_end",
+                      "program_name",
+                      "payment_status",
+                      "payment_due_on",
+                      "birthday",
+                      "application_status",
+                      "checkout_status"
+                    ]
+                  },
+                  "offerKey": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "column",
+                  "target"
+                ]
+              },
+              "maxItems": 20,
+              "default": []
             }
           },
           "required": [
@@ -409,6 +447,44 @@ export const OPENAPI_INPUT_SPECS = {
                 "required": [
                   "purpose",
                   "grantedColumn"
+                ]
+              },
+              "maxItems": 20,
+              "default": []
+            },
+            "lifecycle": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "column": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "target": {
+                    "type": "string",
+                    "enum": [
+                      "client_status",
+                      "client_since",
+                      "client_ended_on",
+                      "program_start",
+                      "program_end",
+                      "program_name",
+                      "payment_status",
+                      "payment_due_on",
+                      "birthday",
+                      "application_status",
+                      "checkout_status"
+                    ]
+                  },
+                  "offerKey": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "column",
+                  "target"
                 ]
               },
               "maxItems": 20,
@@ -698,6 +774,20 @@ export const OPENAPI_INPUT_SPECS = {
       ]
     },
     "bodyRequired": true
+  },
+  "POST /api/leads/{id}/opt-out/restore": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
   },
   "POST /api/leads/{id}/notes": {
     "path": {
@@ -1538,6 +1628,55 @@ export const OPENAPI_INPUT_SPECS = {
     }
   },
   "GET /api/review-queue": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "approved",
+            "rejected",
+            "sent",
+            "superseded",
+            "stale"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "faq",
+            "qualification",
+            "objection",
+            "scheduling",
+            "pricing-adjacent",
+            "other"
+          ]
+        },
+        "leadId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "order": {
+          "type": "string",
+          "enum": [
+            "priority",
+            "fifo"
+          ]
+        }
+      }
+    }
+  },
+  "GET /api/review-queue/snapshot": {
     "query": {
       "type": "object",
       "properties": {
@@ -3458,6 +3597,16 @@ export const OPENAPI_INPUT_SPECS = {
                 "review_first",
                 "auto_send"
               ]
+            },
+            "prepQuestions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "maxItems": 2,
+              "description": "Up to two questions for the pre-call prep message. It asks the first one before the call."
             }
           },
           "default": {},
@@ -3701,6 +3850,16 @@ export const OPENAPI_INPUT_SPECS = {
                 "review_first",
                 "auto_send"
               ]
+            },
+            "prepQuestions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "maxItems": 2,
+              "description": "Up to two questions for the pre-call prep message. It asks the first one before the call."
             }
           },
           "additionalProperties": false
@@ -4178,8 +4337,14 @@ export const OPENAPI_INPUT_SPECS = {
             "draft",
             "published",
             "paused",
-            "archived"
+            "archived",
+            "open"
           ]
+        },
+        "search": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
         }
       }
     }
@@ -4246,6 +4411,58 @@ export const OPENAPI_INPUT_SPECS = {
           "minimum": 1,
           "maximum": 100,
           "default": 50
+        }
+      }
+    }
+  },
+  "POST /api/campaigns/comment-events/{id}/unhide": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "GET /api/campaigns/overlaps": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "campaignId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  },
+  "GET /api/campaigns/instagram-media": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "posts",
+            "stories"
+          ],
+          "default": "posts"
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ids": {
+          "type": "string",
+          "minLength": 1
+        },
+        "link": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }
@@ -4397,7 +4614,6 @@ export const OPENAPI_INPUT_SPECS = {
                       "booking",
                       "wait_duration",
                       "wait_until_time",
-                      "wait_for_event",
                       "wait_for_reply",
                       "wait_for_condition",
                       "branch",
@@ -4648,7 +4864,8 @@ export const OPENAPI_INPUT_SPECS = {
             "recover",
             "reactivation",
             "event_webinar",
-            "promo"
+            "promo",
+            "lead_magnet"
           ]
         },
         "primaryChannel": {
@@ -4778,7 +4995,6 @@ export const OPENAPI_INPUT_SPECS = {
                       "booking",
                       "wait_duration",
                       "wait_until_time",
-                      "wait_for_event",
                       "wait_for_reply",
                       "wait_for_condition",
                       "branch",
@@ -5062,7 +5278,6 @@ export const OPENAPI_INPUT_SPECS = {
                       "booking",
                       "wait_duration",
                       "wait_until_time",
-                      "wait_for_event",
                       "wait_for_reply",
                       "wait_for_condition",
                       "branch",
@@ -6326,6 +6541,48 @@ export const OPENAPI_INPUT_SPECS = {
     }
   },
   "GET /api/integrations/connectors": {},
+  "GET /api/integrations/catalog": {},
+  "GET /api/integrations/connections": {},
+  "GET /api/integrations/{provider}/activity": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "A CRM catalog key, such as `hubspot`."
+        }
+      },
+      "required": [
+        "provider"
+      ]
+    },
+    "query": {
+      "type": "object",
+      "properties": {
+        "cursor": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    }
+  },
+  "GET /api/integrations/usage": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,63}$",
+          "description": "Count one provider's requests, such as `hubspot`. Without it, every provider's."
+        }
+      }
+    }
+  },
   "GET /api/integrations/crm/connections": {},
   "GET /api/integrations/crm/providers/{provider}/oauth-url": {
     "path": {
@@ -6378,6 +6635,10 @@ export const OPENAPI_INPUT_SPECS = {
           "type": "string",
           "minLength": 1
         },
+        "connectedAccountId": {
+          "type": "string",
+          "minLength": 1
+        },
         "state": {
           "type": "string",
           "minLength": 1
@@ -6389,7 +6650,6 @@ export const OPENAPI_INPUT_SPECS = {
       },
       "required": [
         "provider",
-        "code",
         "state"
       ]
     },
@@ -6438,6 +6698,20 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "id"
       ]
+    },
+    "query": {
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "type": "string",
+          "enum": [
+            "true",
+            "false"
+          ],
+          "default": "false",
+          "description": "Read the schema from the CRM again instead of the copy stored in the last 15 minutes."
+        }
+      }
     }
   },
   "POST /api/integrations/crm/connections/{id}/disconnect": {
@@ -6507,6 +6781,24 @@ export const OPENAPI_INPUT_SPECS = {
       "required": [
         "id"
       ]
+    }
+  },
+  "GET /api/integrations/crm/mappings": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": [
+            "gohighlevel",
+            "hubspot",
+            "activecampaign",
+            "salesforce",
+            "pipedrive"
+          ],
+          "description": "Read this provider's connection. Without it, the coach's current CRM connection."
+        }
+      }
     }
   },
   "PUT /api/integrations/crm/connections/{id}/mappings": {
@@ -6604,6 +6896,27 @@ export const OPENAPI_INPUT_SPECS = {
           "default": "bidirectional"
         }
       }
+    }
+  },
+  "POST /api/integrations/crm/connections/{id}/sync-runs/{runId}/apply": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The CRM connection."
+        },
+        "runId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The dry run to apply."
+        }
+      },
+      "required": [
+        "id",
+        "runId"
+      ]
     }
   },
   "GET /api/integrations/crm/connections/{id}/sync-runs": {
@@ -6739,6 +7052,226 @@ export const OPENAPI_INPUT_SPECS = {
       }
     }
   },
+  "GET /api/features": {},
+  "POST /api/features/{feature}/preview": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "feature": {
+          "type": "string",
+          "enum": [
+            "ai_replies",
+            "campaigns",
+            "broadcasts",
+            "follow_ups",
+            "booking_messages",
+            "call_summaries"
+          ]
+        }
+      },
+      "required": [
+        "feature"
+      ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "on",
+            "off",
+            "review",
+            "auto_send"
+          ]
+        },
+        "surface": {
+          "type": "string",
+          "enum": [
+            "settings",
+            "setup"
+          ]
+        },
+        "preset": {
+          "type": "string",
+          "enum": [
+            "replies_only",
+            "campaigns_only",
+            "assistant_only",
+            "everything"
+          ]
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": {}
+    },
+    "bodyRequired": true
+  },
+  "PUT /api/features/{feature}": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "feature": {
+          "type": "string",
+          "enum": [
+            "ai_replies",
+            "campaigns",
+            "broadcasts",
+            "follow_ups",
+            "booking_messages",
+            "call_summaries"
+          ]
+        }
+      },
+      "required": [
+        "feature"
+      ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "on",
+            "off",
+            "review",
+            "auto_send"
+          ]
+        },
+        "surface": {
+          "type": "string",
+          "enum": [
+            "settings",
+            "setup"
+          ]
+        },
+        "preset": {
+          "type": "string",
+          "enum": [
+            "replies_only",
+            "campaigns_only",
+            "assistant_only",
+            "everything"
+          ]
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": {}
+    },
+    "bodyRequired": true
+  },
+  "PUT /api/features": {
+    "body": {
+      "type": "object",
+      "properties": {
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "feature": {
+                "type": "string",
+                "enum": [
+                  "ai_replies",
+                  "campaigns",
+                  "broadcasts",
+                  "follow_ups",
+                  "booking_messages",
+                  "call_summaries"
+                ]
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "on",
+                  "off",
+                  "review",
+                  "auto_send"
+                ]
+              }
+            },
+            "required": [
+              "feature",
+              "state"
+            ],
+            "additionalProperties": {}
+          },
+          "minItems": 1,
+          "maxItems": 6
+        },
+        "surface": {
+          "type": "string",
+          "enum": [
+            "settings",
+            "setup"
+          ]
+        },
+        "preset": {
+          "type": "string",
+          "enum": [
+            "replies_only",
+            "campaigns_only",
+            "assistant_only",
+            "everything"
+          ]
+        }
+      },
+      "required": [
+        "features"
+      ],
+      "additionalProperties": {}
+    },
+    "bodyRequired": true
+  },
+  "GET /api/autonomy": {},
+  "PUT /api/autonomy/{trigger}": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "dm_reply",
+            "comment_reply",
+            "booking_message",
+            "follow_up",
+            "campaign",
+            "broadcast",
+            "business_signal_action"
+          ]
+        }
+      },
+      "required": [
+        "trigger"
+      ]
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "off",
+            "review",
+            "auto"
+          ]
+        },
+        "channelAccountId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "additionalProperties": {}
+    },
+    "bodyRequired": true
+  },
   "GET /api/usage": {
     "query": {
       "type": "object",
@@ -6751,6 +7284,81 @@ export const OPENAPI_INPUT_SPECS = {
     }
   },
   "GET /api/account-safety": {},
+  "GET /api/core-dead-letters": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "replayed",
+            "discarded",
+            "quarantined"
+          ]
+        },
+        "lane": {
+          "type": "string",
+          "enum": [
+            "interactive",
+            "bulk",
+            "jobs",
+            "provider-sync",
+            "replies",
+            "outbound"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        }
+      }
+    }
+  },
+  "GET /api/core-dead-letters/metrics": {},
+  "GET /api/core-dead-letters/{id}": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "POST /api/core-dead-letters/{id}/replay": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
+  "POST /api/core-dead-letters/{id}/discard": {
+    "path": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  },
   "GET /api/channels": {},
   "GET /api/channels/catalog": {},
   "GET /api/channels/features": {},

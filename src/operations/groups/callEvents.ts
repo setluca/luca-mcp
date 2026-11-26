@@ -83,7 +83,7 @@ export const callEventsOperations: readonly LucaOperation[] = [
     mutatesExisting: true,
     untrustedContent: true,
     description:
-      "Send the current summary to the CRM now, without waiting out the review window. Re-pushing updates the existing note.",
+      "Send the current summary to the CRM now, without waiting out the review window. Re-pushing updates the existing note. A push that stopped goes again once the CRM can take it, and a note Luca cannot yet confirm the CRM created answers 409 until it reconciles.",
   }),
   op({
     id: "callEvents.undoOutcome",

@@ -41,6 +41,6 @@ export const channelsOperations: readonly LucaOperation[] = [
         "enabled is true (lets Luca's replies reach leads without review)",
     },
     description:
-      "Turn Luca's DM auto-send on or off for one channel account. Off puts every Luca draft on that account in the review queue. On lets drafts that pass Luca's safety checks send without review while the workspace switch is also on; this tool leaves that switch as it was. Nothing sends without review until the coach presses Go live in the SetLuca app, so before then the switch is saved but has no effect. Campaign sends follow their own policy. WhatsApp and disconnected accounts answer 404.",
+      "Turn Luca's DM auto-send on or off for one channel account. Off moves that account's DM replies to review, so every Luca draft on it lands in the review queue; other accounts keep theirs. Turning it on is the coach's choice in the SetLuca app: through this connection Luca answers 403 auto_needs_coach. workspaceAutoSendEnabled in the response says whether any account is at auto. Luca has deprecated this route in favor of its Autonomy settings, and each change is saved as a Set up Luca version the coach can undo. Campaign sends follow their own policy. WhatsApp and disconnected accounts answer 404.",
   }),
 ];

@@ -1472,6 +1472,42 @@
         "destructive_justification": "Only reads the coach's name, timezone, business hours, and tone setting; it overwrites and deletes nothing."
       }
     },
+    "luca_features_list": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads which of Luca's features run for the coach, which are locked by the plan, and who last changed each switch; it creates, changes, and deletes nothing.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads; it overwrites and deletes nothing."
+      }
+    },
+    "luca_features_preview": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Only reads: counts the enrollments, queued sends, follow-ups, broadcasts, and booking messages a switch change would hold. Nothing is saved; the separate set tool changes the switch.",
+        "open_world_justification": "Stays inside the coach's SetLuca workspace and reaches no lead, calendar, CRM, webhook, or outside service.",
+        "destructive_justification": "Only reads and previews; it overwrites and deletes nothing."
+      }
+    },
+    "luca_features_set": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Changes one of Luca's feature switches in the coach's SetLuca workspace, which stops or restarts that kind of work.",
+        "open_world_justification": "Turning a feature back on releases the work it held, so held messages go out to leads' inboxes.",
+        "destructive_justification": "Overwrites the feature's switch. Turning a feature off holds its queued work, and turning it on releases held messages that cannot be unsent. Every call refuses to run without confirm: true."
+      }
+    },
     "luca_conversations_get": {
       "annotations": {
         "readOnlyHint": true,

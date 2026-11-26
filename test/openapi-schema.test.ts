@@ -581,6 +581,24 @@ describe("openApiInputFields", () => {
     );
   });
 
+  it("reads an empty additionalProperties schema beside properties as true", () => {
+    // Luca writes an open body as `additionalProperties: {}`, which Effect's
+    // importer refuses beside declared properties.
+    const input = schema({
+      body: {
+        type: "object",
+        properties: { state: { type: "string" } },
+        required: ["state"],
+        additionalProperties: {},
+      },
+    });
+
+    expect(decoded(input, { body: { state: "on", extra: 1 } })).toEqual(
+      Option.some({ body: { state: "on", extra: 1 } })
+    );
+    expect(accepts(input, { body: { extra: 1 } })).toBe(false);
+  });
+
   it("does not treat a non-object additionalProperties value as a nested schema", () => {
     const input = schema({
       body: {

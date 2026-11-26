@@ -118,6 +118,14 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": true
   },
+  "leads.optOut.restore": {
+    "method": "POST",
+    "path": "/api/leads/{id}/opt-out/restore",
+    "scopes": [
+      "leads:write"
+    ],
+    "idempotencyRequired": true
+  },
   "leads.notes.add": {
     "method": "POST",
     "path": "/api/leads/{id}/notes",
@@ -257,6 +265,14 @@ export const ROUTE_CATALOG = {
   "reviewQueue.list": {
     "method": "GET",
     "path": "/api/review-queue",
+    "scopes": [
+      "review_queue:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "reviewQueue.snapshot": {
+    "method": "GET",
+    "path": "/api/review-queue/snapshot",
     "scopes": [
       "review_queue:read"
     ],
@@ -798,6 +814,30 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": false
   },
+  "campaigns.commentEvents.unhide": {
+    "method": "POST",
+    "path": "/api/campaigns/comment-events/{id}/unhide",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "idempotencyRequired": true
+  },
+  "campaigns.overlaps": {
+    "method": "GET",
+    "path": "/api/campaigns/overlaps",
+    "scopes": [
+      "campaigns:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "campaigns.instagramMedia": {
+    "method": "GET",
+    "path": "/api/campaigns/instagram-media",
+    "scopes": [
+      "campaigns:read"
+    ],
+    "idempotencyRequired": false
+  },
   "campaigns.providerCapabilities": {
     "method": "GET",
     "path": "/api/campaigns/{id}/provider-capabilities",
@@ -1118,6 +1158,38 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": false
   },
+  "integrations.catalog": {
+    "method": "GET",
+    "path": "/api/integrations/catalog",
+    "scopes": [
+      "integrations:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "integrations.connections.list": {
+    "method": "GET",
+    "path": "/api/integrations/connections",
+    "scopes": [
+      "integrations:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "integrations.activity.list": {
+    "method": "GET",
+    "path": "/api/integrations/{provider}/activity",
+    "scopes": [
+      "integrations:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "integrations.usage.read": {
+    "method": "GET",
+    "path": "/api/integrations/usage",
+    "scopes": [
+      "integrations:read"
+    ],
+    "idempotencyRequired": false
+  },
   "integrations.crm.connections.list": {
     "method": "GET",
     "path": "/api/integrations/crm/connections",
@@ -1190,6 +1262,14 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": true
   },
+  "integrations.crm.mappings.read": {
+    "method": "GET",
+    "path": "/api/integrations/crm/mappings",
+    "scopes": [
+      "integrations:read"
+    ],
+    "idempotencyRequired": false
+  },
   "integrations.crm.mappings.confirm": {
     "method": "PUT",
     "path": "/api/integrations/crm/connections/{id}/mappings",
@@ -1201,6 +1281,14 @@ export const ROUTE_CATALOG = {
   "integrations.crm.syncRuns.create": {
     "method": "POST",
     "path": "/api/integrations/crm/connections/{id}/sync-runs",
+    "scopes": [
+      "integrations:write"
+    ],
+    "idempotencyRequired": true
+  },
+  "integrations.crm.syncRuns.apply": {
+    "method": "POST",
+    "path": "/api/integrations/crm/connections/{id}/sync-runs/{runId}/apply",
     "scopes": [
       "integrations:write"
     ],
@@ -1310,6 +1398,54 @@ export const ROUTE_CATALOG = {
     ],
     "idempotencyRequired": false
   },
+  "features.list": {
+    "method": "GET",
+    "path": "/api/features",
+    "scopes": [
+      "features:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "features.preview": {
+    "method": "POST",
+    "path": "/api/features/{feature}/preview",
+    "scopes": [
+      "features:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "features.set": {
+    "method": "PUT",
+    "path": "/api/features/{feature}",
+    "scopes": [
+      "features:write"
+    ],
+    "idempotencyRequired": true
+  },
+  "features.setMany": {
+    "method": "PUT",
+    "path": "/api/features",
+    "scopes": [
+      "features:write"
+    ],
+    "idempotencyRequired": true
+  },
+  "autonomy.list": {
+    "method": "GET",
+    "path": "/api/autonomy",
+    "scopes": [
+      "features:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "autonomy.set": {
+    "method": "PUT",
+    "path": "/api/autonomy/{trigger}",
+    "scopes": [
+      "features:write"
+    ],
+    "idempotencyRequired": true
+  },
   "usage.spend": {
     "method": "GET",
     "path": "/api/usage",
@@ -1325,6 +1461,46 @@ export const ROUTE_CATALOG = {
       "safety:read"
     ],
     "idempotencyRequired": false
+  },
+  "safety.deadLetters.list": {
+    "method": "GET",
+    "path": "/api/core-dead-letters",
+    "scopes": [
+      "safety:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "safety.deadLetters.metrics": {
+    "method": "GET",
+    "path": "/api/core-dead-letters/metrics",
+    "scopes": [
+      "safety:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "safety.deadLetters.get": {
+    "method": "GET",
+    "path": "/api/core-dead-letters/{id}",
+    "scopes": [
+      "safety:read"
+    ],
+    "idempotencyRequired": false
+  },
+  "safety.deadLetters.replay": {
+    "method": "POST",
+    "path": "/api/core-dead-letters/{id}/replay",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "idempotencyRequired": true
+  },
+  "safety.deadLetters.discard": {
+    "method": "POST",
+    "path": "/api/core-dead-letters/{id}/discard",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "idempotencyRequired": true
   },
   "channels.list": {
     "method": "GET",

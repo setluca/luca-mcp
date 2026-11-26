@@ -89,6 +89,11 @@ export const LUCA_OPERATION_GROUPS = {
     description:
       "The coach's own configuration: profile, niche and offer, objection playbook, post-call preferences. Read-only.",
   },
+  features: {
+    title: "Features",
+    description:
+      "The coach's feature switches: which of Luca's features run, what a change would hold, and turning one on or off.",
+  },
   usage: {
     title: "Usage",
     description: "Message-pool and model-spend counters for the current plan.",

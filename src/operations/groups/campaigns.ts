@@ -6,7 +6,8 @@ export const campaignsOperations: readonly LucaOperation[] = [
   op({
     id: "campaigns.list",
     title: "List campaigns",
-    description: "List campaigns. Query supports limit, cursor, and status.",
+    description:
+      "List campaigns. Query supports limit, cursor, status (or open for every campaign not archived), and search, which matches the name or description.",
   }),
   op({
     id: "campaigns.get",
@@ -57,7 +58,7 @@ export const campaignsOperations: readonly LucaOperation[] = [
     mutatesExisting: true,
     confirm: "always",
     description:
-      "Resume a campaign enrollment that stayed paused after the coach approved a safety review on the lead's reply. Use it once the coach has approved the review and decided the lead is ready for the campaign again. It sends the campaign's next message to the lead. Luca answers 404 when the enrollment does not exist. It answers 409 when the enrollment is not waiting on a safety approval, or when it has already moved on from its wait.",
+      "Resume a campaign enrollment that stayed paused after the coach approved a safety review on the lead's reply. Use it once the coach has approved the review and decided the lead is ready for the campaign again. It sends the campaign's next message to the lead. Luca answers 404 when the enrollment does not exist. It answers 409 feature_off while the feature that runs the enrollment is turned off (Campaigns, or Broadcasts for an enrollment a broadcast made); luca_features_list shows which. It answers 409 when the enrollment is not waiting on a safety approval, or when it has already moved on from its wait.",
   }),
   op({
     id: "campaigns.analytics",

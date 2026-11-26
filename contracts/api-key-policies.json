@@ -156,6 +156,18 @@
     }
   },
   {
+    "id": "leads.optOut.restore",
+    "method": "POST",
+    "path": "/api/leads/{id}/opt-out/restore",
+    "scopes": [
+      "leads:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "draft"
+    }
+  },
+  {
     "id": "leads.notes.add",
     "method": "POST",
     "path": "/api/leads/{id}/notes",
@@ -355,6 +367,17 @@
     "id": "reviewQueue.list",
     "method": "GET",
     "path": "/api/review-queue",
+    "scopes": [
+      "review_queue:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "reviewQueue.snapshot",
+    "method": "GET",
+    "path": "/api/review-queue/snapshot",
     "scopes": [
       "review_queue:read"
     ],
@@ -1137,6 +1160,40 @@
     }
   },
   {
+    "id": "campaigns.commentEvents.unhide",
+    "method": "POST",
+    "path": "/api/campaigns/comment-events/{id}/unhide",
+    "scopes": [
+      "campaigns:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
+  },
+  {
+    "id": "campaigns.overlaps",
+    "method": "GET",
+    "path": "/api/campaigns/overlaps",
+    "scopes": [
+      "campaigns:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "campaigns.instagramMedia",
+    "method": "GET",
+    "path": "/api/campaigns/instagram-media",
+    "scopes": [
+      "campaigns:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
     "id": "campaigns.providerCapabilities",
     "method": "GET",
     "path": "/api/campaigns/{id}/provider-capabilities",
@@ -1599,6 +1656,50 @@
     }
   },
   {
+    "id": "integrations.catalog",
+    "method": "GET",
+    "path": "/api/integrations/catalog",
+    "scopes": [
+      "integrations:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "integrations.connections.list",
+    "method": "GET",
+    "path": "/api/integrations/connections",
+    "scopes": [
+      "integrations:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "integrations.activity.list",
+    "method": "GET",
+    "path": "/api/integrations/{provider}/activity",
+    "scopes": [
+      "integrations:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "integrations.usage.read",
+    "method": "GET",
+    "path": "/api/integrations/usage",
+    "scopes": [
+      "integrations:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
     "id": "integrations.crm.connections.list",
     "method": "GET",
     "path": "/api/integrations/crm/connections",
@@ -1704,6 +1805,17 @@
     }
   },
   {
+    "id": "integrations.crm.mappings.read",
+    "method": "GET",
+    "path": "/api/integrations/crm/mappings",
+    "scopes": [
+      "integrations:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
     "id": "integrations.crm.mappings.confirm",
     "method": "PUT",
     "path": "/api/integrations/crm/connections/{id}/mappings",
@@ -1719,6 +1831,18 @@
     "id": "integrations.crm.syncRuns.create",
     "method": "POST",
     "path": "/api/integrations/crm/connections/{id}/sync-runs",
+    "scopes": [
+      "integrations:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
+  },
+  {
+    "id": "integrations.crm.syncRuns.apply",
+    "method": "POST",
+    "path": "/api/integrations/crm/connections/{id}/sync-runs/{runId}/apply",
     "scopes": [
       "integrations:write"
     ],
@@ -1872,6 +1996,75 @@
     }
   },
   {
+    "id": "features.list",
+    "method": "GET",
+    "path": "/api/features",
+    "scopes": [
+      "features:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "features.preview",
+    "method": "POST",
+    "path": "/api/features/{feature}/preview",
+    "scopes": [
+      "features:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "features.set",
+    "method": "PUT",
+    "path": "/api/features/{feature}",
+    "scopes": [
+      "features:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
+  },
+  {
+    "id": "features.setMany",
+    "method": "PUT",
+    "path": "/api/features",
+    "scopes": [
+      "features:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
+  },
+  {
+    "id": "autonomy.list",
+    "method": "GET",
+    "path": "/api/autonomy",
+    "scopes": [
+      "features:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "autonomy.set",
+    "method": "PUT",
+    "path": "/api/autonomy/{trigger}",
+    "scopes": [
+      "features:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "full"
+    }
+  },
+  {
     "id": "usage.spend",
     "method": "GET",
     "path": "/api/usage",
@@ -1891,6 +2084,63 @@
     ],
     "requiredScope": {
       "capability": "read"
+    }
+  },
+  {
+    "id": "safety.deadLetters.list",
+    "method": "GET",
+    "path": "/api/core-dead-letters",
+    "scopes": [
+      "safety:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "safety.deadLetters.metrics",
+    "method": "GET",
+    "path": "/api/core-dead-letters/metrics",
+    "scopes": [
+      "safety:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "safety.deadLetters.get",
+    "method": "GET",
+    "path": "/api/core-dead-letters/{id}",
+    "scopes": [
+      "safety:read"
+    ],
+    "requiredScope": {
+      "capability": "read"
+    }
+  },
+  {
+    "id": "safety.deadLetters.replay",
+    "method": "POST",
+    "path": "/api/core-dead-letters/{id}/replay",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
+    }
+  },
+  {
+    "id": "safety.deadLetters.discard",
+    "method": "POST",
+    "path": "/api/core-dead-letters/{id}/discard",
+    "scopes": [
+      "review_queue:write"
+    ],
+    "requireIdempotency": true,
+    "requiredScope": {
+      "capability": "queue_ops"
     }
   },
   {

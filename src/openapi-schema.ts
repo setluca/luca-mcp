@@ -52,6 +52,8 @@ export type JsonSchema = {
   readonly oneOf?: readonly JsonSchema[];
   readonly description?: string;
   readonly default?: JsonValue;
+  /** A field the API still returns but tells callers to stop reading. */
+  readonly deprecated?: boolean;
   /**
    * The marker `sensitive()` in `@luca/schemas` writes into the API's OpenAPI
    * document, carried through the generated output schemas. Nothing here reads
@@ -161,6 +163,17 @@ function unsupportedKeywords(node: Node): readonly string[] {
  */
 function closeObject(node: Node): Node {
   const extra = node.additionalProperties;
+
+  // `{}` accepts any extra key, the same as `true`. Effect's importer reads
+  // an object there as a typed index signature, which it cannot combine with
+  // declared properties, so the open object is spelled `true` instead.
+  if (
+    P.isObject(extra) &&
+    R.isEmptyRecord(extra) &&
+    P.isObject(node.properties)
+  ) {
+    return { ...node, additionalProperties: true };
+  }
 
   if (P.isBoolean(extra) || P.isObject(extra)) {
     return node;

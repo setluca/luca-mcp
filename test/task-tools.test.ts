@@ -2177,7 +2177,7 @@ describe("luca_rescue_silent_leads", () => {
       "Lead ids to enroll (max 100). Non-tenant ids are skipped."
     );
     expect(schema.cadenceTemplate?.description).toBe(
-      "Cadence intensity (default standard)."
+      "Stored for compatibility; it no longer sets the touches' timing."
     );
     expect(schema.idempotencyKey?.description).toBe(
       "Reuse the same key when retrying this exact enrollment."

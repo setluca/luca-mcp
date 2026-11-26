@@ -523,6 +523,7 @@ describe("operation manifest", () => {
         "reviewQueue.regenerate",
         "bookings.providerRequests.create",
         "channels.set_ai_dm_auto_send",
+        "features.set",
       ])
     );
   });
@@ -748,6 +749,8 @@ describe("operation manifest", () => {
         "reviewQueue.drafting.retry",
         "reviewQueue.regenerate",
         "channels.set_ai_dm_auto_send",
+        // Turning a feature back on releases the sends it held.
+        "features.set",
         // An outside URL.
         "webhooks.subscriptions.create",
         "webhooks.subscriptions.update",
@@ -1396,6 +1399,7 @@ describe("operation manifest", () => {
         "bookings.types.schedule.replace",
         "bookings.calendars.select",
         "insights.settings.update",
+        "features.set",
         "integrations.crm.connections.create",
         "integrations.crm.mappings.suggest",
         "integrations.crm.mappings.confirm",
@@ -1573,5 +1577,121 @@ describe("toStandardSchema", () => {
 
     expect(jsonSchema.input(options)).toBe(jsonSchema.input(options));
     expect(jsonSchema.output(options)).toBe(jsonSchema.output(options));
+  });
+});
+
+describe("feature switch tools", () => {
+  it("lists the switches as a plain read", () => {
+    const operation = getOperation("features.list");
+
+    expect(operation).toMatchObject({
+      group: "features",
+      toolName: "luca_features_list",
+      method: "GET",
+      path: "/api/features",
+      scopes: ["features:read"],
+      idempotencyRequired: false,
+    });
+    expect(operation.confirm).toBeUndefined();
+    expect(annotationsOf(operation)).toMatchObject({
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    });
+  });
+
+  it("previews a change without making it", () => {
+    const operation = getOperation("features.preview");
+
+    expect(operation).toMatchObject({
+      toolName: "luca_features_preview",
+      method: "POST",
+      path: "/api/features/{feature}/preview",
+      scopes: ["features:read"],
+      idempotencyRequired: false,
+    });
+    // A POST only so the requested state fits in a body.
+    expect(operation.confirm).toBeUndefined();
+    expect(annotationsOf(operation)).toMatchObject({
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false,
+    });
+    expect(
+      operation.buildRequest({ feature: "campaigns", body: { state: "off" } })
+    ).toEqual({
+      pathParams: { feature: "campaigns" },
+      body: { state: "off" },
+      workspace: {},
+    });
+  });
+
+  it("gates setting a switch behind confirm: true on every call", () => {
+    const operation = getOperation("features.set");
+
+    expect(operation).toMatchObject({
+      toolName: "luca_features_set",
+      method: "PUT",
+      path: "/api/features/{feature}",
+      scopes: ["features:write"],
+      idempotencyRequired: true,
+      confirm: "always",
+      requiredScope: { capability: "full", dataSensitivity: "redacted" },
+    });
+    expect(oauthScopeForOperation(operation)).toBe("luca:full");
+    expect(
+      needsConfirmation(operation.confirm, { body: { state: "off" } })
+    ).toBe(true);
+    expect(annotationsOf(operation)).toMatchObject({
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: true,
+      openWorldHint: true,
+    });
+    expect(
+      operation.buildRequest({
+        feature: "follow_ups",
+        body: { state: "off" },
+        idempotencyKey: "feature-set",
+        confirm: true,
+      })
+    ).toEqual({
+      pathParams: { feature: "follow_ups" },
+      body: { state: "off" },
+      idempotencyKey: "feature-set",
+      workspace: {},
+    });
+  });
+
+  it("takes only the six features and the four states", () => {
+    const set = toolSchema("features.set");
+    const preview = toolSchema("features.preview");
+
+    for (const schema of [set, preview]) {
+      expect(
+        accepts(schema, { feature: "ai_replies", body: { state: "review" } })
+      ).toBe(true);
+      expect(
+        accepts(schema, { feature: "autonomy", body: { state: "off" } })
+      ).toBe(false);
+      expect(
+        accepts(schema, { feature: "campaigns", body: { state: "paused" } })
+      ).toBe(false);
+      expect(accepts(schema, { feature: "campaigns" })).toBe(false);
+    }
+  });
+
+  it("tells the client to preview first and what feature_off means", () => {
+    for (const id of ["features.list", "features.preview", "features.set"]) {
+      expect(getOperation(id).description).toContain("409 feature_off");
+    }
+
+    expect(getOperation("features.set").description).toContain(
+      "luca_features_preview first"
+    );
+    expect(getOperation("features.preview").description).toContain(
+      "before luca_features_set"
+    );
   });
 });

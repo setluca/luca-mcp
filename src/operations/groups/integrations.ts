@@ -25,7 +25,8 @@ export const integrationsOperations: readonly LucaOperation[] = [
     title: "Create a CRM connection",
     idempotent: true,
     mutatesExisting: true,
-    description: "Create or update a workspace-scoped CRM connection.",
+    description:
+      "Create or update a workspace-scoped CRM connection. Luca checks the credentials before storing them, so a bad key fails here. HubSpot connects only through OAuth (luca_integrations_crm_oauth_url), so raw HubSpot credentials are refused. A coach with another CRM already connected gets 409 crm_family_taken.",
   }),
   op({
     id: "integrations.crm.connections.schema",
@@ -36,7 +37,8 @@ export const integrationsOperations: readonly LucaOperation[] = [
     openWorld: true,
     // sampleRecords are literal contact and deal rows from the coach's CRM, which leads and other people filled in.
     untrustedContent: true,
-    description: "Discover CRM provider schema.",
+    description:
+      "Discover CRM provider schema: the objects and fields the connected CRM exposes, which field mapping works from. A connection that must be reconnected answers 409 crm_reauth_required, and a disconnected one answers 409 crm_connection_disabled.",
   }),
   op({
     id: "integrations.crm.connections.health",
@@ -80,7 +82,7 @@ export const integrationsOperations: readonly LucaOperation[] = [
     // Mutations carry CRM record values: names, emails, notes.
     untrustedContent: true,
     description:
-      "Record a dry-run preview of the changes a CRM sync would make, as a new sync run. Nothing is written to the CRM: the API refuses a live sync.",
+      "Record a dry-run preview of the changes a CRM sync would make, as a new sync run. Nothing is written to the CRM. When this CRM is the post-call target, resend lists the failed post-call summaries and deal-stage moves a sync would send again, up to 25 of each.",
   }),
   op({
     id: "integrations.events.list",

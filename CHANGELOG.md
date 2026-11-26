@@ -10,6 +10,32 @@ input schema, or changing what a tool does to a workspace.
 
 ## [Unreleased]
 
+### Added
+
+- `luca_features_list`, `luca_features_preview`, and `luca_features_set` read
+  and change the coach's feature switches: AI replies, Campaigns, Broadcasts,
+  Follow-ups, Booking messages, and Call summaries. Preview counts the work a
+  change would hold and changes nothing. Set needs `confirm: true`, because
+  turning a feature off holds its queued work and turning it back on releases
+  it. A tool that answers `409 feature_off` was refused because its feature is
+  off. The new `features:read` scope is in `luca:read`, and `features:write` in
+  `luca:full`.
+
+### Changed
+
+- The contracts are pinned to Luca `1faeb47da9` on `master`, ahead of its
+  production deploy.
+- `luca_channels_set_ai_dm_auto_send` can only turn auto-send off through a
+  connection. Turning it on answers `403 auto_needs_coach`, and Luca has
+  deprecated the route in favor of its Autonomy settings.
+- `luca_campaigns_enrollments_resume` explains `409 feature_off`.
+  `luca_campaigns_list` takes `status: open` and `search`.
+  `luca_cadences_rescue_start` and `luca_rescue_silent_leads` describe the
+  follow-up plans that replaced the fixed cadence; `cadenceTemplate` no longer
+  sets timing.
+- The booking, CRM connection, CRM sync, CRM push, and morning report tools
+  describe what their routes now return and refuse.
+
 ## [0.10.0] - 2026-11-18
 
 ### Breaking

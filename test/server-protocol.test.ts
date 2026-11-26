@@ -342,7 +342,7 @@ describe("MCP protocol", () => {
       readonly operations: unknown[];
     };
 
-    expect(manifest.groups).toHaveLength(22);
+    expect(manifest.groups).toHaveLength(23);
     expect(manifest.operations).toHaveLength(LUCA_OPERATIONS.length);
   });
 

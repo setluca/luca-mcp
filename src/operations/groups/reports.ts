@@ -13,6 +13,6 @@ export const reportsOperations: readonly LucaOperation[] = [
     title: "Read the morning report",
     untrustedContent: true,
     description:
-      "Structured 24h review-queue digest (items + counts) for the coach. No model call; summarize client-side.",
+      "Structured 24h review-queue digest (items + counts) for the coach, with the clients whose latest messages read stuck or at risk. No model call; summarize client-side.",
   }),
 ];
